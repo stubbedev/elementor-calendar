@@ -5,6 +5,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class TSB_DB {
 
+	const DB_VERSION = '1';
+
+	/**
+	 * Idempotent schema guard. Runs on every load but does real work only when
+	 * the stored version differs — so it self-heals when activation hooks are
+	 * skipped (e.g. `wp plugin activate`, which suppresses them).
+	 */
+	public static function ensure_schema() {
+		if ( get_option( 'tsb_db_ver' ) === self::DB_VERSION ) {
+			return;
+		}
+		self::create_tables();
+	}
+
 	public static function blocked_table() {
 		global $wpdb;
 		return $wpdb->prefix . 'tsb_blocked';
@@ -51,6 +65,8 @@ class TSB_DB {
 			PRIMARY KEY (id),
 			UNIQUE KEY slot (slot_date, slot_time, active)
 		) $charset;" );
+
+		update_option( 'tsb_db_ver', self::DB_VERSION );
 	}
 
 	/** Rows blocked for a date (whole-day = block_time NULL). */

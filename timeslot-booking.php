@@ -24,6 +24,10 @@ require_once TSB_PATH . 'admin/class-tsb-admin.php';
 
 register_activation_hook( __FILE__, array( 'TSB_DB', 'create_tables' ) );
 
+// Self-heal: create tables on first load if activation hook was skipped
+// (e.g. `wp plugin activate`, which suppresses activation hooks).
+add_action( 'plugins_loaded', array( 'TSB_DB', 'ensure_schema' ) );
+
 // Bail with an admin notice if Elementor is not active — the widget needs it.
 add_action( 'plugins_loaded', function () {
 	if ( did_action( 'elementor/loaded' ) || class_exists( '\Elementor\Plugin' ) ) {

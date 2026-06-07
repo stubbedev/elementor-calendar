@@ -51,6 +51,23 @@ and the `.ics` title.
 - **Spam** — honeypot is always evaluated; reCAPTCHA / hCaptcha tokens are
   verified server-side. v3 enforces the configured minimum score.
 
+## Local dev (Docker)
+
+```bash
+docker compose up -d
+docker compose logs -f wpcli   # wait for: READY -> http://localhost:8765/wp-admin
+```
+
+- Site / admin: http://localhost:8765/wp-admin — `admin` / `admin`
+- **MailHog** (catches all outgoing mail incl. `.ics`): http://localhost:8025
+- Port override: `WP_PORT=9123 docker compose up -d` (also `MAILHOG_PORT`)
+- This plugin is live-mounted; PHP opcache means you must
+  `docker compose restart wordpress` to see edits.
+- Teardown: `docker compose down` (keep data) or `down -v` (wipe).
+
+`docker/mu-plugins/mailhog.php` is a dev-only must-use plugin that routes
+`wp_mail()` to the MailHog container — it is not part of the shipped plugin.
+
 ## Tests
 
 Pure-PHP unit tests for the holiday math and slot generation (no WordPress

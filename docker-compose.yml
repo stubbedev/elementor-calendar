@@ -16,9 +16,6 @@ services:
 
   wordpress:
     image: wordpress:6-php8.2-apache
-    depends_on:
-      db:
-        condition: service_healthy
     ports:
       - "${WP_PORT:-8765}:80"
     environment:
@@ -31,11 +28,27 @@ services:
       - wp:/var/www/html
       # Live-mount this plugin — edits on host appear instantly in the container.
       - .:/var/www/html/wp-content/plugins/timeslot-booking
+      # Dev-only: route wp_mail() to MailHog.
+      - ./docker/mu-plugins:/var/www/html/wp-content/mu-plugins
+    depends_on:
+      db:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+
+  # Catches all outgoing mail (incl. .ics attachments). UI at http://localhost:8025.
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - "${MAILHOG_PORT:-8025}:8025"
 
   # One-shot: waits for WP core files, installs WP + Elementor, activates this
   # plugin, then exits.
   wpcli:
     image: wordpress:cli-php8.2
+    # Match the apache image's www-data uid so writes to the shared wp volume
+    # (uploads, upgrade dir) succeed.
+    user: "33:33"
     depends_on:
       db:
         condition: service_healthy
@@ -50,6 +63,7 @@ services:
     volumes:
       - wp:/var/www/html
       - .:/var/www/html/wp-content/plugins/timeslot-booking
+      - ./docker/mu-plugins:/var/www/html/wp-content/mu-plugins
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
