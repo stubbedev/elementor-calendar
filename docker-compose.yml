@@ -1,0 +1,84 @@
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wp
+      MYSQL_PASSWORD: wp
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  wordpress:
+    image: wordpress:6-php8.2-apache
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${WP_PORT:-8765}:80"
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wp
+      WORDPRESS_DB_PASSWORD: wp
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DEBUG: 1
+    volumes:
+      - wp:/var/www/html
+      # Live-mount this plugin — edits on host appear instantly in the container.
+      - .:/var/www/html/wp-content/plugins/timeslot-booking
+
+  # One-shot: waits for WP core files, installs WP + Elementor, activates this
+  # plugin, then exits.
+  wpcli:
+    image: wordpress:cli-php8.2
+    depends_on:
+      db:
+        condition: service_healthy
+      wordpress:
+        condition: service_started
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wp
+      WORDPRESS_DB_PASSWORD: wp
+      WORDPRESS_DB_NAME: wordpress
+      WP_PORT: ${WP_PORT:-8765}
+    volumes:
+      - wp:/var/www/html
+      - .:/var/www/html/wp-content/plugins/timeslot-booking
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        URL="http://localhost:$${WP_PORT}"
+        # Wait until the wordpress container has copied core files into the volume.
+        until [ -f /var/www/html/wp-includes/version.php ]; do sleep 2; done
+        # Generate wp-config.php if the wordpress entrypoint has not yet.
+        if [ ! -f /var/www/html/wp-config.php ]; then
+          wp config create --allow-root \
+            --dbhost=db --dbname=wordpress --dbuser=wp --dbpass=wp --skip-check
+        fi
+        until wp core is-installed --allow-root 2>/dev/null; do
+          wp core install --allow-root \
+            --url=$${URL} \
+            --title="TSB Local" \
+            --admin_user=admin \
+            --admin_password=admin \
+            --admin_email=admin@example.com \
+            --skip-email && break || sleep 3
+        done
+        # Keep site/home URL in sync if WP_PORT changed between runs.
+        wp option update siteurl $${URL} --allow-root
+        wp option update home $${URL} --allow-root
+        wp plugin install elementor --activate --allow-root
+        wp plugin activate timeslot-booking --allow-root
+        wp option update timezone_string Europe/Copenhagen --allow-root
+        echo "READY -> $${URL}/wp-admin  (admin / admin)"
+
+volumes:
+  db:
+  wp:

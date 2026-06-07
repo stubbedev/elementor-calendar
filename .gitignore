@@ -1,0 +1,21 @@
+# PHP deps (committed: composer.json; not: installed tree)
+/vendor/
+
+# Local env / docker overrides
+.env
+docker-compose.override.yml
+
+# PHPUnit
+.phpunit.result.cache
+/coverage/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# WordPress debug output (if ever generated in-tree)
+wp-content/debug.log
