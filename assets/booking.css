@@ -1,6 +1,16 @@
-.tsb { --tsb-accent: #2563eb; --tsb-border: #d0d5dd; max-width: 480px; }
+.tsb {
+	/* Accent follows the theme/Elementor primary unless overridden in the widget. */
+	--tsb-accent: var( --e-global-color-primary, #2563eb );
+	--tsb-cal-gap: .35em;
+	/* Subtle borders/fills derived from the inherited text color, so cells sit
+	   naturally on any theme background. */
+	--tsb-line: color-mix( in srgb, currentColor 18%, transparent );
+	--tsb-soft: color-mix( in srgb, var( --tsb-accent ) 10%, transparent );
+	max-width: 480px;
+	color: inherit;
+}
 .tsb-intro { font-weight: 600; margin: 0 0 .75em; }
-.tsb-loading { color: #666; }
+.tsb-loading { opacity: .7; }
 
 /* ---------- calendar ---------- */
 .tsb-cal-head {
@@ -12,8 +22,9 @@
 .tsb-cal-title { font-weight: 600; text-transform: capitalize; }
 .tsb-cal-nav {
 	cursor: pointer;
-	border: 1px solid var(--tsb-border);
-	background: #fff;
+	border: 1px solid var( --tsb-line );
+	background: transparent;
+	color: inherit;
 	border-radius: 8px;
 	width: 2em;
 	height: 2em;
@@ -22,86 +33,94 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	transition: border-color .15s, color .15s;
 }
-.tsb-cal-nav:hover:not(:disabled) { border-color: var(--tsb-accent); color: var(--tsb-accent); }
-.tsb-cal-nav:disabled { opacity: .35; cursor: default; }
+.tsb-cal-nav:hover:not(:disabled) { border-color: var( --tsb-accent ); color: var( --tsb-accent ); }
+.tsb-cal-nav:disabled { opacity: .3; cursor: default; }
 
-.tsb-cal-weekdays {
+.tsb-cal-weekdays,
+.tsb-cal-grid {
 	display: grid;
 	grid-template-columns: repeat( 7, 1fr );
-	gap: .35em;
+	gap: var( --tsb-cal-gap );
+}
+.tsb-cal-weekdays {
 	margin: 0 0 .35em;
 	font-size: .72em;
-	color: #667085;
+	opacity: .65;
 	text-align: center;
 	text-transform: uppercase;
 	letter-spacing: .02em;
 }
-.tsb-cal-grid {
-	display: grid;
-	grid-template-columns: repeat( 7, 1fr );
-	gap: .35em;
-}
 .tsb-day {
-	position: relative;
 	aspect-ratio: 1 / 1;
 	display: flex;
-	flex-direction: column;
 	align-items: center;
 	justify-content: center;
 	border-radius: 8px;
 	font: inherit;
+	color: inherit;
 	line-height: 1.1;
 	border: 1px solid transparent;
 	background: transparent;
 }
-.tsb-day.is-blank { border: 0; background: none; }
-.tsb-day.is-empty { color: #b0b6c0; }
+.tsb-day.is-blank { border: 0; }
+/* Unavailable days are visible but not interactive. */
+.tsb-day.is-empty { opacity: .32; cursor: default; }
 .tsb-day.is-open {
 	cursor: pointer;
-	border-color: var(--tsb-border);
-	background: #fff;
-	transition: border-color .15s, background .15s, color .15s;
+	border-color: var( --tsb-line );
+	transition: border-color .15s, background .15s, color .15s, transform .1s;
 }
-.tsb-day.is-open:hover { border-color: var(--tsb-accent); }
-.tsb-day.is-open.is-selected { background: var(--tsb-accent); color: #fff; border-color: var(--tsb-accent); }
-.tsb-day-n { font-size: .95em; }
-.tsb-day-c { font-size: .62em; opacity: .8; }
-.tsb-day.is-open.is-selected .tsb-day-c { opacity: .95; }
-.tsb-cal-hint { margin: .6em 0 0; font-size: .75em; color: #667085; }
+.tsb-day.is-open:hover { border-color: var( --tsb-accent ); }
+.tsb-day.is-open:active { transform: scale( .95 ); }
+.tsb-day.is-open.is-selected {
+	background: var( --tsb-accent );
+	color: #fff;
+	border-color: var( --tsb-accent );
+}
+.tsb-cal-hint { margin: .6em 0 0; font-size: .75em; opacity: .65; }
 
 /* ---------- slots ---------- */
 .tsb-slots { display: flex; flex-wrap: wrap; gap: .5em; margin: 1em 0; }
 .tsb-slots-head { width: 100%; margin: 0 0 .25em; font-weight: 600; }
 .tsb-slot {
 	cursor: pointer;
-	border: 1px solid var(--tsb-border);
-	background: #fff;
+	border: 1px solid var( --tsb-line );
+	background: transparent;
+	color: inherit;
 	border-radius: 8px;
 	padding: .5em .9em;
 	font: inherit;
 	line-height: 1.2;
 	min-width: 4.5em;
 	text-align: center;
-	transition: border-color .15s, background .15s;
+	transition: border-color .15s, background .15s, transform .1s;
 }
-.tsb-slot:hover { border-color: var(--tsb-accent); }
+.tsb-slot:hover { border-color: var( --tsb-accent ); }
+.tsb-slot:active { transform: scale( .96 ); }
 
 /* ---------- form ---------- */
 .tsb-form { display: grid; gap: .75em; max-width: 420px; }
 .tsb-form label { display: grid; gap: .25em; font-size: .9em; }
 .tsb-form input, .tsb-form textarea {
 	font: inherit;
+	color: inherit;
 	padding: .55em .7em;
-	border: 1px solid var(--tsb-border);
+	border: 1px solid var( --tsb-line );
 	border-radius: 8px;
+	background: transparent;
 	width: 100%;
 	box-sizing: border-box;
+}
+.tsb-form input:focus, .tsb-form textarea:focus {
+	outline: none;
+	border-color: var( --tsb-accent );
 }
 .tsb-chosen {
 	margin: 0;
 	padding: .5em .75em;
-	background: #eff4ff;
+	background: var( --tsb-soft );
 	border-radius: 8px;
 	font-weight: 600;
 }
@@ -109,18 +128,22 @@
 .tsb-submit {
 	cursor: pointer;
 	border: 0;
-	background: var(--tsb-accent);
+	background: var( --tsb-accent );
 	color: #fff;
 	border-radius: 8px;
 	padding: .65em 1.2em;
 	font: inherit;
 	font-weight: 600;
+	transition: filter .15s, transform .1s;
 }
+.tsb-submit:hover { filter: brightness( 1.07 ); }
+.tsb-submit:active { transform: scale( .98 ); }
 .tsb-submit:disabled { opacity: .6; cursor: default; }
 .tsb-back {
 	cursor: pointer;
-	border: 1px solid var(--tsb-border);
-	background: #fff;
+	border: 1px solid var( --tsb-line );
+	background: transparent;
+	color: inherit;
 	border-radius: 8px;
 	padding: .65em 1.2em;
 	font: inherit;
@@ -132,3 +155,26 @@
 .tsb-result { margin-top: 1em; padding: .75em 1em; border-radius: 8px; }
 .tsb-result.ok { background: #ecfdf3; color: #027a48; }
 .tsb-result.err { background: #fef3f2; color: #b42318; }
+
+/* ---------- animation ---------- */
+@keyframes tsb-pop {
+	from { opacity: 0; transform: translateY( 6px ) scale( .96 ); }
+	to   { opacity: 1; transform: none; }
+}
+@keyframes tsb-fade-up {
+	from { opacity: 0; transform: translateY( 10px ); }
+	to   { opacity: 1; transform: none; }
+}
+.tsb-slots.is-in .tsb-slot {
+	animation: tsb-pop .28s ease both;
+	animation-delay: calc( var( --i, 0 ) * 30ms );
+}
+.tsb-form.is-in { animation: tsb-fade-up .3s ease both; }
+.tsb-result.is-in { animation: tsb-fade-up .25s ease both; }
+
+@media ( prefers-reduced-motion: reduce ) {
+	.tsb-slots.is-in .tsb-slot,
+	.tsb-form.is-in,
+	.tsb-result.is-in { animation: none; }
+	.tsb-day, .tsb-slot, .tsb-submit, .tsb-cal-nav { transition: none; }
+}

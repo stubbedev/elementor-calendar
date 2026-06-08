@@ -7,7 +7,11 @@ class TSB_Ajax {
 
 	protected static function verify() {
 		if ( ! check_ajax_referer( 'tsb_nonce', 'nonce', false ) ) {
-			wp_send_json_error( array( 'message' => 'Sikkerhedstjek fejlede. Genindlæs siden.' ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Security check failed. Please reload the page.', 'tsb' ) ), 403 );
+		}
+		// Render slots/emails in the visitor's language (WPML/Polylang).
+		if ( ! empty( $_POST['lang'] ) ) {
+			TSB_I18N::switch_language( sanitize_text_field( wp_unslash( $_POST['lang'] ) ) );
 		}
 	}
 
@@ -29,7 +33,7 @@ class TSB_Ajax {
 
 		// Honeypot: bots fill hidden field. Pretend success, store nothing.
 		if ( ! empty( $_POST['tsb_hp'] ) ) {
-			wp_send_json_success( array( 'message' => 'Tak! Din tid er booket.' ) );
+			wp_send_json_success( array( 'message' => __( 'Thank you! Your time is booked.', 'tsb' ) ) );
 		}
 
 		$date  = isset( $_POST['date'] ) ? sanitize_text_field( wp_unslash( $_POST['date'] ) ) : '';
@@ -40,16 +44,16 @@ class TSB_Ajax {
 		$msg   = isset( $_POST['message'] ) ? sanitize_textarea_field( wp_unslash( $_POST['message'] ) ) : '';
 
 		if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date ) || ! preg_match( '/^\d{2}:\d{2}$/', $time ) ) {
-			wp_send_json_error( array( 'message' => 'Ugyldigt tidspunkt.' ) );
+			wp_send_json_error( array( 'message' => __( 'Invalid time slot.', 'tsb' ) ) );
 		}
 		if ( '' === $name || ! is_email( $email ) ) {
-			wp_send_json_error( array( 'message' => 'Udfyld navn og en gyldig e-mail.' ) );
+			wp_send_json_error( array( 'message' => __( 'Please enter your name and a valid email.', 'tsb' ) ) );
 		}
 		if ( ! self::captcha_ok( $s ) ) {
-			wp_send_json_error( array( 'message' => 'Bekræft venligst at du ikke er en robot.' ) );
+			wp_send_json_error( array( 'message' => __( 'Please confirm that you are not a robot.', 'tsb' ) ) );
 		}
 		if ( ! self::slot_available( $date, $time ) ) {
-			wp_send_json_error( array( 'message' => 'Tidspunktet er desværre ikke længere ledigt.' ) );
+			wp_send_json_error( array( 'message' => __( 'Sorry, that time is no longer available.', 'tsb' ) ) );
 		}
 
 		global $wpdb;
@@ -70,13 +74,13 @@ class TSB_Ajax {
 
 		// false => UNIQUE(slot_date, slot_time) collision: just taken.
 		if ( false === $ok ) {
-			wp_send_json_error( array( 'message' => 'Tidspunktet blev netop optaget. Vælg et andet.' ) );
+			wp_send_json_error( array( 'message' => __( 'That time was just taken. Please choose another.', 'tsb' ) ) );
 		}
 
 		$booking_id = (int) $wpdb->insert_id;
 		self::send_mails( $s, compact( 'name', 'email', 'phone', 'msg', 'date', 'time', 'booking_id' ) );
 
-		wp_send_json_success( array( 'message' => 'Tak! Din tid er booket. Du modtager en bekræftelse på e-mail.' ) );
+		wp_send_json_success( array( 'message' => __( 'Thank you! Your time is booked. You will receive a confirmation by email.', 'tsb' ) ) );
 	}
 
 	protected static function send_mails( $s, $d ) {
@@ -91,6 +95,13 @@ class TSB_Ajax {
 		$tr = function ( $t ) use ( $repl ) {
 			return strtr( (string) $t, $repl );
 		};
+
+		// WPML String Translation: localize the configured templates first.
+		$admin_subject = TSB_I18N::translate( 'admin_subject', $s['admin_subject'] );
+		$admin_body    = TSB_I18N::translate( 'admin_body', $s['admin_body'] );
+		$cust_subject  = TSB_I18N::translate( 'customer_subject', $s['customer_subject'] );
+		$cust_body     = TSB_I18N::translate( 'customer_body', $s['customer_body'] );
+		$ics_summary   = TSB_I18N::translate( 'ics_summary', $s['ics_summary'] );
 
 		// Optional custom sender.
 		$from = '';
@@ -108,7 +119,7 @@ class TSB_Ajax {
 					'time'        => $d['time'],
 					'name'        => $d['name'],
 					'email'       => $d['email'],
-					'summary'     => strtr( $s['ics_summary'], $repl ),
+					'summary'     => strtr( $ics_summary, $repl ),
 					'location'    => $s['ics_location'],
 					'description' => $d['msg'],
 				),
@@ -129,14 +140,14 @@ class TSB_Ajax {
 			if ( is_email( $d['email'] ) ) {
 				$headers[] = 'Reply-To: ' . $d['name'] . ' <' . $d['email'] . '>';
 			}
-			wp_mail( $to, $tr( $s['admin_subject'] ), $tr( $s['admin_body'] ), $headers );
+			wp_mail( $to, $tr( $admin_subject ), $tr( $admin_body ), $headers );
 		}
 		if ( ! empty( $s['customer_confirm'] ) && is_email( $d['email'] ) ) {
 			$headers = $from ? array( $from ) : array();
 			if ( $ics_cb ) {
 				add_action( 'phpmailer_init', $ics_cb );
 			}
-			wp_mail( $d['email'], $tr( $s['customer_subject'] ), $tr( $s['customer_body'] ), $headers );
+			wp_mail( $d['email'], $tr( $cust_subject ), $tr( $cust_body ), $headers );
 			if ( $ics_cb ) {
 				remove_action( 'phpmailer_init', $ics_cb );
 			}

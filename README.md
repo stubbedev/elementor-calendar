@@ -1,13 +1,18 @@
 # Timeslot Booking
 
 Custom WordPress + Elementor plugin. Visitors **pick a day** on a month calendar
-(days with free times are marked and show a count), **then pick a timeslot**,
-**then** fill the contact form on a separate step with a back button. Availability
-is generated from per-weekday opening hours (slot length, start offset, and gap
-between slots all configurable), with public holidays (any country, via
-date.nager.at), weekends, and individual slots/days auto-blocked. Double-booking
-is prevented at the database level. Bookings appear in their own top-level
-**Bookinger** menu as a native, sortable, searchable list.
+(days with free times are highlighted; days without are shown but not clickable),
+**then pick a timeslot** (animated reveal), **then** fill the contact form on a
+separate step with a back button. Availability is generated from per-weekday
+opening hours (slot length, start offset, and gap between slots all configurable),
+with public holidays (any country, via date.nager.at), weekends, and individual
+slots/days auto-blocked. Double-booking is prevented at the database level.
+Bookings appear in their own top-level **Bookings** menu as a native, sortable,
+searchable list.
+
+The UI is fully internationalized (English source, ships with Danish; follows the
+WordPress locale and integrates with WPML/Polylang), and the widget exposes a deep
+set of Elementor **Style** controls that default to the active theme's colors.
 
 ## Requirements
 
@@ -45,6 +50,46 @@ The widget exposes Elementor **Style** controls (Calendar, Form, Buttons):
 accent colour, calendar cell typography/colour/background/radius, form label and
 input typography/colour/background/border/radius, and submit/back button
 typography, colours, hover, and radius — all themeable per instance.
+
+## Languages & translation
+
+Source strings are **English**; the plugin ships a **Danish** catalog
+(`languages/tsb-da_DK.po/.mo`) and follows the active WordPress locale — admin and
+front-end switch automatically, defaulting to English. Front-end month and weekday
+names come from `wp_date()`, so they match the locale with no extra entries.
+
+Regenerate the template / add a language:
+
+```bash
+wp i18n make-pot . languages/tsb.pot --domain=tsb --exclude=vendor,tests,docker
+# translate languages/tsb-<locale>.po, then:
+msgfmt languages/tsb-<locale>.po -o languages/tsb-<locale>.mo
+```
+
+### WPML / Polylang (ICL)
+
+- **The plugin's own strings** use gettext, so WPML/Polylang translate them by
+  switching the locale per language — nothing extra needed.
+- **Admin-configured strings** (email subjects/bodies, `.ics` title) live in an
+  option, so they're registered with **WPML String Translation** under the
+  `Timeslot Booking` domain (`TSB_I18N`) and translated on output. Translate them
+  under *WPML → String Translation*.
+- Each AJAX request carries the visitor's language, so confirmation emails and slot
+  labels render in their language.
+- The widget's own **Intro text** is Elementor content — translate it with WPML's
+  Elementor integration (Translation Editor).
+- All of this is no-op-safe: with no multilingual plugin active, the bridge passes
+  every string through unchanged.
+
+## Widget styling (Elementor)
+
+`Style` tab sections: **Calendar**, **Time slots**, **Form & fields**,
+**Buttons & messages**. Accent color defaults to the theme/Elementor global
+primary (`--e-global-color-primary`); cells, inputs and slots inherit the theme
+text color via `currentColor`/`color-mix`, so the widget blends into any theme out
+of the box. Knobs include typography, colors, backgrounds, hover states, borders,
+radius, padding and cell spacing. The date→slots→form steps animate in
+(respecting `prefers-reduced-motion`).
 
 ### Email placeholders
 
@@ -114,6 +159,7 @@ timeslot-booking/
 │   ├── class-tsb-db.php          table schema + queries
 │   ├── class-tsb-holidays.php    holidays (Nager.Date API + DK computus fallback)
 │   ├── class-tsb-availability.php slot generation
+│   ├── class-tsb-i18n.php        WPML/Polylang bridge for configured strings
 │   ├── class-tsb-ics.php         .ics calendar invite builder
 │   └── class-tsb-ajax.php        get-slots + book endpoints, mail, captcha
 ├── widgets/class-tsb-widget.php  Elementor widget + content/style controls
@@ -121,5 +167,6 @@ timeslot-booking/
 │   ├── class-tsb-admin.php       menu, settings tabs, booking/block management
 │   └── class-tsb-bookings-table.php  native WP_List_Table for bookings
 ├── assets/booking.js, booking.css
+├── languages/                    tsb.pot + tsb-da_DK.po/.mo
 └── tests/                        PHPUnit (holiday + availability)
 ```

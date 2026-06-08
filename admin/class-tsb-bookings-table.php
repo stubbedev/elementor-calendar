@@ -24,13 +24,13 @@ class TSB_Bookings_Table extends WP_List_Table {
 	public function get_columns() {
 		return array(
 			'cb'        => '<input type="checkbox" />',
-			'slot_date' => 'Dato',
-			'slot_time' => 'Tid',
-			'name'      => 'Navn',
-			'email'     => 'E-mail',
-			'phone'     => 'Telefon',
-			'message'   => 'Besked',
-			'status'    => 'Status',
+			'slot_date' => __( 'Date', 'tsb' ),
+			'slot_time' => __( 'Time', 'tsb' ),
+			'name'      => __( 'Name', 'tsb' ),
+			'email'     => __( 'Email', 'tsb' ),
+			'phone'     => __( 'Phone', 'tsb' ),
+			'message'   => __( 'Message', 'tsb' ),
+			'status'    => __( 'Status', 'tsb' ),
 		);
 	}
 
@@ -45,8 +45,8 @@ class TSB_Bookings_Table extends WP_List_Table {
 
 	protected function get_bulk_actions() {
 		return array(
-			'cancel' => 'Aflys',
-			'delete' => 'Slet permanent',
+			'cancel' => __( 'Cancel', 'tsb' ),
+			'delete' => __( 'Delete permanently', 'tsb' ),
 		);
 	}
 
@@ -77,10 +77,10 @@ class TSB_Bookings_Table extends WP_List_Table {
 				array( 'page' => 'tsb_bookings', 'action' => 'edit', 'id' => (int) $item->id ),
 				admin_url( 'admin.php' )
 			);
-			$actions['edit']   = '<a href="' . esc_url( $edit ) . '">Flyt</a>';
-			$actions['cancel'] = '<a href="' . esc_url( wp_nonce_url( $base . '?action=tsb_booking_cancel&id=' . (int) $item->id, 'tsb_booking_cancel' ) ) . '" onclick="return confirm(\'Aflys booking? Tiden bliver ledig igen.\')">Aflys</a>';
+			$actions['edit']   = '<a href="' . esc_url( $edit ) . '">' . esc_html__( 'Move', 'tsb' ) . '</a>';
+			$actions['cancel'] = '<a href="' . esc_url( wp_nonce_url( $base . '?action=tsb_booking_cancel&id=' . (int) $item->id, 'tsb_booking_cancel' ) ) . '" onclick="return confirm(\'' . esc_js( __( 'Cancel booking? The time becomes available again.', 'tsb' ) ) . '\')">' . esc_html__( 'Cancel', 'tsb' ) . '</a>';
 		}
-		$actions['delete'] = '<a href="' . esc_url( wp_nonce_url( $base . '?action=tsb_booking_delete&id=' . (int) $item->id, 'tsb_booking_delete' ) ) . '" onclick="return confirm(\'Slet permanent?\')">Slet</a>';
+		$actions['delete'] = '<a href="' . esc_url( wp_nonce_url( $base . '?action=tsb_booking_delete&id=' . (int) $item->id, 'tsb_booking_delete' ) ) . '" onclick="return confirm(\'' . esc_js( __( 'Delete permanently?', 'tsb' ) ) . '\')">' . esc_html__( 'Delete', 'tsb' ) . '</a>';
 
 		return '<strong>' . esc_html( $item->name ) . '</strong>' . $this->row_actions( $actions );
 	}
@@ -93,7 +93,7 @@ class TSB_Bookings_Table extends WP_List_Table {
 	}
 
 	public function no_items() {
-		esc_html_e( 'Ingen bookinger.', 'tsb' );
+		esc_html_e( 'No bookings.', 'tsb' );
 	}
 
 	public function prepare_items() {

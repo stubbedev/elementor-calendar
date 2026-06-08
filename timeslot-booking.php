@@ -18,11 +18,21 @@ define( 'TSB_URL', plugin_dir_url( __FILE__ ) );
 require_once TSB_PATH . 'includes/class-tsb-db.php';
 require_once TSB_PATH . 'includes/class-tsb-holidays.php';
 require_once TSB_PATH . 'includes/class-tsb-availability.php';
+require_once TSB_PATH . 'includes/class-tsb-i18n.php';
 require_once TSB_PATH . 'includes/class-tsb-ics.php';
 require_once TSB_PATH . 'includes/class-tsb-ajax.php';
 require_once TSB_PATH . 'admin/class-tsb-admin.php';
 
 register_activation_hook( __FILE__, array( 'TSB_DB', 'create_tables' ) );
+
+// Translations. Source strings are English; ships with a Danish (da_DK) catalog.
+add_action( 'init', function () {
+	load_plugin_textdomain( 'tsb', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+} );
+
+// Expose the admin-configured email/.ics strings to WPML String Translation.
+add_action( 'admin_init', array( 'TSB_I18N', 'register' ) );
+add_action( 'wpml_st_loaded', array( 'TSB_I18N', 'register' ) );
 
 // Self-heal: create tables on first load if activation hook was skipped
 // (e.g. `wp plugin activate`, which suppresses activation hooks).
@@ -38,7 +48,7 @@ add_action( 'plugins_loaded', function () {
 			return;
 		}
 		echo '<div class="notice notice-warning"><p>';
-		echo esc_html__( 'Timeslot Booking kræver, at Elementor er installeret og aktiveret. Booking-widgeten vises ikke før Elementor er aktivt.', 'tsb' );
+		echo esc_html__( 'Timeslot Booking requires Elementor to be installed and active. The booking widget will not appear until Elementor is active.', 'tsb' );
 		echo '</p></div>';
 	} );
 } );
@@ -82,7 +92,40 @@ function tsb_register_assets() {
 			'mode' => $mode,
 			'site' => $s['captcha_site'],
 		),
+		'lang'    => TSB_I18N::current_language(),
+		'i18n'    => tsb_js_i18n(),
 	) );
+}
+
+/**
+ * Strings + locale-aware month/weekday names handed to the front-end script.
+ * Month/weekday names come from wp_date() so they match the active WP locale
+ * with no separate translation entries.
+ */
+function tsb_js_i18n() {
+	$months   = array();
+	$weekdays = array();
+	for ( $m = 1; $m <= 12; $m++ ) {
+		$ts         = mktime( 0, 0, 0, $m, 1, 2025 );
+		$months[]   = function_exists( 'wp_date' ) ? wp_date( 'F', $ts ) : gmdate( 'F', $ts );
+	}
+	// 2024-01-01 is a Monday — build a Monday-first abbreviated header.
+	for ( $i = 0; $i < 7; $i++ ) {
+		$ts         = mktime( 0, 0, 0, 1, 1 + $i, 2024 );
+		$weekdays[] = function_exists( 'wp_date' ) ? wp_date( 'D', $ts ) : gmdate( 'D', $ts );
+	}
+	return array(
+		'months'    => $months,
+		'weekdays'  => $weekdays,
+		'loading'   => __( 'Loading available times…', 'tsb' ),
+		'loadError' => __( 'Could not load times. Please try again.', 'tsb' ),
+		'netError'  => __( 'Network error. Please try again.', 'tsb' ),
+		'noTimes'   => __( 'No available times right now.', 'tsb' ),
+		'at'        => __( 'at', 'tsb' ),
+		'free'      => __( 'free', 'tsb' ),
+		'ok'        => __( 'OK', 'tsb' ),
+		'error'     => __( 'Error', 'tsb' ),
+	);
 }
 
 // Force-enqueue inside the Elementor editor so the preview renders.

@@ -22,15 +22,15 @@ class TSB_Availability {
 			// emails
 			'admin_notify'     => 1,
 			'admin_to'         => '',   // blank => site admin_email
-			'admin_subject'    => 'Ny booking: {date} {time}',
-			'admin_body'       => "Navn: {name}\nE-mail: {email}\nTelefon: {phone}\nTid: {date} kl. {time}\n\nBesked:\n{message}",
+			'admin_subject'    => __( 'New booking: {date} {time}', 'tsb' ),
+			'admin_body'       => __( "Name: {name}\nEmail: {email}\nPhone: {phone}\nTime: {date} at {time}\n\nMessage:\n{message}", 'tsb' ),
 			'customer_confirm' => 1,
-			'customer_subject' => 'Bekræftelse på din booking {date} kl. {time}',
-			'customer_body'    => "Hej {name}\n\nTak for din booking.\n\nDato: {date}\nTid: {time}\n\nVi glæder os til at se dig. Svar på denne mail hvis du skal ændre tiden.",
+			'customer_subject' => __( 'Confirmation of your booking {date} at {time}', 'tsb' ),
+			'customer_body'    => __( "Hi {name}\n\nThank you for your booking.\n\nDate: {date}\nTime: {time}\n\nWe look forward to seeing you. Reply to this email if you need to change the time.", 'tsb' ),
 			'from_name'        => '', // blank => WordPress default
 			'from_email'       => '',
 			'ics_attach'       => 1,
-			'ics_summary'      => 'Booking: {name}',
+			'ics_summary'      => __( 'Booking: {name}', 'tsb' ),
 			'ics_location'     => '',
 			// spam
 			'captcha_mode'      => 'honeypot', // none | honeypot | recaptcha | recaptcha_v3 | hcaptcha
@@ -62,8 +62,15 @@ class TSB_Availability {
 		return $w;
 	}
 
+	/** Weekday full names (1=Mon..7=Sun), localized to the active WP locale. */
 	public static function weekday_names() {
-		return array( 1 => 'Mandag', 2 => 'Tirsdag', 3 => 'Onsdag', 4 => 'Torsdag', 5 => 'Fredag', 6 => 'Lørdag', 7 => 'Søndag' );
+		// 2024-01-01 is a Monday.
+		$names = array();
+		for ( $i = 0; $i < 7; $i++ ) {
+			$ts = mktime( 0, 0, 0, 1, 1 + $i, 2024 );
+			$names[ $i + 1 ] = function_exists( 'wp_date' ) ? wp_date( 'l', $ts ) : gmdate( 'l', $ts );
+		}
+		return $names;
 	}
 
 	/** Effective open/close hours for a weekday config, honouring the base toggle. */
@@ -160,10 +167,13 @@ class TSB_Availability {
 		return $out;
 	}
 
-	/** Danish date label, locale-independent. */
+	/** Human day label (e.g. "Monday 9 Jun" / "Mandag 9. jun"), locale-aware. */
 	protected static function da_label( DateTime $d ) {
-		$days   = self::weekday_names();
-		$months = array( 1 => 'jan', 2 => 'feb', 3 => 'mar', 4 => 'apr', 5 => 'maj', 6 => 'jun', 7 => 'jul', 8 => 'aug', 9 => 'sep', 10 => 'okt', 11 => 'nov', 12 => 'dec' );
-		return $days[ (int) $d->format( 'N' ) ] . ' ' . (int) $d->format( 'j' ) . '. ' . $months[ (int) $d->format( 'n' ) ];
+		if ( function_exists( 'wp_date' ) ) {
+			return wp_date( 'l j. M', $d->getTimestamp() );
+		}
+		$days   = array( 1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday', 7 => 'Sunday' );
+		$months = array( 1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'May', 6 => 'Jun', 7 => 'Jul', 8 => 'Aug', 9 => 'Sep', 10 => 'Oct', 11 => 'Nov', 12 => 'Dec' );
+		return $days[ (int) $d->format( 'N' ) ] . ' ' . (int) $d->format( 'j' ) . ' ' . $months[ (int) $d->format( 'n' ) ];
 	}
 }

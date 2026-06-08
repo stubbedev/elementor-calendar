@@ -1,0 +1,733 @@
+# Copyright (C) 2026 you
+# This file is distributed under the same license as the Timeslot Booking plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Timeslot Booking 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/timeslot-booking\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-06-08T16:21:11+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: tsb\n"
+
+#. Plugin Name of the plugin
+#: timeslot-booking.php
+#: widgets/class-tsb-widget.php:18
+msgid "Timeslot Booking"
+msgstr ""
+
+#. Description of the plugin
+#: timeslot-booking.php
+msgid "Custom Elementor widget. Predefined timeslots from an hour range, individual blocks removable, auto-blocks weekends + Danish bank holidays, contact form after slot pick, double-booking prevented."
+msgstr ""
+
+#. Author of the plugin
+#: timeslot-booking.php
+msgid "you"
+msgstr ""
+
+#: admin/class-tsb-admin.php:21
+#: admin/class-tsb-admin.php:232
+msgid "Bookings"
+msgstr ""
+
+#: admin/class-tsb-admin.php:22
+msgid "All bookings"
+msgstr ""
+
+#: admin/class-tsb-admin.php:23
+msgid "Settings"
+msgstr ""
+
+#: admin/class-tsb-admin.php:188
+#: admin/class-tsb-admin.php:490
+#: admin/class-tsb-admin.php:497
+#: admin/class-tsb-bookings-table.php:27
+msgid "Date"
+msgstr ""
+
+#: admin/class-tsb-admin.php:188
+#: admin/class-tsb-admin.php:491
+#: admin/class-tsb-admin.php:497
+#: admin/class-tsb-bookings-table.php:28
+msgid "Time"
+msgstr ""
+
+#: admin/class-tsb-admin.php:188
+#: admin/class-tsb-bookings-table.php:29
+#: widgets/class-tsb-widget.php:347
+msgid "Name"
+msgstr ""
+
+#: admin/class-tsb-admin.php:188
+#: admin/class-tsb-bookings-table.php:30
+#: widgets/class-tsb-widget.php:350
+msgid "Email"
+msgstr ""
+
+#: admin/class-tsb-admin.php:189
+#: admin/class-tsb-bookings-table.php:31
+#: widgets/class-tsb-widget.php:353
+msgid "Phone"
+msgstr ""
+
+#: admin/class-tsb-admin.php:189
+#: admin/class-tsb-bookings-table.php:32
+#: widgets/class-tsb-widget.php:356
+msgid "Message"
+msgstr ""
+
+#: admin/class-tsb-admin.php:189
+#: admin/class-tsb-bookings-table.php:33
+msgid "Status"
+msgstr ""
+
+#: admin/class-tsb-admin.php:189
+msgid "Created"
+msgstr ""
+
+#: admin/class-tsb-admin.php:233
+msgid "Export CSV"
+msgstr ""
+
+#: admin/class-tsb-admin.php:238
+msgid "Search"
+msgstr ""
+
+#: admin/class-tsb-admin.php:262
+msgid "Booking moved."
+msgstr ""
+
+#: admin/class-tsb-admin.php:263
+msgid "That time is already taken. Choose another."
+msgstr ""
+
+#: admin/class-tsb-admin.php:264
+msgid "Invalid date/time."
+msgstr ""
+
+#: admin/class-tsb-admin.php:265
+msgid "Booking(s) cancelled. The time is available again."
+msgstr ""
+
+#: admin/class-tsb-admin.php:266
+msgid "Booking(s) deleted."
+msgstr ""
+
+#: admin/class-tsb-admin.php:284
+#: admin/class-tsb-admin.php:303
+msgid "Move booking"
+msgstr ""
+
+#: admin/class-tsb-admin.php:286
+msgid "Booking not found."
+msgstr ""
+
+#: admin/class-tsb-admin.php:287
+#: widgets/class-tsb-widget.php:374
+msgid "Back"
+msgstr ""
+
+#. translators: %s: current date and time of the booking
+#: admin/class-tsb-admin.php:292
+#, php-format
+msgid "current time: %s"
+msgstr ""
+
+#: admin/class-tsb-admin.php:299
+msgid "New date"
+msgstr ""
+
+#: admin/class-tsb-admin.php:300
+msgid "New time"
+msgstr ""
+
+#: admin/class-tsb-admin.php:304
+#: admin/class-tsb-bookings-table.php:48
+#: admin/class-tsb-bookings-table.php:81
+msgid "Cancel"
+msgstr ""
+
+#: admin/class-tsb-admin.php:317
+msgid "Availability"
+msgstr ""
+
+#: admin/class-tsb-admin.php:318
+msgid "Emails"
+msgstr ""
+
+#: admin/class-tsb-admin.php:319
+msgid "Spam protection"
+msgstr ""
+
+#: admin/class-tsb-admin.php:320
+msgid "Blocks"
+msgstr ""
+
+#: admin/class-tsb-admin.php:327
+msgid "Booking settings"
+msgstr ""
+
+#: admin/class-tsb-admin.php:352
+msgid "Base business hours"
+msgstr ""
+
+#: admin/class-tsb-admin.php:354
+msgid "Base hours (from–to, 24h)"
+msgstr ""
+
+#: admin/class-tsb-admin.php:358
+msgid "Days marked “Follow base hours” use these hours."
+msgstr ""
+
+#: admin/class-tsb-admin.php:362
+msgid "Opening hours per weekday"
+msgstr ""
+
+#: admin/class-tsb-admin.php:365
+msgid "Day"
+msgstr ""
+
+#: admin/class-tsb-admin.php:366
+msgid "Open"
+msgstr ""
+
+#: admin/class-tsb-admin.php:367
+msgid "Follow base hours"
+msgstr ""
+
+#: admin/class-tsb-admin.php:368
+msgid "Own hours from"
+msgstr ""
+
+#: admin/class-tsb-admin.php:369
+msgid "To"
+msgstr ""
+
+#: admin/class-tsb-admin.php:384
+msgid "Slots"
+msgstr ""
+
+#: admin/class-tsb-admin.php:386
+msgid "Slot length (min)"
+msgstr ""
+
+#: admin/class-tsb-admin.php:386
+msgid "How long each time slot is."
+msgstr ""
+
+#: admin/class-tsb-admin.php:387
+msgid "Start offset (min)"
+msgstr ""
+
+#: admin/class-tsb-admin.php:387
+msgid "Minutes after opening before the first slot. 0 = start at opening."
+msgstr ""
+
+#: admin/class-tsb-admin.php:388
+msgid "Gap between slots (min)"
+msgstr ""
+
+#: admin/class-tsb-admin.php:388
+msgid "Buffer between two slots. 0 = none."
+msgstr ""
+
+#: admin/class-tsb-admin.php:389
+msgid "Days ahead"
+msgstr ""
+
+#: admin/class-tsb-admin.php:390
+msgid "Minimum lead time (hours)"
+msgstr ""
+
+#: admin/class-tsb-admin.php:390
+msgid "0 = bookable right now"
+msgstr ""
+
+#: admin/class-tsb-admin.php:393
+msgid "Public holidays"
+msgstr ""
+
+#: admin/class-tsb-admin.php:395
+msgid "Block holidays"
+msgstr ""
+
+#: admin/class-tsb-admin.php:396
+msgid "Countries"
+msgstr ""
+
+#: admin/class-tsb-admin.php:402
+msgid "Holidays are fetched from date.nager.at (cached). Hold Ctrl/Cmd to select several."
+msgstr ""
+
+#: admin/class-tsb-admin.php:416
+msgid "Placeholders:"
+msgstr ""
+
+#: admin/class-tsb-admin.php:418
+msgid "Message to admin"
+msgstr ""
+
+#: admin/class-tsb-admin.php:420
+msgid "Send admin notification"
+msgstr ""
+
+#: admin/class-tsb-admin.php:421
+msgid "Recipient"
+msgstr ""
+
+#: admin/class-tsb-admin.php:421
+msgid "default"
+msgstr ""
+
+#: admin/class-tsb-admin.php:422
+#: admin/class-tsb-admin.php:429
+msgid "Subject"
+msgstr ""
+
+#: admin/class-tsb-admin.php:423
+#: admin/class-tsb-admin.php:430
+msgid "Body"
+msgstr ""
+
+#: admin/class-tsb-admin.php:426
+msgid "Confirmation to customer"
+msgstr ""
+
+#: admin/class-tsb-admin.php:428
+msgid "Send confirmation"
+msgstr ""
+
+#: admin/class-tsb-admin.php:433
+msgid "Sender"
+msgstr ""
+
+#: admin/class-tsb-admin.php:435
+msgid "Sender name"
+msgstr ""
+
+#: admin/class-tsb-admin.php:435
+msgid "WordPress (default)"
+msgstr ""
+
+#: admin/class-tsb-admin.php:436
+msgid "Sender email"
+msgstr ""
+
+#: admin/class-tsb-admin.php:436
+msgid "WordPress default"
+msgstr ""
+
+#: admin/class-tsb-admin.php:436
+msgid "Use an address on your own domain for better deliverability (typically together with an SMTP plugin)."
+msgstr ""
+
+#: admin/class-tsb-admin.php:439
+msgid "Calendar invite (.ics)"
+msgstr ""
+
+#: admin/class-tsb-admin.php:441
+msgid "Attach .ics to customer email"
+msgstr ""
+
+#: admin/class-tsb-admin.php:442
+msgid "Title"
+msgstr ""
+
+#: admin/class-tsb-admin.php:442
+msgid "Placeholders as in emails, e.g. Booking: {name}."
+msgstr ""
+
+#: admin/class-tsb-admin.php:443
+msgid "Location"
+msgstr ""
+
+#: admin/class-tsb-admin.php:443
+#: admin/class-tsb-admin.php:492
+msgid "optional"
+msgstr ""
+
+#: admin/class-tsb-admin.php:453
+msgid "None"
+msgstr ""
+
+#: admin/class-tsb-admin.php:454
+msgid "Honeypot (hidden field, no keys)"
+msgstr ""
+
+#: admin/class-tsb-admin.php:455
+msgid "Google reCAPTCHA v2 (checkbox)"
+msgstr ""
+
+#: admin/class-tsb-admin.php:456
+msgid "Google reCAPTCHA v3 (invisible, score)"
+msgstr ""
+
+#: admin/class-tsb-admin.php:457
+msgid "hCaptcha"
+msgstr ""
+
+#: admin/class-tsb-admin.php:464
+msgid "Method"
+msgstr ""
+
+#: admin/class-tsb-admin.php:470
+msgid "Honeypot is always active and needs no setup. reCAPTCHA/hCaptcha require the keys below."
+msgstr ""
+
+#: admin/class-tsb-admin.php:472
+msgid "Site key"
+msgstr ""
+
+#: admin/class-tsb-admin.php:473
+msgid "Secret key"
+msgstr ""
+
+#: admin/class-tsb-admin.php:474
+msgid "v3 minimum score"
+msgstr ""
+
+#: admin/class-tsb-admin.php:474
+msgid "reCAPTCHA v3 only. 0.5 recommended; higher = stricter."
+msgstr ""
+
+#: admin/class-tsb-admin.php:485
+msgid "Remove individual times / days from availability"
+msgstr ""
+
+#: admin/class-tsb-admin.php:491
+msgid "empty = whole day"
+msgstr ""
+
+#: admin/class-tsb-admin.php:492
+#: admin/class-tsb-admin.php:497
+msgid "Reason"
+msgstr ""
+
+#: admin/class-tsb-admin.php:493
+msgid "Block"
+msgstr ""
+
+#: admin/class-tsb-admin.php:500
+msgid "No blocks."
+msgstr ""
+
+#: admin/class-tsb-admin.php:505
+msgid "whole day"
+msgstr ""
+
+#: admin/class-tsb-admin.php:507
+msgid "Delete block?"
+msgstr ""
+
+#: admin/class-tsb-admin.php:507
+#: admin/class-tsb-bookings-table.php:83
+msgid "Delete"
+msgstr ""
+
+#: admin/class-tsb-bookings-table.php:49
+msgid "Delete permanently"
+msgstr ""
+
+#: admin/class-tsb-bookings-table.php:80
+msgid "Move"
+msgstr ""
+
+#: admin/class-tsb-bookings-table.php:81
+msgid "Cancel booking? The time becomes available again."
+msgstr ""
+
+#: admin/class-tsb-bookings-table.php:83
+msgid "Delete permanently?"
+msgstr ""
+
+#: admin/class-tsb-bookings-table.php:96
+msgid "No bookings."
+msgstr ""
+
+#: includes/class-tsb-ajax.php:10
+msgid "Security check failed. Please reload the page."
+msgstr ""
+
+#: includes/class-tsb-ajax.php:36
+msgid "Thank you! Your time is booked."
+msgstr ""
+
+#: includes/class-tsb-ajax.php:47
+msgid "Invalid time slot."
+msgstr ""
+
+#: includes/class-tsb-ajax.php:50
+msgid "Please enter your name and a valid email."
+msgstr ""
+
+#: includes/class-tsb-ajax.php:53
+msgid "Please confirm that you are not a robot."
+msgstr ""
+
+#: includes/class-tsb-ajax.php:56
+msgid "Sorry, that time is no longer available."
+msgstr ""
+
+#: includes/class-tsb-ajax.php:77
+msgid "That time was just taken. Please choose another."
+msgstr ""
+
+#: includes/class-tsb-ajax.php:83
+msgid "Thank you! Your time is booked. You will receive a confirmation by email."
+msgstr ""
+
+#: includes/class-tsb-availability.php:25
+msgid "New booking: {date} {time}"
+msgstr ""
+
+#: includes/class-tsb-availability.php:26
+msgid ""
+"Name: {name}\n"
+"Email: {email}\n"
+"Phone: {phone}\n"
+"Time: {date} at {time}\n"
+"\n"
+"Message:\n"
+"{message}"
+msgstr ""
+
+#: includes/class-tsb-availability.php:28
+msgid "Confirmation of your booking {date} at {time}"
+msgstr ""
+
+#: includes/class-tsb-availability.php:29
+msgid ""
+"Hi {name}\n"
+"\n"
+"Thank you for your booking.\n"
+"\n"
+"Date: {date}\n"
+"Time: {time}\n"
+"\n"
+"We look forward to seeing you. Reply to this email if you need to change the time."
+msgstr ""
+
+#: includes/class-tsb-availability.php:33
+msgid "Booking: {name}"
+msgstr ""
+
+#: timeslot-booking.php:51
+msgid "Timeslot Booking requires Elementor to be installed and active. The booking widget will not appear until Elementor is active."
+msgstr ""
+
+#: timeslot-booking.php:120
+#: widgets/class-tsb-widget.php:325
+msgid "Loading available times…"
+msgstr ""
+
+#: timeslot-booking.php:121
+msgid "Could not load times. Please try again."
+msgstr ""
+
+#: timeslot-booking.php:122
+msgid "Network error. Please try again."
+msgstr ""
+
+#: timeslot-booking.php:123
+msgid "No available times right now."
+msgstr ""
+
+#: timeslot-booking.php:124
+msgid "at"
+msgstr ""
+
+#: timeslot-booking.php:125
+msgid "free"
+msgstr ""
+
+#: timeslot-booking.php:126
+msgid "OK"
+msgstr ""
+
+#: timeslot-booking.php:127
+msgid "Error"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:41
+msgid "Content"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:45
+#: widgets/class-tsb-widget.php:173
+msgid "Intro text"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:47
+msgid "Pick a day:"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:52
+msgid "Opening hours, slot length, holidays, emails, spam protection and blocks are managed under <strong>Bookings → Settings</strong> in wp-admin."
+msgstr ""
+
+#: widgets/class-tsb-widget.php:60
+msgid "Calendar"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:65
+msgid "Accent color"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:67
+msgid "Defaults to your theme/Elementor primary color."
+msgstr ""
+
+#: widgets/class-tsb-widget.php:72
+msgid "Cell spacing"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:79
+msgid "Month title color"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:85
+msgid "Weekday header color"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:92
+msgid "Day cell typography"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:97
+msgid "Day text color"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:103
+msgid "Day background"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:109
+msgid "Day hover border"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:115
+msgid "Selected day background"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:121
+msgid "Cell corner radius"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:131
+msgid "Time slots"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:141
+#: widgets/class-tsb-widget.php:186
+#: widgets/class-tsb-widget.php:213
+#: widgets/class-tsb-widget.php:247
+#: widgets/class-tsb-widget.php:276
+msgid "Text color"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:147
+#: widgets/class-tsb-widget.php:191
+#: widgets/class-tsb-widget.php:218
+#: widgets/class-tsb-widget.php:252
+#: widgets/class-tsb-widget.php:281
+msgid "Background"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:153
+msgid "Hover background"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:159
+#: widgets/class-tsb-widget.php:262
+msgid "Padding"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:169
+msgid "Form & fields"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:179
+msgid "Color"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:184
+msgid "Chosen-time box"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:196
+msgid "Labels"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:202
+msgid "Label color"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:207
+msgid "Input fields"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:227
+#: widgets/class-tsb-widget.php:268
+msgid "Corner radius"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:237
+msgid "Buttons & messages"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:241
+msgid "Confirm button"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:257
+msgid "Background (hover)"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:274
+msgid "Back button"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:286
+msgid "Result messages"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:288
+msgid "Success text"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:293
+msgid "Success background"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:298
+msgid "Error text"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:303
+msgid "Error background"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:329
+msgid "Previous month"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:331
+msgid "Next month"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:335
+msgid "Highlighted days have available times."
+msgstr ""
+
+#: widgets/class-tsb-widget.php:362
+msgid "Leave this field empty"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:375
+msgid "Confirm booking"
+msgstr ""

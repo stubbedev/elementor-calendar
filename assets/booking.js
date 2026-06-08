@@ -1,12 +1,17 @@
 ( function () {
 	'use strict';
 
-	var MONTHS = [ 'januar', 'februar', 'marts', 'april', 'maj', 'juni',
-		'juli', 'august', 'september', 'oktober', 'november', 'december' ];
+	// Locale strings + month/weekday names, injected from PHP (wp_date). English
+	// fallbacks keep the widget working if localization is unavailable.
+	var I18N = ( window.TSB && TSB.i18n ) || {};
+	var MONTHS = I18N.months || [ 'January','February','March','April','May','June',
+		'July','August','September','October','November','December' ];
+	var WEEKDAYS = I18N.weekdays || [ 'Mon','Tue','Wed','Thu','Fri','Sat','Sun' ];
+	function t( key, fallback ) { return I18N[ key ] || fallback; }
 
 	function pad( n ) { return ( n < 10 ? '0' : '' ) + n; }
 	function ymd( y, m, d ) { return y + '-' + pad( m + 1 ) + '-' + pad( d ); }
-	function monthIndex( y, m ) { return y * 12 + m; } // comparable month key
+	function monthIndex( y, m ) { return y * 12 + m; }
 
 	function init( root ) {
 		if ( root.dataset.tsbInit ) {
@@ -15,6 +20,7 @@
 		root.dataset.tsbInit = '1';
 
 		var elCal    = root.querySelector( '.tsb-cal' );
+		var elWeek   = root.querySelector( '.tsb-cal-weekdays' );
 		var elGrid   = root.querySelector( '.tsb-cal-grid' );
 		var elTitle  = root.querySelector( '.tsb-cal-title' );
 		var elPrev   = root.querySelector( '.tsb-cal-prev' );
@@ -27,14 +33,24 @@
 		var elBack   = root.querySelector( '.tsb-back' );
 		var elCap    = root.querySelector( '.g-recaptcha, .h-captcha' );
 
-		var avail   = {};   // 'YYYY-MM-DD' => day object
-		var view    = null; // { y, m }
+		var avail   = {};
+		var view    = null;
 		var minM    = 0, maxM = 0;
 		var selDate = null;
+
+		// Weekday header (Monday-first), localized.
+		if ( elWeek && ! elWeek.children.length ) {
+			WEEKDAYS.forEach( function ( w ) {
+				var s = document.createElement( 'span' );
+				s.textContent = w;
+				elWeek.appendChild( s );
+			} );
+		}
 
 		function post( action, body ) {
 			body.action = action;
 			body.nonce  = TSB.nonce;
+			if ( TSB.lang ) { body.lang = TSB.lang; } // WPML/Polylang language context
 			var fd = new FormData();
 			Object.keys( body ).forEach( function ( k ) { fd.append( k, body[ k ] ); } );
 			return fetch( TSB.ajax, { method: 'POST', body: fd, credentials: 'same-origin' } )
@@ -82,10 +98,10 @@
 		/* ---------- load ---------- */
 		function loadDays() {
 			elLoad.hidden = false;
-			elLoad.textContent = 'Henter ledige tider…';
+			elLoad.textContent = t( 'loading', 'Loading available times…' );
 			post( 'tsb_slots', {} ).then( function ( res ) {
 				if ( ! res.success ) {
-					elLoad.textContent = 'Kunne ikke hente tider. Prøv igen.';
+					elLoad.textContent = t( 'loadError', 'Could not load times. Please try again.' );
 					return;
 				}
 				elLoad.hidden = true;
@@ -99,7 +115,6 @@
 				minM = monthIndex( minDate.getFullYear(), minDate.getMonth() );
 				maxM = monthIndex( maxDate.getFullYear(), maxDate.getMonth() );
 
-				// Open on the month of the first available day, else the min month.
 				var openOn = firstAvail ? parseDate( firstAvail.date ) : minDate;
 				view = { y: openOn.getFullYear(), m: openOn.getMonth() };
 
@@ -110,7 +125,7 @@
 				elCal.hidden = false;
 				renderCal();
 			} ).catch( function () {
-				elLoad.textContent = 'Netværksfejl.';
+				elLoad.textContent = t( 'netError', 'Network error. Please try again.' );
 			} );
 		}
 
@@ -146,17 +161,18 @@
 					var b = document.createElement( 'button' );
 					b.type = 'button';
 					b.className = 'tsb-day is-open' + ( key === selDate ? ' is-selected' : '' );
-					b.innerHTML = '<span class="tsb-day-n">' + d + '</span>' +
-						'<span class="tsb-day-c">' + day.count + '</span>';
-					b.setAttribute( 'aria-label', day.label + ', ' + day.count + ' ledige' );
+					b.textContent = d;
+					b.setAttribute( 'aria-label', day.label );
 					( function ( dk ) {
 						b.addEventListener( 'click', function () { selectDay( dk ); } );
 					} )( key );
 					elGrid.appendChild( b );
 				} else {
+					// Unavailable: rendered, but not interactive.
 					var s = document.createElement( 'span' );
 					s.className = 'tsb-day is-empty';
-					s.innerHTML = '<span class="tsb-day-n">' + d + '</span>';
+					s.setAttribute( 'aria-disabled', 'true' );
+					s.textContent = d;
 					elGrid.appendChild( s );
 				}
 			}
@@ -186,15 +202,20 @@
 			head.textContent = day.label;
 			elSlots.appendChild( head );
 
-			day.slots.forEach( function ( t ) {
+			day.slots.forEach( function ( time, i ) {
 				var b = document.createElement( 'button' );
 				b.type = 'button';
 				b.className = 'tsb-slot';
-				b.textContent = t;
-				b.addEventListener( 'click', function () { selectSlot( day.date, t, day.label ); } );
+				b.style.setProperty( '--i', i ); // stagger the entrance animation
+				b.textContent = time;
+				b.addEventListener( 'click', function () { selectSlot( day.date, time, day.label ); } );
 				elSlots.appendChild( b );
 			} );
+			// Restart the reveal animation.
 			elSlots.hidden = false;
+			elSlots.classList.remove( 'is-in' );
+			void elSlots.offsetWidth; // force reflow
+			elSlots.classList.add( 'is-in' );
 			elSlots.scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
 		}
 
@@ -202,8 +223,11 @@
 		function selectSlot( date, time, label ) {
 			elForm.date.value = date;
 			elForm.time.value = time;
-			elChosen.textContent = label + ' kl. ' + time;
+			elChosen.textContent = label + ' ' + t( 'at', 'at' ) + ' ' + time;
 			elForm.hidden = false;
+			elForm.classList.remove( 'is-in' );
+			void elForm.offsetWidth;
+			elForm.classList.add( 'is-in' );
 			elCal.hidden = true;
 			elSlots.hidden = true;
 			elForm.scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
@@ -233,8 +257,8 @@
 			} ).then( function ( res ) {
 				btn.disabled = false;
 				elResult.hidden = false;
-				elResult.className = 'tsb-result ' + ( res.success ? 'ok' : 'err' );
-				elResult.textContent = res.data && res.data.message ? res.data.message : ( res.success ? 'OK' : 'Fejl' );
+				elResult.className = 'tsb-result is-in ' + ( res.success ? 'ok' : 'err' );
+				elResult.textContent = res.data && res.data.message ? res.data.message : ( res.success ? t( 'ok', 'OK' ) : t( 'error', 'Error' ) );
 				if ( res.success ) {
 					elForm.hidden = true;
 				} else {
@@ -245,8 +269,8 @@
 				btn.disabled = false;
 				captchaReset();
 				elResult.hidden = false;
-				elResult.className = 'tsb-result err';
-				elResult.textContent = 'Netværksfejl. Prøv igen.';
+				elResult.className = 'tsb-result is-in err';
+				elResult.textContent = t( 'netError', 'Network error. Please try again.' );
 			} );
 		} );
 

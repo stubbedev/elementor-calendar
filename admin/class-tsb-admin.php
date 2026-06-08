@@ -18,9 +18,9 @@ class TSB_Admin {
 
 	public function menu() {
 		// Top-level item that behaves like Posts/Pages: the bookings list.
-		add_menu_page( 'Bookinger', 'Bookinger', 'manage_options', 'tsb_bookings', array( $this, 'page_bookings' ), 'dashicons-calendar-alt', 26 );
-		add_submenu_page( 'tsb_bookings', 'Alle bookinger', 'Alle bookinger', 'manage_options', 'tsb_bookings', array( $this, 'page_bookings' ) );
-		add_submenu_page( 'tsb_bookings', 'Indstillinger', 'Indstillinger', 'manage_options', 'tsb_settings', array( $this, 'page_settings' ) );
+		add_menu_page( __( 'Bookings', 'tsb' ), __( 'Bookings', 'tsb' ), 'manage_options', 'tsb_bookings', array( $this, 'page_bookings' ), 'dashicons-calendar-alt', 26 );
+		add_submenu_page( 'tsb_bookings', __( 'All bookings', 'tsb' ), __( 'All bookings', 'tsb' ), 'manage_options', 'tsb_bookings', array( $this, 'page_bookings' ) );
+		add_submenu_page( 'tsb_bookings', __( 'Settings', 'tsb' ), __( 'Settings', 'tsb' ), 'manage_options', 'tsb_settings', array( $this, 'page_settings' ) );
 	}
 
 	public function register_settings() {
@@ -180,11 +180,14 @@ class TSB_Admin {
 
 		nocache_headers();
 		header( 'Content-Type: text/csv; charset=utf-8' );
-		header( 'Content-Disposition: attachment; filename=bookinger-' . current_time( 'Y-m-d' ) . '.csv' );
+		header( 'Content-Disposition: attachment; filename=bookings-' . current_time( 'Y-m-d' ) . '.csv' );
 
 		$out = fopen( 'php://output', 'w' );
-		fprintf( $out, "\xEF\xBB\xBF" ); // UTF-8 BOM so Excel reads æøå
-		fputcsv( $out, array( 'Dato', 'Tid', 'Navn', 'E-mail', 'Telefon', 'Besked', 'Status', 'Oprettet' ) );
+		fprintf( $out, "\xEF\xBB\xBF" ); // UTF-8 BOM so Excel reads non-ASCII
+		fputcsv( $out, array(
+			__( 'Date', 'tsb' ), __( 'Time', 'tsb' ), __( 'Name', 'tsb' ), __( 'Email', 'tsb' ),
+			__( 'Phone', 'tsb' ), __( 'Message', 'tsb' ), __( 'Status', 'tsb' ), __( 'Created', 'tsb' ),
+		) );
 		foreach ( $rows as $r ) {
 			$r['slot_time'] = substr( $r['slot_time'], 0, 5 );
 			fputcsv( $out, $r );
@@ -226,13 +229,13 @@ class TSB_Admin {
 		$export = wp_nonce_url( admin_url( 'admin-post.php?action=tsb_export_csv' ), 'tsb_export_csv' );
 		?>
 		<div class="wrap">
-			<h1 class="wp-heading-inline">Bookinger</h1>
-			<a class="page-title-action" href="<?php echo esc_url( $export ); ?>">Eksportér CSV</a>
+			<h1 class="wp-heading-inline"><?php esc_html_e( 'Bookings', 'tsb' ); ?></h1>
+			<a class="page-title-action" href="<?php echo esc_url( $export ); ?>"><?php esc_html_e( 'Export CSV', 'tsb' ); ?></a>
 			<hr class="wp-header-end">
 			<?php $this->bookings_notice(); ?>
 			<form method="get">
 				<input type="hidden" name="page" value="tsb_bookings">
-				<?php $table->search_box( 'Søg', 'tsb-search' ); ?>
+				<?php $table->search_box( __( 'Search', 'tsb' ), 'tsb-search' ); ?>
 			</form>
 			<form method="post">
 				<input type="hidden" name="page" value="tsb_bookings">
@@ -256,11 +259,11 @@ class TSB_Admin {
 
 	protected function bookings_notice() {
 		$map = array(
-			'moved'     => array( 'updated', 'Booking flyttet.' ),
-			'taken'     => array( 'error', 'Tidspunktet er allerede optaget. Vælg et andet.' ),
-			'badtime'   => array( 'error', 'Ugyldig dato/tid.' ),
-			'cancelled' => array( 'updated', 'Booking(er) aflyst. Tiden er ledig igen.' ),
-			'deleted'   => array( 'updated', 'Booking(er) slettet.' ),
+			'moved'     => array( 'updated', __( 'Booking moved.', 'tsb' ) ),
+			'taken'     => array( 'error', __( 'That time is already taken. Choose another.', 'tsb' ) ),
+			'badtime'   => array( 'error', __( 'Invalid date/time.', 'tsb' ) ),
+			'cancelled' => array( 'updated', __( 'Booking(s) cancelled. The time is available again.', 'tsb' ) ),
+			'deleted'   => array( 'updated', __( 'Booking(s) deleted.', 'tsb' ) ),
 		);
 		$msg = isset( $_GET['tsb_msg'] ) ? sanitize_key( $_GET['tsb_msg'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
 		if ( isset( $map[ $msg ] ) ) {
@@ -278,24 +281,27 @@ class TSB_Admin {
 		$bk = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM ' . TSB_DB::bookings_table() . ' WHERE id = %d', $id ) );
 		?>
 		<div class="wrap">
-			<h1>Flyt booking</h1>
+			<h1><?php esc_html_e( 'Move booking', 'tsb' ); ?></h1>
 			<?php if ( ! $bk ) : ?>
-				<p>Booking ikke fundet.</p>
-				<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=tsb_bookings' ) ); ?>">Tilbage</a>
+				<p><?php esc_html_e( 'Booking not found.', 'tsb' ); ?></p>
+				<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=tsb_bookings' ) ); ?>"><?php esc_html_e( 'Back', 'tsb' ); ?></a>
 			<?php else : ?>
-				<p><strong><?php echo esc_html( $bk->name ); ?></strong> — nuværende tid:
-					<?php echo esc_html( $bk->slot_date . ' kl. ' . substr( $bk->slot_time, 0, 5 ) ); ?></p>
+				<p><strong><?php echo esc_html( $bk->name ); ?></strong> —
+					<?php
+					/* translators: %s: current date and time of the booking */
+					printf( esc_html__( 'current time: %s', 'tsb' ), esc_html( $bk->slot_date . ' ' . substr( $bk->slot_time, 0, 5 ) ) );
+					?></p>
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 					<?php wp_nonce_field( 'tsb_booking_move' ); ?>
 					<input type="hidden" name="action" value="tsb_booking_move">
 					<input type="hidden" name="id" value="<?php echo (int) $bk->id; ?>">
 					<table class="form-table">
-						<tr><th>Ny dato</th><td><input type="date" name="new_date" value="<?php echo esc_attr( $bk->slot_date ); ?>" required></td></tr>
-						<tr><th>Ny tid</th><td><input type="time" name="new_time" value="<?php echo esc_attr( substr( $bk->slot_time, 0, 5 ) ); ?>" required></td></tr>
+						<tr><th><?php esc_html_e( 'New date', 'tsb' ); ?></th><td><input type="date" name="new_date" value="<?php echo esc_attr( $bk->slot_date ); ?>" required></td></tr>
+						<tr><th><?php esc_html_e( 'New time', 'tsb' ); ?></th><td><input type="time" name="new_time" value="<?php echo esc_attr( substr( $bk->slot_time, 0, 5 ) ); ?>" required></td></tr>
 					</table>
 					<p>
-						<?php submit_button( 'Flyt booking', 'primary', 'submit', false ); ?>
-						<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=tsb_bookings' ) ); ?>">Annullér</a>
+						<?php submit_button( __( 'Move booking', 'tsb' ), 'primary', 'submit', false ); ?>
+						<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=tsb_bookings' ) ); ?>"><?php esc_html_e( 'Cancel', 'tsb' ); ?></a>
 					</p>
 				</form>
 			<?php endif; ?>
@@ -308,17 +314,17 @@ class TSB_Admin {
 	public function page_settings() {
 		$tab  = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'availability'; // phpcs:ignore WordPress.Security.NonceVerification
 		$tabs = array(
-			'availability' => 'Tilgængelighed',
-			'emails'       => 'E-mails',
-			'spam'         => 'Spam-beskyttelse',
-			'blocks'       => 'Blokeringer',
+			'availability' => __( 'Availability', 'tsb' ),
+			'emails'       => __( 'Emails', 'tsb' ),
+			'spam'         => __( 'Spam protection', 'tsb' ),
+			'blocks'       => __( 'Blocks', 'tsb' ),
 		);
 		if ( ! isset( $tabs[ $tab ] ) ) {
 			$tab = 'availability';
 		}
 		?>
 		<div class="wrap">
-			<h1>Booking-indstillinger</h1>
+			<h1><?php esc_html_e( 'Booking settings', 'tsb' ); ?></h1>
 			<h2 class="nav-tab-wrapper">
 				<?php foreach ( $tabs as $key => $label ) : ?>
 					<a class="nav-tab <?php echo $tab === $key ? 'nav-tab-active' : ''; ?>"
@@ -343,19 +349,25 @@ class TSB_Admin {
 			<?php settings_fields( 'tsb_group' ); ?>
 			<input type="hidden" name="tsb_settings[_section]" value="availability">
 
-			<h2>Basistider</h2>
+			<h2><?php esc_html_e( 'Base business hours', 'tsb' ); ?></h2>
 			<table class="form-table">
-				<tr><th>Basis åbningstid (fra–til, 24t)</th><td>
+				<tr><th><?php esc_html_e( 'Base hours (from–to, 24h)', 'tsb' ); ?></th><td>
 					<input type="number" min="0" max="23" name="tsb_settings[base_start]" value="<?php echo esc_attr( $s['base_start'] ); ?>">
 					–
 					<input type="number" min="1" max="24" name="tsb_settings[base_end]" value="<?php echo esc_attr( $s['base_end'] ); ?>">
-					<p class="description">Dage markeret “Følg basistider” bruger disse tider.</p>
+					<p class="description"><?php esc_html_e( 'Days marked “Follow base hours” use these hours.', 'tsb' ); ?></p>
 				</td></tr>
 			</table>
 
-			<h2>Åbningstider pr. ugedag</h2>
+			<h2><?php esc_html_e( 'Opening hours per weekday', 'tsb' ); ?></h2>
 			<table class="widefat striped" style="max-width:720px">
-				<thead><tr><th>Dag</th><th>Åben</th><th>Følg basistider</th><th>Egne tider fra</th><th>Til</th></tr></thead>
+				<thead><tr>
+					<th><?php esc_html_e( 'Day', 'tsb' ); ?></th>
+					<th><?php esc_html_e( 'Open', 'tsb' ); ?></th>
+					<th><?php esc_html_e( 'Follow base hours', 'tsb' ); ?></th>
+					<th><?php esc_html_e( 'Own hours from', 'tsb' ); ?></th>
+					<th><?php esc_html_e( 'To', 'tsb' ); ?></th>
+				</tr></thead>
 				<tbody>
 				<?php foreach ( $days as $d => $name ) : $wd = $s['week'][ $d ]; ?>
 					<tr>
@@ -369,25 +381,25 @@ class TSB_Admin {
 				</tbody>
 			</table>
 
-			<h2>Slots</h2>
+			<h2><?php esc_html_e( 'Slots', 'tsb' ); ?></h2>
 			<table class="form-table">
-				<tr><th>Slot-længde (min)</th><td><input type="number" min="5" name="tsb_settings[slot_minutes]" value="<?php echo esc_attr( $s['slot_minutes'] ); ?>"> <span class="description">Hvor lang hver tid er.</span></td></tr>
-				<tr><th>Startforskydning (min)</th><td><input type="number" min="0" name="tsb_settings[slot_offset]" value="<?php echo esc_attr( $s['slot_offset'] ); ?>"> <span class="description">Minutter efter åbning før første slot. 0 = start ved åbning.</span></td></tr>
-				<tr><th>Mellemrum mellem slots (min)</th><td><input type="number" min="0" name="tsb_settings[slot_gap]" value="<?php echo esc_attr( $s['slot_gap'] ); ?>"> <span class="description">Pause/buffer mellem to tider. 0 = ingen.</span></td></tr>
-				<tr><th>Dage frem</th><td><input type="number" min="1" name="tsb_settings[days_ahead]" value="<?php echo esc_attr( $s['days_ahead'] ); ?>"></td></tr>
-				<tr><th>Mindste varsel (timer)</th><td><input type="number" min="0" name="tsb_settings[lead_hours]" value="<?php echo esc_attr( $s['lead_hours'] ); ?>"> <span class="description">0 = kan bookes lige nu</span></td></tr>
+				<tr><th><?php esc_html_e( 'Slot length (min)', 'tsb' ); ?></th><td><input type="number" min="5" name="tsb_settings[slot_minutes]" value="<?php echo esc_attr( $s['slot_minutes'] ); ?>"> <span class="description"><?php esc_html_e( 'How long each time slot is.', 'tsb' ); ?></span></td></tr>
+				<tr><th><?php esc_html_e( 'Start offset (min)', 'tsb' ); ?></th><td><input type="number" min="0" name="tsb_settings[slot_offset]" value="<?php echo esc_attr( $s['slot_offset'] ); ?>"> <span class="description"><?php esc_html_e( 'Minutes after opening before the first slot. 0 = start at opening.', 'tsb' ); ?></span></td></tr>
+				<tr><th><?php esc_html_e( 'Gap between slots (min)', 'tsb' ); ?></th><td><input type="number" min="0" name="tsb_settings[slot_gap]" value="<?php echo esc_attr( $s['slot_gap'] ); ?>"> <span class="description"><?php esc_html_e( 'Buffer between two slots. 0 = none.', 'tsb' ); ?></span></td></tr>
+				<tr><th><?php esc_html_e( 'Days ahead', 'tsb' ); ?></th><td><input type="number" min="1" name="tsb_settings[days_ahead]" value="<?php echo esc_attr( $s['days_ahead'] ); ?>"></td></tr>
+				<tr><th><?php esc_html_e( 'Minimum lead time (hours)', 'tsb' ); ?></th><td><input type="number" min="0" name="tsb_settings[lead_hours]" value="<?php echo esc_attr( $s['lead_hours'] ); ?>"> <span class="description"><?php esc_html_e( '0 = bookable right now', 'tsb' ); ?></span></td></tr>
 			</table>
 
-			<h2>Helligdage</h2>
+			<h2><?php esc_html_e( 'Public holidays', 'tsb' ); ?></h2>
 			<table class="form-table">
-				<tr><th>Bloker helligdage</th><td><input type="checkbox" name="tsb_settings[block_holidays]" value="1" <?php checked( $s['block_holidays'], 1 ); ?>></td></tr>
-				<tr><th>Lande</th><td>
+				<tr><th><?php esc_html_e( 'Block holidays', 'tsb' ); ?></th><td><input type="checkbox" name="tsb_settings[block_holidays]" value="1" <?php checked( $s['block_holidays'], 1 ); ?>></td></tr>
+				<tr><th><?php esc_html_e( 'Countries', 'tsb' ); ?></th><td>
 					<select name="tsb_settings[holiday_countries][]" multiple size="8" style="min-width:240px">
 						<?php foreach ( $names as $code => $label ) : ?>
 							<option value="<?php echo esc_attr( $code ); ?>" <?php echo in_array( $code, $cc, true ) ? 'selected' : ''; ?>><?php echo esc_html( $label ); ?></option>
 						<?php endforeach; ?>
 					</select>
-					<p class="description">Helligdage hentes fra date.nager.at (cachet). Hold Ctrl/Cmd nede for at vælge flere.</p>
+					<p class="description"><?php esc_html_e( 'Holidays are fetched from date.nager.at (cached). Hold Ctrl/Cmd to select several.', 'tsb' ); ?></p>
 				</td></tr>
 			</table>
 			<?php submit_button(); ?>
@@ -401,34 +413,34 @@ class TSB_Admin {
 		<form method="post" action="options.php">
 			<?php settings_fields( 'tsb_group' ); ?>
 			<input type="hidden" name="tsb_settings[_section]" value="emails">
-			<p class="description">Pladsholdere: <code>{name} {email} {phone} {message} {date} {time}</code></p>
+			<p class="description"><?php esc_html_e( 'Placeholders:', 'tsb' ); ?> <code>{name} {email} {phone} {message} {date} {time}</code></p>
 
-			<h2>Besked til admin</h2>
+			<h2><?php esc_html_e( 'Message to admin', 'tsb' ); ?></h2>
 			<table class="form-table">
-				<tr><th>Send admin-notifikation</th><td><input type="checkbox" name="tsb_settings[admin_notify]" value="1" <?php checked( $s['admin_notify'], 1 ); ?>></td></tr>
-				<tr><th>Modtager</th><td><input type="email" class="regular-text" name="tsb_settings[admin_to]" value="<?php echo esc_attr( $s['admin_to'] ); ?>" placeholder="<?php echo esc_attr( get_option( 'admin_email' ) ); ?> (standard)"></td></tr>
-				<tr><th>Emne</th><td><input type="text" class="large-text" name="tsb_settings[admin_subject]" value="<?php echo esc_attr( $s['admin_subject'] ); ?>"></td></tr>
-				<tr><th>Tekst</th><td><textarea class="large-text" rows="6" name="tsb_settings[admin_body]"><?php echo esc_textarea( $s['admin_body'] ); ?></textarea></td></tr>
+				<tr><th><?php esc_html_e( 'Send admin notification', 'tsb' ); ?></th><td><input type="checkbox" name="tsb_settings[admin_notify]" value="1" <?php checked( $s['admin_notify'], 1 ); ?>></td></tr>
+				<tr><th><?php esc_html_e( 'Recipient', 'tsb' ); ?></th><td><input type="email" class="regular-text" name="tsb_settings[admin_to]" value="<?php echo esc_attr( $s['admin_to'] ); ?>" placeholder="<?php echo esc_attr( get_option( 'admin_email' ) ); ?> (<?php esc_attr_e( 'default', 'tsb' ); ?>)"></td></tr>
+				<tr><th><?php esc_html_e( 'Subject', 'tsb' ); ?></th><td><input type="text" class="large-text" name="tsb_settings[admin_subject]" value="<?php echo esc_attr( $s['admin_subject'] ); ?>"></td></tr>
+				<tr><th><?php esc_html_e( 'Body', 'tsb' ); ?></th><td><textarea class="large-text" rows="6" name="tsb_settings[admin_body]"><?php echo esc_textarea( $s['admin_body'] ); ?></textarea></td></tr>
 			</table>
 
-			<h2>Bekræftelse til kunde</h2>
+			<h2><?php esc_html_e( 'Confirmation to customer', 'tsb' ); ?></h2>
 			<table class="form-table">
-				<tr><th>Send bekræftelse</th><td><input type="checkbox" name="tsb_settings[customer_confirm]" value="1" <?php checked( $s['customer_confirm'], 1 ); ?>></td></tr>
-				<tr><th>Emne</th><td><input type="text" class="large-text" name="tsb_settings[customer_subject]" value="<?php echo esc_attr( $s['customer_subject'] ); ?>"></td></tr>
-				<tr><th>Tekst</th><td><textarea class="large-text" rows="6" name="tsb_settings[customer_body]"><?php echo esc_textarea( $s['customer_body'] ); ?></textarea></td></tr>
+				<tr><th><?php esc_html_e( 'Send confirmation', 'tsb' ); ?></th><td><input type="checkbox" name="tsb_settings[customer_confirm]" value="1" <?php checked( $s['customer_confirm'], 1 ); ?>></td></tr>
+				<tr><th><?php esc_html_e( 'Subject', 'tsb' ); ?></th><td><input type="text" class="large-text" name="tsb_settings[customer_subject]" value="<?php echo esc_attr( $s['customer_subject'] ); ?>"></td></tr>
+				<tr><th><?php esc_html_e( 'Body', 'tsb' ); ?></th><td><textarea class="large-text" rows="6" name="tsb_settings[customer_body]"><?php echo esc_textarea( $s['customer_body'] ); ?></textarea></td></tr>
 			</table>
 
-			<h2>Afsender</h2>
+			<h2><?php esc_html_e( 'Sender', 'tsb' ); ?></h2>
 			<table class="form-table">
-				<tr><th>Afsendernavn</th><td><input type="text" class="regular-text" name="tsb_settings[from_name]" value="<?php echo esc_attr( $s['from_name'] ); ?>" placeholder="WordPress (standard)"></td></tr>
-				<tr><th>Afsender e-mail</th><td><input type="email" class="regular-text" name="tsb_settings[from_email]" value="<?php echo esc_attr( $s['from_email'] ); ?>" placeholder="standard fra WordPress"><p class="description">Brug en adresse på dit eget domæne for bedre leveringssikkerhed (typisk sammen med en SMTP-plugin).</p></td></tr>
+				<tr><th><?php esc_html_e( 'Sender name', 'tsb' ); ?></th><td><input type="text" class="regular-text" name="tsb_settings[from_name]" value="<?php echo esc_attr( $s['from_name'] ); ?>" placeholder="<?php esc_attr_e( 'WordPress (default)', 'tsb' ); ?>"></td></tr>
+				<tr><th><?php esc_html_e( 'Sender email', 'tsb' ); ?></th><td><input type="email" class="regular-text" name="tsb_settings[from_email]" value="<?php echo esc_attr( $s['from_email'] ); ?>" placeholder="<?php esc_attr_e( 'WordPress default', 'tsb' ); ?>"><p class="description"><?php esc_html_e( 'Use an address on your own domain for better deliverability (typically together with an SMTP plugin).', 'tsb' ); ?></p></td></tr>
 			</table>
 
-			<h2>Kalender-invitation (.ics)</h2>
+			<h2><?php esc_html_e( 'Calendar invite (.ics)', 'tsb' ); ?></h2>
 			<table class="form-table">
-				<tr><th>Vedhæft .ics til kundemail</th><td><input type="checkbox" name="tsb_settings[ics_attach]" value="1" <?php checked( $s['ics_attach'], 1 ); ?>></td></tr>
-				<tr><th>Titel</th><td><input type="text" class="large-text" name="tsb_settings[ics_summary]" value="<?php echo esc_attr( $s['ics_summary'] ); ?>"><p class="description">Pladsholdere som i mails, fx <code>Booking: {name}</code>.</p></td></tr>
-				<tr><th>Sted</th><td><input type="text" class="regular-text" name="tsb_settings[ics_location]" value="<?php echo esc_attr( $s['ics_location'] ); ?>" placeholder="valgfri"></td></tr>
+				<tr><th><?php esc_html_e( 'Attach .ics to customer email', 'tsb' ); ?></th><td><input type="checkbox" name="tsb_settings[ics_attach]" value="1" <?php checked( $s['ics_attach'], 1 ); ?>></td></tr>
+				<tr><th><?php esc_html_e( 'Title', 'tsb' ); ?></th><td><input type="text" class="large-text" name="tsb_settings[ics_summary]" value="<?php echo esc_attr( $s['ics_summary'] ); ?>"><p class="description"><?php esc_html_e( 'Placeholders as in emails, e.g. Booking: {name}.', 'tsb' ); ?></p></td></tr>
+				<tr><th><?php esc_html_e( 'Location', 'tsb' ); ?></th><td><input type="text" class="regular-text" name="tsb_settings[ics_location]" value="<?php echo esc_attr( $s['ics_location'] ); ?>" placeholder="<?php esc_attr_e( 'optional', 'tsb' ); ?>"></td></tr>
 			</table>
 			<?php submit_button(); ?>
 		</form>
@@ -438,28 +450,28 @@ class TSB_Admin {
 	protected function tab_spam() {
 		$s     = TSB_Availability::settings();
 		$modes = array(
-			'none'         => 'Ingen',
-			'honeypot'     => 'Honeypot (skjult felt, ingen nøgler)',
-			'recaptcha'    => 'Google reCAPTCHA v2 (afkrydsning)',
-			'recaptcha_v3' => 'Google reCAPTCHA v3 (usynlig, score)',
-			'hcaptcha'     => 'hCaptcha',
+			'none'         => __( 'None', 'tsb' ),
+			'honeypot'     => __( 'Honeypot (hidden field, no keys)', 'tsb' ),
+			'recaptcha'    => __( 'Google reCAPTCHA v2 (checkbox)', 'tsb' ),
+			'recaptcha_v3' => __( 'Google reCAPTCHA v3 (invisible, score)', 'tsb' ),
+			'hcaptcha'     => __( 'hCaptcha', 'tsb' ),
 		);
 		?>
 		<form method="post" action="options.php">
 			<?php settings_fields( 'tsb_group' ); ?>
 			<input type="hidden" name="tsb_settings[_section]" value="spam">
 			<table class="form-table">
-				<tr><th>Metode</th><td>
+				<tr><th><?php esc_html_e( 'Method', 'tsb' ); ?></th><td>
 					<select name="tsb_settings[captcha_mode]">
 						<?php foreach ( $modes as $k => $label ) : ?>
 							<option value="<?php echo esc_attr( $k ); ?>" <?php selected( $s['captcha_mode'], $k ); ?>><?php echo esc_html( $label ); ?></option>
 						<?php endforeach; ?>
 					</select>
-					<p class="description">Honeypot er altid aktivt og kræver ingen opsætning. reCAPTCHA/hCaptcha kræver nøgler nedenfor.</p>
+					<p class="description"><?php esc_html_e( 'Honeypot is always active and needs no setup. reCAPTCHA/hCaptcha require the keys below.', 'tsb' ); ?></p>
 				</td></tr>
-				<tr><th>Site key</th><td><input type="text" class="regular-text" name="tsb_settings[captcha_site]" value="<?php echo esc_attr( $s['captcha_site'] ); ?>"></td></tr>
-				<tr><th>Secret key</th><td><input type="text" class="regular-text" name="tsb_settings[captcha_secret]" value="<?php echo esc_attr( $s['captcha_secret'] ); ?>"></td></tr>
-				<tr><th>v3 mindste score</th><td><input type="number" step="0.1" min="0" max="1" name="tsb_settings[captcha_min_score]" value="<?php echo esc_attr( $s['captcha_min_score'] ); ?>"> <span class="description">Kun reCAPTCHA v3. 0.5 anbefalet; højere = strengere.</span></td></tr>
+				<tr><th><?php esc_html_e( 'Site key', 'tsb' ); ?></th><td><input type="text" class="regular-text" name="tsb_settings[captcha_site]" value="<?php echo esc_attr( $s['captcha_site'] ); ?>"></td></tr>
+				<tr><th><?php esc_html_e( 'Secret key', 'tsb' ); ?></th><td><input type="text" class="regular-text" name="tsb_settings[captcha_secret]" value="<?php echo esc_attr( $s['captcha_secret'] ); ?>"></td></tr>
+				<tr><th><?php esc_html_e( 'v3 minimum score', 'tsb' ); ?></th><td><input type="number" step="0.1" min="0" max="1" name="tsb_settings[captcha_min_score]" value="<?php echo esc_attr( $s['captcha_min_score'] ); ?>"> <span class="description"><?php esc_html_e( 'reCAPTCHA v3 only. 0.5 recommended; higher = stricter.', 'tsb' ); ?></span></td></tr>
 			</table>
 			<?php submit_button(); ?>
 		</form>
@@ -470,29 +482,29 @@ class TSB_Admin {
 		global $wpdb;
 		$blocks = $wpdb->get_results( 'SELECT * FROM ' . TSB_DB::blocked_table() . ' ORDER BY block_date DESC, block_time' );
 		?>
-		<h2>Fjern enkelte tider / dage fra tilgængelighed</h2>
+		<h2><?php esc_html_e( 'Remove individual times / days from availability', 'tsb' ); ?></h2>
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 			<?php wp_nonce_field( 'tsb_block' ); ?>
 			<input type="hidden" name="action" value="tsb_block_add">
 			<p>
-				Dato <input type="date" name="block_date" required>
-				Tid <input type="time" name="block_time"> <em>(tom = hele dagen)</em>
-				Årsag <input type="text" name="reason" placeholder="valgfri">
-				<?php submit_button( 'Bloker', 'secondary', '', false ); ?>
+				<?php esc_html_e( 'Date', 'tsb' ); ?> <input type="date" name="block_date" required>
+				<?php esc_html_e( 'Time', 'tsb' ); ?> <input type="time" name="block_time"> <em>(<?php esc_html_e( 'empty = whole day', 'tsb' ); ?>)</em>
+				<?php esc_html_e( 'Reason', 'tsb' ); ?> <input type="text" name="reason" placeholder="<?php esc_attr_e( 'optional', 'tsb' ); ?>">
+				<?php submit_button( __( 'Block', 'tsb' ), 'secondary', '', false ); ?>
 			</p>
 		</form>
 		<table class="widefat striped" style="max-width:760px">
-			<thead><tr><th>Dato</th><th>Tid</th><th>Årsag</th><th></th></tr></thead>
+			<thead><tr><th><?php esc_html_e( 'Date', 'tsb' ); ?></th><th><?php esc_html_e( 'Time', 'tsb' ); ?></th><th><?php esc_html_e( 'Reason', 'tsb' ); ?></th><th></th></tr></thead>
 			<tbody>
 			<?php if ( ! $blocks ) : ?>
-				<tr><td colspan="4"><em>Ingen blokeringer.</em></td></tr>
+				<tr><td colspan="4"><em><?php esc_html_e( 'No blocks.', 'tsb' ); ?></em></td></tr>
 			<?php endif; ?>
 			<?php foreach ( $blocks as $b ) : ?>
 				<tr>
 					<td><?php echo esc_html( $b->block_date ); ?></td>
-					<td><?php echo $b->block_time ? esc_html( substr( $b->block_time, 0, 5 ) ) : '<em>hele dagen</em>'; ?></td>
+					<td><?php echo $b->block_time ? esc_html( substr( $b->block_time, 0, 5 ) ) : '<em>' . esc_html__( 'whole day', 'tsb' ) . '</em>'; ?></td>
 					<td><?php echo esc_html( $b->reason ); ?></td>
-					<td><a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=tsb_block_del&id=' . (int) $b->id ), 'tsb_block_del' ) ); ?>" onclick="return confirm('Slet blokering?')">Slet</a></td>
+					<td><a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=tsb_block_del&id=' . (int) $b->id ), 'tsb_block_del' ) ); ?>" onclick="return confirm('<?php echo esc_js( __( 'Delete block?', 'tsb' ) ); ?>')"><?php esc_html_e( 'Delete', 'tsb' ); ?></a></td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>

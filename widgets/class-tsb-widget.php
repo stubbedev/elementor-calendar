@@ -38,18 +38,18 @@ class TSB_Widget extends Widget_Base {
 
 		/* ---------------- Content ---------------- */
 		$this->start_controls_section( 'content', array(
-			'label' => __( 'Indhold', 'tsb' ),
+			'label' => __( 'Content', 'tsb' ),
 		) );
 
 		$this->add_control( 'intro', array(
-			'label'   => __( 'Intro tekst', 'tsb' ),
+			'label'   => __( 'Intro text', 'tsb' ),
 			'type'    => Controls_Manager::TEXTAREA,
-			'default' => __( 'Vælg en dag:', 'tsb' ),
+			'default' => __( 'Pick a day:', 'tsb' ),
 		) );
 
 		$this->add_control( 'note', array(
 			'type'            => Controls_Manager::RAW_HTML,
-			'raw'             => __( 'Åbningstider, slot-længde, helligdage, e-mails, spam-beskyttelse og blokeringer styres under <strong>Bookinger → Indstillinger</strong> i wp-admin.', 'tsb' ),
+			'raw'             => __( 'Opening hours, slot length, holidays, emails, spam protection and blocks are managed under <strong>Bookings → Settings</strong> in wp-admin.', 'tsb' ),
 			'content_classes' => 'elementor-descriptor',
 		) );
 
@@ -57,36 +57,68 @@ class TSB_Widget extends Widget_Base {
 
 		/* ---------------- Style: calendar ---------------- */
 		$this->start_controls_section( 'style_cal', array(
-			'label' => __( 'Kalender', 'tsb' ),
+			'label' => __( 'Calendar', 'tsb' ),
 			'tab'   => Controls_Manager::TAB_STYLE,
 		) );
 
 		$this->add_control( 'accent', array(
-			'label'     => __( 'Accent farve', 'tsb' ),
+			'label'       => __( 'Accent color', 'tsb' ),
+			'type'        => Controls_Manager::COLOR,
+			'description' => __( 'Defaults to your theme/Elementor primary color.', 'tsb' ),
+			'selectors'   => array( '{{WRAPPER}} .tsb' => '--tsb-accent: {{VALUE}};' ),
+		) );
+
+		$this->add_responsive_control( 'cal_gap', array(
+			'label'      => __( 'Cell spacing', 'tsb' ),
+			'type'       => Controls_Manager::SLIDER,
+			'range'      => array( 'px' => array( 'min' => 0, 'max' => 24 ) ),
+			'selectors'  => array( '{{WRAPPER}} .tsb' => '--tsb-cal-gap: {{SIZE}}{{UNIT}};' ),
+		) );
+
+		$this->add_control( 'title_color', array(
+			'label'     => __( 'Month title color', 'tsb' ),
 			'type'      => Controls_Manager::COLOR,
-			'default'   => '#2563eb',
-			'selectors' => array( '{{WRAPPER}} .tsb' => '--tsb-accent: {{VALUE}};' ),
+			'selectors' => array( '{{WRAPPER}} .tsb-cal-title' => 'color: {{VALUE}};' ),
+		) );
+
+		$this->add_control( 'weekday_color', array(
+			'label'     => __( 'Weekday header color', 'tsb' ),
+			'type'      => Controls_Manager::COLOR,
+			'selectors' => array( '{{WRAPPER}} .tsb-cal-weekdays' => 'color: {{VALUE}};' ),
 		) );
 
 		$this->add_group_control( Group_Control_Typography::get_type(), array(
-			'name'     => 'cal_typo',
-			'selector' => '{{WRAPPER}} .tsb-day, {{WRAPPER}} .tsb-slot',
+			'name'     => 'cell_typo',
+			'label'    => __( 'Day cell typography', 'tsb' ),
+			'selector' => '{{WRAPPER}} .tsb-day',
 		) );
 
 		$this->add_control( 'cell_color', array(
-			'label'     => __( 'Tekstfarve', 'tsb' ),
+			'label'     => __( 'Day text color', 'tsb' ),
 			'type'      => Controls_Manager::COLOR,
-			'selectors' => array( '{{WRAPPER}} .tsb-day, {{WRAPPER}} .tsb-slot' => 'color: {{VALUE}};' ),
+			'selectors' => array( '{{WRAPPER}} .tsb-day.is-open' => 'color: {{VALUE}};' ),
 		) );
 
 		$this->add_control( 'cell_bg', array(
-			'label'     => __( 'Cellebaggrund', 'tsb' ),
+			'label'     => __( 'Day background', 'tsb' ),
 			'type'      => Controls_Manager::COLOR,
-			'selectors' => array( '{{WRAPPER}} .tsb-day, {{WRAPPER}} .tsb-slot' => 'background: {{VALUE}};' ),
+			'selectors' => array( '{{WRAPPER}} .tsb-day.is-open' => 'background: {{VALUE}};' ),
+		) );
+
+		$this->add_control( 'cell_hover', array(
+			'label'     => __( 'Day hover border', 'tsb' ),
+			'type'      => Controls_Manager::COLOR,
+			'selectors' => array( '{{WRAPPER}} .tsb-day.is-open:hover' => 'border-color: {{VALUE}};' ),
+		) );
+
+		$this->add_control( 'cell_sel_bg', array(
+			'label'     => __( 'Selected day background', 'tsb' ),
+			'type'      => Controls_Manager::COLOR,
+			'selectors' => array( '{{WRAPPER}} .tsb-day.is-open.is-selected' => 'background: {{VALUE}}; border-color: {{VALUE}};' ),
 		) );
 
 		$this->add_control( 'cell_radius', array(
-			'label'      => __( 'Hjørneradius', 'tsb' ),
+			'label'      => __( 'Cell corner radius', 'tsb' ),
 			'type'       => Controls_Manager::SLIDER,
 			'range'      => array( 'px' => array( 'min' => 0, 'max' => 40 ) ),
 			'selectors'  => array( '{{WRAPPER}} .tsb-day, {{WRAPPER}} .tsb-slot' => 'border-radius: {{SIZE}}{{UNIT}};' ),
@@ -94,58 +126,105 @@ class TSB_Widget extends Widget_Base {
 
 		$this->end_controls_section();
 
-		/* ---------------- Style: form fields ---------------- */
-		$this->start_controls_section( 'style_form', array(
-			'label' => __( 'Formular', 'tsb' ),
+		/* ---------------- Style: slots ---------------- */
+		$this->start_controls_section( 'style_slots', array(
+			'label' => __( 'Time slots', 'tsb' ),
 			'tab'   => Controls_Manager::TAB_STYLE,
 		) );
 
-		$this->add_control( 'label_head', array(
-			'label' => __( 'Etiketter', 'tsb' ),
-			'type'  => Controls_Manager::HEADING,
+		$this->add_group_control( Group_Control_Typography::get_type(), array(
+			'name'     => 'slot_typo',
+			'selector' => '{{WRAPPER}} .tsb-slot',
 		) );
 
+		$this->add_control( 'slot_color', array(
+			'label'     => __( 'Text color', 'tsb' ),
+			'type'      => Controls_Manager::COLOR,
+			'selectors' => array( '{{WRAPPER}} .tsb-slot' => 'color: {{VALUE}};' ),
+		) );
+
+		$this->add_control( 'slot_bg', array(
+			'label'     => __( 'Background', 'tsb' ),
+			'type'      => Controls_Manager::COLOR,
+			'selectors' => array( '{{WRAPPER}} .tsb-slot' => 'background: {{VALUE}};' ),
+		) );
+
+		$this->add_control( 'slot_hover_bg', array(
+			'label'     => __( 'Hover background', 'tsb' ),
+			'type'      => Controls_Manager::COLOR,
+			'selectors' => array( '{{WRAPPER}} .tsb-slot:hover' => 'background: {{VALUE}};' ),
+		) );
+
+		$this->add_responsive_control( 'slot_padding', array(
+			'label'      => __( 'Padding', 'tsb' ),
+			'type'       => Controls_Manager::DIMENSIONS,
+			'size_units' => array( 'px', 'em' ),
+			'selectors'  => array( '{{WRAPPER}} .tsb-slot' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};' ),
+		) );
+
+		$this->end_controls_section();
+
+		/* ---------------- Style: form & fields ---------------- */
+		$this->start_controls_section( 'style_form', array(
+			'label' => __( 'Form & fields', 'tsb' ),
+			'tab'   => Controls_Manager::TAB_STYLE,
+		) );
+
+		$this->add_control( 'intro_head', array( 'label' => __( 'Intro text', 'tsb' ), 'type' => Controls_Manager::HEADING ) );
+		$this->add_group_control( Group_Control_Typography::get_type(), array(
+			'name'     => 'intro_typo',
+			'selector' => '{{WRAPPER}} .tsb-intro',
+		) );
+		$this->add_control( 'intro_color', array(
+			'label'     => __( 'Color', 'tsb' ),
+			'type'      => Controls_Manager::COLOR,
+			'selectors' => array( '{{WRAPPER}} .tsb-intro' => 'color: {{VALUE}};' ),
+		) );
+
+		$this->add_control( 'chosen_head', array( 'label' => __( 'Chosen-time box', 'tsb' ), 'type' => Controls_Manager::HEADING, 'separator' => 'before' ) );
+		$this->add_control( 'chosen_color', array(
+			'label'     => __( 'Text color', 'tsb' ),
+			'type'      => Controls_Manager::COLOR,
+			'selectors' => array( '{{WRAPPER}} .tsb-chosen' => 'color: {{VALUE}};' ),
+		) );
+		$this->add_control( 'chosen_bg', array(
+			'label'     => __( 'Background', 'tsb' ),
+			'type'      => Controls_Manager::COLOR,
+			'selectors' => array( '{{WRAPPER}} .tsb-chosen' => 'background: {{VALUE}};' ),
+		) );
+
+		$this->add_control( 'label_head', array( 'label' => __( 'Labels', 'tsb' ), 'type' => Controls_Manager::HEADING, 'separator' => 'before' ) );
 		$this->add_group_control( Group_Control_Typography::get_type(), array(
 			'name'     => 'label_typo',
 			'selector' => '{{WRAPPER}} .tsb-form label',
 		) );
-
 		$this->add_control( 'label_color', array(
-			'label'     => __( 'Etiketfarve', 'tsb' ),
+			'label'     => __( 'Label color', 'tsb' ),
 			'type'      => Controls_Manager::COLOR,
 			'selectors' => array( '{{WRAPPER}} .tsb-form label' => 'color: {{VALUE}};' ),
 		) );
 
-		$this->add_control( 'input_head', array(
-			'label'     => __( 'Inputfelter', 'tsb' ),
-			'type'      => Controls_Manager::HEADING,
-			'separator' => 'before',
-		) );
-
+		$this->add_control( 'input_head', array( 'label' => __( 'Input fields', 'tsb' ), 'type' => Controls_Manager::HEADING, 'separator' => 'before' ) );
 		$this->add_group_control( Group_Control_Typography::get_type(), array(
 			'name'     => 'input_typo',
 			'selector' => '{{WRAPPER}} .tsb-form input, {{WRAPPER}} .tsb-form textarea',
 		) );
-
 		$this->add_control( 'input_color', array(
-			'label'     => __( 'Tekstfarve', 'tsb' ),
+			'label'     => __( 'Text color', 'tsb' ),
 			'type'      => Controls_Manager::COLOR,
 			'selectors' => array( '{{WRAPPER}} .tsb-form input, {{WRAPPER}} .tsb-form textarea' => 'color: {{VALUE}};' ),
 		) );
-
 		$this->add_control( 'input_bg', array(
-			'label'     => __( 'Baggrund', 'tsb' ),
+			'label'     => __( 'Background', 'tsb' ),
 			'type'      => Controls_Manager::COLOR,
 			'selectors' => array( '{{WRAPPER}} .tsb-form input, {{WRAPPER}} .tsb-form textarea' => 'background: {{VALUE}};' ),
 		) );
-
 		$this->add_group_control( Group_Control_Border::get_type(), array(
 			'name'     => 'input_border',
 			'selector' => '{{WRAPPER}} .tsb-form input, {{WRAPPER}} .tsb-form textarea',
 		) );
-
 		$this->add_control( 'input_radius', array(
-			'label'     => __( 'Hjørneradius', 'tsb' ),
+			'label'     => __( 'Corner radius', 'tsb' ),
 			'type'      => Controls_Manager::SLIDER,
 			'range'     => array( 'px' => array( 'min' => 0, 'max' => 40 ) ),
 			'selectors' => array( '{{WRAPPER}} .tsb-form input, {{WRAPPER}} .tsb-form textarea' => 'border-radius: {{SIZE}}{{UNIT}};' ),
@@ -153,63 +232,77 @@ class TSB_Widget extends Widget_Base {
 
 		$this->end_controls_section();
 
-		/* ---------------- Style: buttons ---------------- */
+		/* ---------------- Style: buttons & messages ---------------- */
 		$this->start_controls_section( 'style_buttons', array(
-			'label' => __( 'Knapper', 'tsb' ),
+			'label' => __( 'Buttons & messages', 'tsb' ),
 			'tab'   => Controls_Manager::TAB_STYLE,
 		) );
 
-		$this->add_control( 'submit_head', array(
-			'label' => __( 'Bekræft-knap', 'tsb' ),
-			'type'  => Controls_Manager::HEADING,
-		) );
-
+		$this->add_control( 'submit_head', array( 'label' => __( 'Confirm button', 'tsb' ), 'type' => Controls_Manager::HEADING ) );
 		$this->add_group_control( Group_Control_Typography::get_type(), array(
 			'name'     => 'submit_typo',
 			'selector' => '{{WRAPPER}} .tsb-submit',
 		) );
-
 		$this->add_control( 'submit_color', array(
-			'label'     => __( 'Tekstfarve', 'tsb' ),
+			'label'     => __( 'Text color', 'tsb' ),
 			'type'      => Controls_Manager::COLOR,
 			'selectors' => array( '{{WRAPPER}} .tsb-submit' => 'color: {{VALUE}};' ),
 		) );
-
 		$this->add_control( 'submit_bg', array(
-			'label'     => __( 'Baggrund', 'tsb' ),
+			'label'     => __( 'Background', 'tsb' ),
 			'type'      => Controls_Manager::COLOR,
 			'selectors' => array( '{{WRAPPER}} .tsb-submit' => 'background: {{VALUE}};' ),
 		) );
-
 		$this->add_control( 'submit_bg_hover', array(
-			'label'     => __( 'Baggrund (hover)', 'tsb' ),
+			'label'     => __( 'Background (hover)', 'tsb' ),
 			'type'      => Controls_Manager::COLOR,
 			'selectors' => array( '{{WRAPPER}} .tsb-submit:hover' => 'background: {{VALUE}};' ),
 		) );
-
+		$this->add_responsive_control( 'submit_padding', array(
+			'label'      => __( 'Padding', 'tsb' ),
+			'type'       => Controls_Manager::DIMENSIONS,
+			'size_units' => array( 'px', 'em' ),
+			'selectors'  => array( '{{WRAPPER}} .tsb-submit, {{WRAPPER}} .tsb-back' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};' ),
+		) );
 		$this->add_control( 'btn_radius', array(
-			'label'     => __( 'Hjørneradius', 'tsb' ),
+			'label'     => __( 'Corner radius', 'tsb' ),
 			'type'      => Controls_Manager::SLIDER,
 			'range'     => array( 'px' => array( 'min' => 0, 'max' => 40 ) ),
 			'selectors' => array( '{{WRAPPER}} .tsb-submit, {{WRAPPER}} .tsb-back' => 'border-radius: {{SIZE}}{{UNIT}};' ),
 		) );
 
-		$this->add_control( 'back_head', array(
-			'label'     => __( 'Tilbage-knap', 'tsb' ),
-			'type'      => Controls_Manager::HEADING,
-			'separator' => 'before',
-		) );
-
+		$this->add_control( 'back_head', array( 'label' => __( 'Back button', 'tsb' ), 'type' => Controls_Manager::HEADING, 'separator' => 'before' ) );
 		$this->add_control( 'back_color', array(
-			'label'     => __( 'Tekstfarve', 'tsb' ),
+			'label'     => __( 'Text color', 'tsb' ),
 			'type'      => Controls_Manager::COLOR,
 			'selectors' => array( '{{WRAPPER}} .tsb-back' => 'color: {{VALUE}};' ),
 		) );
-
 		$this->add_control( 'back_bg', array(
-			'label'     => __( 'Baggrund', 'tsb' ),
+			'label'     => __( 'Background', 'tsb' ),
 			'type'      => Controls_Manager::COLOR,
 			'selectors' => array( '{{WRAPPER}} .tsb-back' => 'background: {{VALUE}};' ),
+		) );
+
+		$this->add_control( 'msg_head', array( 'label' => __( 'Result messages', 'tsb' ), 'type' => Controls_Manager::HEADING, 'separator' => 'before' ) );
+		$this->add_control( 'ok_color', array(
+			'label'     => __( 'Success text', 'tsb' ),
+			'type'      => Controls_Manager::COLOR,
+			'selectors' => array( '{{WRAPPER}} .tsb-result.ok' => 'color: {{VALUE}};' ),
+		) );
+		$this->add_control( 'ok_bg', array(
+			'label'     => __( 'Success background', 'tsb' ),
+			'type'      => Controls_Manager::COLOR,
+			'selectors' => array( '{{WRAPPER}} .tsb-result.ok' => 'background: {{VALUE}};' ),
+		) );
+		$this->add_control( 'err_color', array(
+			'label'     => __( 'Error text', 'tsb' ),
+			'type'      => Controls_Manager::COLOR,
+			'selectors' => array( '{{WRAPPER}} .tsb-result.err' => 'color: {{VALUE}};' ),
+		) );
+		$this->add_control( 'err_bg', array(
+			'label'     => __( 'Error background', 'tsb' ),
+			'type'      => Controls_Manager::COLOR,
+			'selectors' => array( '{{WRAPPER}} .tsb-result.err' => 'background: {{VALUE}};' ),
 		) );
 
 		$this->end_controls_section();
@@ -229,19 +322,17 @@ class TSB_Widget extends Widget_Base {
 
 			<?php // STEP 1: calendar + slots ?>
 			<div class="tsb-step tsb-step-cal">
-				<div class="tsb-loading"><?php esc_html_e( 'Henter ledige tider…', 'tsb' ); ?></div>
+				<div class="tsb-loading"><?php esc_html_e( 'Loading available times…', 'tsb' ); ?></div>
 
 				<div class="tsb-cal" hidden>
 					<div class="tsb-cal-head">
-						<button type="button" class="tsb-cal-nav tsb-cal-prev" aria-label="<?php esc_attr_e( 'Forrige måned', 'tsb' ); ?>">&lsaquo;</button>
+						<button type="button" class="tsb-cal-nav tsb-cal-prev" aria-label="<?php esc_attr_e( 'Previous month', 'tsb' ); ?>">&lsaquo;</button>
 						<span class="tsb-cal-title"></span>
-						<button type="button" class="tsb-cal-nav tsb-cal-next" aria-label="<?php esc_attr_e( 'Næste måned', 'tsb' ); ?>">&rsaquo;</button>
+						<button type="button" class="tsb-cal-nav tsb-cal-next" aria-label="<?php esc_attr_e( 'Next month', 'tsb' ); ?>">&rsaquo;</button>
 					</div>
-					<div class="tsb-cal-weekdays">
-						<span>Ma</span><span>Ti</span><span>On</span><span>To</span><span>Fr</span><span>Lø</span><span>Sø</span>
-					</div>
+					<div class="tsb-cal-weekdays"></div>
 					<div class="tsb-cal-grid"></div>
-					<p class="tsb-cal-hint"><?php esc_html_e( 'Markerede dage har ledige tider.', 'tsb' ); ?></p>
+					<p class="tsb-cal-hint"><?php esc_html_e( 'Highlighted days have available times.', 'tsb' ); ?></p>
 				</div>
 
 				<div class="tsb-slots" hidden></div>
@@ -253,22 +344,22 @@ class TSB_Widget extends Widget_Base {
 				<input type="hidden" name="date" value="">
 				<input type="hidden" name="time" value="">
 
-				<label><?php esc_html_e( 'Navn', 'tsb' ); ?> *
+				<label><?php esc_html_e( 'Name', 'tsb' ); ?> *
 					<input type="text" name="name" required>
 				</label>
-				<label><?php esc_html_e( 'E-mail', 'tsb' ); ?> *
+				<label><?php esc_html_e( 'Email', 'tsb' ); ?> *
 					<input type="email" name="email" required>
 				</label>
-				<label><?php esc_html_e( 'Telefon', 'tsb' ); ?>
+				<label><?php esc_html_e( 'Phone', 'tsb' ); ?>
 					<input type="tel" name="phone">
 				</label>
-				<label><?php esc_html_e( 'Besked', 'tsb' ); ?>
+				<label><?php esc_html_e( 'Message', 'tsb' ); ?>
 					<textarea name="message" rows="4"></textarea>
 				</label>
 
 				<?php // Honeypot — hidden from humans, bots fill it. ?>
 				<div class="tsb-hp" aria-hidden="true">
-					<label>Lad dette felt være tomt
+					<label><?php esc_html_e( 'Leave this field empty', 'tsb' ); ?>
 						<input type="text" name="tsb_hp" tabindex="-1" autocomplete="off">
 					</label>
 				</div>
@@ -280,8 +371,8 @@ class TSB_Widget extends Widget_Base {
 				<?php endif; ?>
 
 				<div class="tsb-actions">
-					<button type="button" class="tsb-back"><?php esc_html_e( 'Tilbage', 'tsb' ); ?></button>
-					<button type="submit" class="tsb-submit"><?php esc_html_e( 'Bekræft booking', 'tsb' ); ?></button>
+					<button type="button" class="tsb-back"><?php esc_html_e( 'Back', 'tsb' ); ?></button>
+					<button type="submit" class="tsb-submit"><?php esc_html_e( 'Confirm booking', 'tsb' ); ?></button>
 				</div>
 			</form>
 
