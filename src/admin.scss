@@ -1,0 +1,317 @@
+#tsb-admin {
+	--tsb-radius: 8px;
+	max-width: 1200px;
+	margin-right: 20px;
+
+	h1 { margin: 0; }
+
+	.tsb-page-head {
+		margin: .5em 0 1.25em;
+	}
+
+	.tsb-card {
+		border-radius: var( --tsb-radius );
+		height: 100%;
+		box-shadow: 0 1px 2px rgba( 0, 0, 0, .04 );
+
+		.components-card__header {
+			font-size: 14px;
+			font-weight: 600;
+		}
+	}
+	.tsb-card-narrow { max-width: 560px; }
+
+	.tsb-cards-2 {
+		align-items: stretch;
+	}
+
+	.tsb-help {
+		color: #6b7280;
+		font-size: 12px;
+		margin: .75em 0 0;
+	}
+
+	/* ---- toolbar / table ---- */
+	.tsb-toolbar {
+		gap: 1em !important;
+		margin-bottom: 1em;
+		.components-base-control { margin-bottom: 0; }
+		.components-search-control { min-width: 260px; }
+	}
+	.tsb-loading-row { padding: 2em; text-align: center; }
+
+	.tsb-table {
+		border: 0;
+		th a { text-decoration: none; color: inherit; }
+		th a.is-sorted { color: var( --wp-admin-theme-color, #2271b1 ); }
+		td { vertical-align: middle; }
+		tr.is-cancelled { opacity: .5; }
+		.tsb-col-actions { text-align: right; white-space: nowrap; }
+		.tsb-col-status { width: 1%; white-space: nowrap; }
+	}
+	.tsb-actions-cell {
+		display: flex;
+		gap: .4em;
+		justify-content: flex-end;
+	}
+
+	.tsb-status {
+		display: inline-block;
+		padding: 2px 10px;
+		border-radius: 999px;
+		font-size: 11px;
+		font-weight: 600;
+		text-transform: capitalize;
+		background: #eef2f6;
+		color: #475467;
+		&.is-confirmed { background: #e7f6ec; color: #18794e; }
+		&.is-cancelled { background: #fde8e8; color: #b42318; }
+	}
+
+	.tsb-pager {
+		gap: .5em !important;
+		margin-top: 1em;
+	}
+
+	/* ---- weekday hours ---- */
+	.tsb-week-row {
+		display: grid;
+		grid-template-columns: 1.4fr .7fr .9fr 1fr 1fr;
+		align-items: center;
+		gap: 1em;
+		padding: .5em 0;
+		border-bottom: 1px solid #f0f0f1;
+		&:last-child { border-bottom: 0; }
+
+		.components-base-control { margin-bottom: 0; }
+		.components-toggle-control { margin: 0; }
+	}
+	/* bare toggles in the week grid: keep the switch, hide its text label (the
+	   column headers provide context; the label stays for screen readers). */
+	.tsb-toggle-bare .components-toggle-control__label,
+	.tsb-toggle-bare label {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect( 0 0 0 0 );
+		white-space: nowrap;
+	}
+	.tsb-week-head {
+		font-size: 11px;
+		text-transform: uppercase;
+		letter-spacing: .03em;
+		color: #6b7280;
+		font-weight: 600;
+		border-bottom: 2px solid #e5e7eb;
+	}
+	.tsb-week-row.is-closed { opacity: .5; }
+	.tsb-week-day { font-weight: 600; }
+	.tsb-hours-grid { max-width: 360px; }
+
+	/* ---- save bar ---- */
+	.tsb-tab-body { padding-top: 1.25em; }
+	.tsb-savebar {
+		position: sticky;
+		bottom: 0;
+		margin-top: 1.5em;
+		padding: 1em 0;
+		background: linear-gradient( to top, #f0f0f1 70%, rgba( 240, 240, 241, 0 ) );
+		display: flex;
+		justify-content: flex-end;
+	}
+	.tsb-tabs > .components-tab-panel__tabs { margin-bottom: .5em; }
+
+	/* ---- field builder ---- */
+	.tsb-fieldrow {
+		display: grid;
+		grid-template-columns: 1.4em 1.6fr 1fr 1fr auto auto 2em;
+		align-items: center;
+		gap: .75em;
+		padding: .4em 0;
+		border-bottom: 1px solid #f0f0f1;
+		.components-base-control { margin-bottom: 0; }
+	}
+	.tsb-fieldrow-head {
+		font-size: 11px;
+		text-transform: uppercase;
+		letter-spacing: .03em;
+		color: #6b7280;
+		font-weight: 600;
+		border-bottom: 2px solid #e5e7eb;
+	}
+	.tsb-fieldrow.is-dragging { opacity: .4; }
+	.tsb-fieldrow[draggable="true"] { cursor: grab; }
+	.tsb-drag { color: #9aa3af; cursor: grab; user-select: none; text-align: center; }
+	.tsb-field-del { justify-self: center; }
+	.tsb-fields-add { margin-top: 1em; }
+
+	/* ---- day-picker (blocks) ---- */
+	.tsb-daypick {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 2em;
+		align-items: start;
+	}
+	@media ( max-width: 782px ) {
+		.tsb-daypick { grid-template-columns: 1fr; }
+	}
+
+	.tsb-legend-cal { flex-wrap: wrap; }
+	.tsb-legend-cal .tsb-legend-dot.is-free { background: #12b76a; }
+	.tsb-legend-dot.is-partial { background: #f79009; }
+	.tsb-legend-dot.is-full { background: #b42318; }
+	.tsb-legend-dot.is-closed { background: #cbd5e1; }
+	.tsb-slot-grid {
+		display: flex;
+		flex-wrap: wrap;
+		gap: .4em;
+		margin: .75em 0;
+	}
+	.tsb-slot-btn {
+		justify-content: center;
+		min-width: 4.2em;
+		&.is-blocked {
+			background: #b42318 !important;
+			box-shadow: inset 0 0 0 1px #b42318 !important;
+		}
+	}
+	.tsb-legend {
+		display: flex;
+		align-items: center;
+		gap: .4em;
+		font-size: 12px;
+		color: #6b7280;
+		margin: .5em 0 0;
+	}
+	.tsb-legend-dot {
+		display: inline-block;
+		width: 10px;
+		height: 10px;
+		border-radius: 3px;
+		margin-left: 1em;
+		&.is-free { background: var( --wp-admin-theme-color, #2271b1 ); }
+		&.is-blocked { background: #b42318; }
+		&.is-booked { background: #cbd5e1; }
+	}
+}
+
+/* ---- move modal ---- */
+.tsb-move-modal {
+	.components-modal__content { padding-bottom: 1.25em; }
+
+	.tsb-move-current {
+		font-size: 14px;
+		margin: 0 0 1em;
+	}
+	.tsb-pill {
+		display: inline-block;
+		padding: 2px 10px;
+		border-radius: 999px;
+		background: #eef2f6;
+		color: #475467;
+		font-weight: 600;
+		font-size: 13px;
+	}
+	.tsb-pill-accent {
+		background: var( --wp-admin-theme-color, #2271b1 );
+		color: #fff;
+	}
+
+	.tsb-move-grid {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 2em;
+		align-items: start;
+	}
+	@media ( max-width: 700px ) {
+		.tsb-move-grid { grid-template-columns: 1fr; }
+	}
+	.tsb-move-slots h3 { margin: 0 0 .75em; }
+
+	.tsb-slot-grid {
+		display: flex;
+		flex-wrap: wrap;
+		gap: .4em;
+		max-height: 280px;
+		overflow: auto;
+	}
+	.tsb-slot-btn {
+		justify-content: center;
+		min-width: 4.2em;
+		&.is-taken {
+			opacity: .45;
+			text-decoration: line-through;
+		}
+	}
+	.tsb-legend {
+		display: flex;
+		align-items: center;
+		gap: .4em;
+		font-size: 12px;
+		color: #6b7280;
+		margin: 1em 0 0;
+	}
+	.tsb-legend-dot {
+		display: inline-block;
+		width: 10px;
+		height: 10px;
+		border-radius: 3px;
+		margin-left: 1em;
+		&.is-free { background: var( --wp-admin-theme-color, #2271b1 ); }
+		&.is-taken { background: #cbd5e1; }
+	}
+	.tsb-modal-actions { margin-top: 1.5em; gap: .5em !important; }
+}
+
+/* Custom month calendar — global (the move modal renders in a body portal,
+   outside #tsb-admin, so these must not be scoped to it). */
+.tsb-mini { width: 320px; max-width: 100%; }
+.tsb-mini-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: .5em;
+}
+.tsb-mini-title { font-weight: 600; text-transform: capitalize; }
+.tsb-mini-nav.components-button {
+	font-size: 22px;
+	line-height: 1;
+	min-width: 2em;
+	height: 2em;
+	justify-content: center;
+}
+.tsb-mini-weekdays,
+.tsb-mini-grid {
+	display: grid;
+	grid-template-columns: repeat( 7, 1fr );
+	gap: 4px;
+}
+.tsb-mini-weekdays {
+	font-size: 11px;
+	color: #6b7280;
+	text-align: center;
+	text-transform: uppercase;
+	margin-bottom: 4px;
+}
+.tsb-mini-day {
+	aspect-ratio: 1 / 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid transparent;
+	border-radius: 6px;
+	font: inherit;
+	cursor: pointer;
+	background: transparent;
+	color: inherit;
+	transition: border-color .1s;
+}
+.tsb-mini-day.is-blank { border: 0; cursor: default; }
+.tsb-mini-day.is-free { background: #e7f6ec; color: #18794e; }
+.tsb-mini-day.is-partial { background: #fef0c7; color: #b54708; }
+.tsb-mini-day.is-full,
+.tsb-mini-day.is-wholeday { background: #fde2e1; color: #b42318; font-weight: 600; }
+.tsb-mini-day.is-closed { color: #b0b6c0; }
+.tsb-mini-day:not(.is-blank):hover { border-color: var( --wp-admin-theme-color, #2271b1 ); }
+.tsb-mini-day.is-selected { outline: 2px solid var( --wp-admin-theme-color, #2271b1 ); outline-offset: 1px; }

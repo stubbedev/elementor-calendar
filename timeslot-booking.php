@@ -21,7 +21,10 @@ require_once TSB_PATH . 'includes/class-tsb-availability.php';
 require_once TSB_PATH . 'includes/class-tsb-i18n.php';
 require_once TSB_PATH . 'includes/class-tsb-ics.php';
 require_once TSB_PATH . 'includes/class-tsb-ajax.php';
+require_once TSB_PATH . 'includes/class-tsb-rest.php';
 require_once TSB_PATH . 'admin/class-tsb-admin.php';
+
+TSB_REST::init();
 
 register_activation_hook( __FILE__, array( 'TSB_DB', 'create_tables' ) );
 

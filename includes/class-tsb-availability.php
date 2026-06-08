@@ -37,14 +37,11 @@ class TSB_Availability {
 			'captcha_site'      => '',
 			'captcha_secret'    => '',
 			'captcha_min_score' => 0.5, // reCAPTCHA v3 only
-			// form fields
-			'field_phone'         => 1,
-			'field_phone_req'     => 0,
-			'field_message'       => 1,
-			'field_message_req'   => 0,
-			'field_custom'        => 0,
-			'field_custom_label'  => __( 'Company', 'tsb' ),
-			'field_custom_req'    => 0,
+			// form fields — ordered, user-defined (name + email are core, always shown)
+			'fields'              => array(
+				array( 'name' => 'phone', 'label' => __( 'Phone', 'tsb' ), 'type' => 'tel', 'enabled' => 1, 'required' => 0 ),
+				array( 'name' => 'message', 'label' => __( 'Message', 'tsb' ), 'type' => 'textarea', 'enabled' => 1, 'required' => 0 ),
+			),
 			'consent_enable'      => 0,
 			'consent_text'        => __( 'I accept that my information is processed in order to handle my booking.', 'tsb' ),
 			'consent_link_text'   => __( 'Privacy policy', 'tsb' ),
@@ -57,17 +54,61 @@ class TSB_Availability {
 		if ( empty( $s['holiday_countries'] ) || ! is_array( $s['holiday_countries'] ) ) {
 			$s['holiday_countries'] = array( 'DK' );
 		}
+		$s['fields'] = self::normalize_fields( $s['fields'] );
 		return $s;
 	}
 
-	/** Optional contact fields: key => [show, req, label, type, autocomplete]. */
-	public static function fields() {
-		$s = self::settings();
-		return array(
-			'phone'   => array( 'show' => ! empty( $s['field_phone'] ),   'req' => ! empty( $s['field_phone_req'] ),   'label' => __( 'Phone', 'tsb' ),   'type' => 'tel',      'autocomplete' => 'tel' ),
-			'message' => array( 'show' => ! empty( $s['field_message'] ), 'req' => ! empty( $s['field_message_req'] ), 'label' => __( 'Message', 'tsb' ), 'type' => 'textarea', 'autocomplete' => '' ),
-			'custom'  => array( 'show' => ! empty( $s['field_custom'] ),  'req' => ! empty( $s['field_custom_req'] ),  'label' => $s['field_custom_label'], 'type' => 'text', 'autocomplete' => 'organization' ),
-		);
+	const FIELD_TYPES   = array( 'text', 'email', 'tel', 'textarea', 'number' );
+	const RESERVED_NAMES = array( 'name', 'email', 'consent', 'date', 'time', 'stamp', 'captcha_token', 'tsb_hp', 'action', 'nonce', 'lang' );
+
+	/** Coerce a stored fields value into a clean ordered list. */
+	public static function normalize_fields( $fields ) {
+		if ( ! is_array( $fields ) ) {
+			return array();
+		}
+		$out  = array();
+		$seen = array();
+		foreach ( $fields as $f ) {
+			if ( ! is_array( $f ) ) {
+				continue;
+			}
+			$name = sanitize_key( $f['name'] ?? '' );
+			if ( '' === $name || in_array( $name, self::RESERVED_NAMES, true ) || isset( $seen[ $name ] ) ) {
+				continue;
+			}
+			$seen[ $name ] = true;
+			$type = in_array( $f['type'] ?? 'text', self::FIELD_TYPES, true ) ? $f['type'] : 'text';
+			$out[] = array(
+				'name'     => $name,
+				'label'    => sanitize_text_field( $f['label'] ?? $name ),
+				'type'     => $type,
+				'enabled'  => empty( $f['enabled'] ) ? 0 : 1,
+				'required' => empty( $f['required'] ) ? 0 : 1,
+			);
+		}
+		return $out;
+	}
+
+	/** Enabled fields, in order. */
+	public static function form_fields() {
+		$out = array();
+		foreach ( self::settings()['fields'] as $f ) {
+			if ( ! empty( $f['enabled'] ) ) {
+				$out[] = $f;
+			}
+		}
+		return $out;
+	}
+
+	/** Autocomplete hint for a field type/name. */
+	public static function field_autocomplete( $field ) {
+		if ( 'phone' === $field['name'] || 'tel' === $field['type'] ) {
+			return 'tel';
+		}
+		if ( 'email' === $field['type'] ) {
+			return 'email';
+		}
+		return '';
 	}
 
 	/** Mon–Fri open, weekend closed, all following the base business hours. */
@@ -187,6 +228,87 @@ class TSB_Availability {
 			}
 		}
 		return $out;
+	}
+
+	/**
+	 * All open slots for a single date with a free/taken flag — for the admin
+	 * reschedule picker. Returns [] when the day is closed/holiday/whole-day
+	 * blocked. Ignores lead time (admin can book anytime); a booking being moved
+	 * can be excluded so its own current slot reads as free.
+	 *
+	 * @return array[] each ['time'=>'HH:MM','available'=>bool,'reason'=>'']
+	 */
+	public static function day_grid( $date, $exclude_id = 0 ) {
+		if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', (string) $date ) ) {
+			return array();
+		}
+		$s   = self::settings();
+		$tz  = wp_timezone();
+		$day = DateTime::createFromFormat( 'Y-m-d', $date, $tz );
+		if ( ! $day ) {
+			return array();
+		}
+		$day->setTime( 0, 0 );
+		$dow = (int) $day->format( 'N' );
+
+		$wd = isset( $s['week'][ $dow ] ) ? $s['week'][ $dow ] : null;
+		if ( ! $wd || empty( $wd['open'] ) ) {
+			return array();
+		}
+		if ( $s['block_holidays'] && TSB_Holidays::is_holiday( $date, $s['holiday_countries'] ) ) {
+			return array();
+		}
+
+		$blocked = array();
+		foreach ( TSB_DB::blocked_for_date( $date ) as $b ) {
+			if ( null === $b->block_time ) {
+				return array(); // whole day blocked
+			}
+			$blocked[ substr( $b->block_time, 0, 5 ) ] = true;
+		}
+
+		$booked = array();
+		foreach ( self::booked_times_excluding( $date, $exclude_id ) as $tval ) {
+			$booked[ substr( $tval, 0, 5 ) ] = true;
+		}
+
+		$len    = max( 5, (int) $s['slot_minutes'] );
+		$offset = max( 0, (int) $s['slot_offset'] );
+		$gap    = max( 0, (int) $s['slot_gap'] );
+		$step   = $len + $gap;
+
+		list( $open_h, $close_h ) = self::day_hours( $wd, $s );
+		$start = ( clone $day )->setTime( $open_h, 0 )->modify( "+$offset minutes" );
+		$end   = ( clone $day )->setTime( $close_h, 0 );
+
+		$out = array();
+		for ( $t = clone $start; ; $t->modify( "+$step minutes" ) ) {
+			$slot_end = ( clone $t )->modify( "+$len minutes" );
+			if ( $slot_end > $end ) {
+				break;
+			}
+			$hm   = $t->format( 'H:i' );
+			$free = ! isset( $booked[ $hm ] ) && ! isset( $blocked[ $hm ] );
+			$out[] = array(
+				'time'      => $hm,
+				'available' => $free,
+				'reason'    => $free ? '' : ( isset( $booked[ $hm ] ) ? 'booked' : 'blocked' ),
+			);
+		}
+		return $out;
+	}
+
+	/** Booked HH:MM:SS for a date, optionally excluding one booking id. */
+	protected static function booked_times_excluding( $date, $exclude_id ) {
+		global $wpdb;
+		$t  = TSB_DB::bookings_table();
+		$id = (int) $exclude_id;
+		if ( $id > 0 ) {
+			return $wpdb->get_col( $wpdb->prepare(
+				"SELECT slot_time FROM $t WHERE slot_date = %s AND status != 'cancelled' AND id != %d", $date, $id
+			) );
+		}
+		return TSB_DB::booked_times( $date );
 	}
 
 	/** Human day label (e.g. "Monday 9 Jun" / "Mandag 9. jun"), locale-aware. */

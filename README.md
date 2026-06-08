@@ -31,11 +31,25 @@ set of Elementor **Style** controls that default to the active theme's colors.
 
 ## Admin
 
-**Bookinger** is a top-level menu (like Posts/Pages):
+The admin is a **React single-page app** on WordPress' bundled React
+(`wp.element` + `@wordpress/components`) — no build step, no extra runtime — talking
+to a REST API (`TSB_REST`, namespace `tsb/v1`, `manage_options` + nonce). The
+**Bookings** top-level menu hosts it:
 
-- **Alle bookinger** — native `WP_List_Table`: sortable columns, search, bulk
-  cancel/delete, per-row Flyt (reschedule) / Aflys / Slet, CSV export.
-- **Indstillinger** — the settings tabs below.
+- **All bookings** — sortable/searchable/paginated table; cancel, restore, delete;
+  **reschedule with live availability** (below); CSV export.
+- **Settings** — tabbed forms (below) saved over REST.
+
+**Reschedule shows real availability:** picking a new date fetches that day's open
+slots via `GET tsb/v1/availability` (from `TSB_Availability::day_grid()`) and renders
+them as buttons — booked/blocked times are disabled, and the move is rejected
+server-side (409) if the target is taken. No more blind time entry.
+
+REST: `GET/POST /settings`, `GET /bookings`, `POST|DELETE /bookings/{id}`
+(`op=move|cancel|restore`), `GET /availability?date=&exclude=`, `GET/POST /blocks`,
+`DELETE /blocks/{id}`. CSV export stays a server-side `admin-post` download. Admin
+SPA strings translate via `wp.i18n` + `wp_set_script_translations` (Danish JSON in
+`languages/`, generated with `wp i18n make-json`).
 
 | Tab | What it controls |
 |-----|------------------|
@@ -190,12 +204,12 @@ timeslot-booking/
 │   ├── class-tsb-availability.php slot generation
 │   ├── class-tsb-i18n.php        WPML/Polylang bridge for configured strings
 │   ├── class-tsb-ics.php         .ics calendar invite builder
-│   └── class-tsb-ajax.php        get-slots + book endpoints, mail, captcha
+│   ├── class-tsb-ajax.php        get-slots + book endpoints, mail, captcha
+│   └── class-tsb-rest.php        REST API (tsb/v1) behind the admin SPA
 ├── widgets/class-tsb-widget.php  Elementor widget + content/style controls
-├── admin/
-│   ├── class-tsb-admin.php       menu, settings tabs, booking/block management
-│   └── class-tsb-bookings-table.php  native WP_List_Table for bookings
-├── assets/booking.js, booking.css
+├── admin/class-tsb-admin.php     menu, SPA mount/enqueue, CSV export
+├── assets/booking.js, booking.css      front-end booking widget
+├── assets/admin/admin.js, admin.css    admin React SPA
 ├── languages/                    tsb.pot + tsb-da_DK.po/.mo
 └── tests/                        PHPUnit (holiday + availability)
 ```

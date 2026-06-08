@@ -63,15 +63,10 @@ class TSB_Ajax {
 			wp_send_json_error( array( 'message' => __( 'Please wait a moment and try again.', 'tsb' ), 'code' => 'stamp' ) );
 		}
 
-		$fields = TSB_Availability::fields();
-
-		$date   = isset( $_POST['date'] ) ? sanitize_text_field( wp_unslash( $_POST['date'] ) ) : '';
-		$time   = isset( $_POST['time'] ) ? sanitize_text_field( wp_unslash( $_POST['time'] ) ) : '';
-		$name   = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
-		$email  = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
-		$phone  = isset( $_POST['phone'] ) ? sanitize_text_field( wp_unslash( $_POST['phone'] ) ) : '';
-		$msg    = isset( $_POST['message'] ) ? sanitize_textarea_field( wp_unslash( $_POST['message'] ) ) : '';
-		$custom = isset( $_POST['custom'] ) ? sanitize_text_field( wp_unslash( $_POST['custom'] ) ) : '';
+		$date  = isset( $_POST['date'] ) ? sanitize_text_field( wp_unslash( $_POST['date'] ) ) : '';
+		$time  = isset( $_POST['time'] ) ? sanitize_text_field( wp_unslash( $_POST['time'] ) ) : '';
+		$name  = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
+		$email = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
 
 		if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date ) || ! preg_match( '/^\d{2}:\d{2}$/', $time ) ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid time slot.', 'tsb' ) ) );
@@ -79,27 +74,39 @@ class TSB_Ajax {
 		if ( '' === $name || ! is_email( $email ) ) {
 			wp_send_json_error( array( 'message' => __( 'Please enter your name and a valid email.', 'tsb' ) ) );
 		}
-		// Required optional fields (only those enabled + marked required).
-		if ( ( $fields['phone']['show'] && $fields['phone']['req'] && '' === $phone )
-			|| ( $fields['message']['show'] && $fields['message']['req'] && '' === $msg )
-			|| ( $fields['custom']['show'] && $fields['custom']['req'] && '' === $custom ) ) {
-			wp_send_json_error( array( 'message' => __( 'Please fill in all required fields.', 'tsb' ) ) );
+
+		// Dynamic, user-defined fields. phone → its own column; a textarea named
+		// "message" is the raw message body; everything else is labelled into it.
+		$phone   = '';
+		$message = '';
+		$extra   = array();
+		foreach ( TSB_Availability::form_fields() as $f ) {
+			$raw = isset( $_POST[ $f['name'] ] ) ? wp_unslash( $_POST[ $f['name'] ] ) : '';
+			$val = ( 'textarea' === $f['type'] ) ? sanitize_textarea_field( $raw ) : sanitize_text_field( $raw );
+			if ( $f['required'] && '' === trim( $val ) ) {
+				wp_send_json_error( array( 'message' => __( 'Please fill in all required fields.', 'tsb' ) ) );
+			}
+			if ( '' === $val ) {
+				continue;
+			}
+			if ( 'phone' === $f['name'] ) {
+				$phone = $val;
+			} elseif ( 'message' === $f['name'] && 'textarea' === $f['type'] ) {
+				$message = $val;
+			} else {
+				$extra[] = $f['label'] . ': ' . $val;
+			}
 		}
+		$msg = implode( "\n", $extra );
+		if ( '' !== $message ) {
+			$msg = ( '' !== $msg ? $msg . "\n\n" : '' ) . $message;
+		}
+
 		if ( ! empty( $s['consent_enable'] ) && empty( $_POST['consent'] ) ) {
 			wp_send_json_error( array( 'message' => __( 'Please accept the consent to continue.', 'tsb' ) ) );
 		}
 		if ( ! self::captcha_ok( $s ) ) {
 			wp_send_json_error( array( 'message' => __( 'Please confirm that you are not a robot.', 'tsb' ) ) );
-		}
-
-		// Fold the custom field into the stored/emailed message.
-		if ( $fields['custom']['show'] && '' !== $custom ) {
-			$label = $fields['custom']['label'] ? $fields['custom']['label'] : __( 'Custom', 'tsb' );
-			$msg   = $label . ': ' . $custom . ( '' !== $msg ? "\n\n" . $msg : '' );
-		}
-		// Drop a field that's off entirely.
-		if ( ! $fields['phone']['show'] ) {
-			$phone = '';
 		}
 		if ( ! self::slot_available( $date, $time ) ) {
 			wp_send_json_error( array( 'message' => __( 'Sorry, that time is no longer available.', 'tsb' ) ) );

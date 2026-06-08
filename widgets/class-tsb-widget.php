@@ -265,7 +265,6 @@ class TSB_Widget extends Widget_Base {
 		$set    = TSB_Availability::settings();
 		$mode   = $set['captcha_mode'];
 		$site   = $set['captcha_site'];
-		$fields = TSB_Availability::fields();
 		$id     = 'tsb-' . $this->get_id();
 		?>
 		<div class="tsb" id="<?php echo esc_attr( $id ); ?>">
@@ -308,16 +307,10 @@ class TSB_Widget extends Widget_Base {
 
 					<?php
 					$this->field( 'name', __( 'Name', 'tsb' ), 'text', true, 'name' );
-					$this->field( 'email', __( 'Email', 'tsb' ), 'email', true, 'email' );
-					if ( $fields['phone']['show'] ) {
-						$this->field( 'phone', $fields['phone']['label'], 'tel', $fields['phone']['req'], 'tel' );
-					}
-					if ( $fields['message']['show'] ) {
-						$this->field( 'message', $fields['message']['label'], 'textarea', $fields['message']['req'] );
-					}
-					if ( $fields['custom']['show'] ) {
-						$this->field( 'custom', $fields['custom']['label'], 'text', $fields['custom']['req'], 'organization' );
-					}
+						$this->field( 'email', __( 'Email', 'tsb' ), 'email', true, 'email' );
+						foreach ( TSB_Availability::form_fields() as $f ) {
+							$this->field( $f['name'], $f['label'], $f['type'], (bool) $f['required'], TSB_Availability::field_autocomplete( $f ) );
+						}
 					?>
 
 					<?php // Honeypot — hidden from humans, bots fill it. ?>

@@ -1,6 +1,14 @@
 # PHP deps (committed: composer.json; not: installed tree)
 /vendor/
 
+# Node deps (committed: package.json + build/; not: installed tree)
+/node_modules/
+.eslintcache
+*.tsbuildinfo
+npm-debug.log*
+yarn-error.log*
+.cache/
+
 # Local env / docker overrides
 .env
 docker-compose.override.yml

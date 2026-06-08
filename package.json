@@ -1,0 +1,22 @@
+{
+  "name": "timeslot-booking-admin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Admin SPA for the Timeslot Booking plugin (React + TypeScript, built with @wordpress/scripts).",
+  "scripts": {
+    "build": "wp-scripts build",
+    "start": "wp-scripts start",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@wordpress/api-fetch": "^7.13.0",
+    "@wordpress/components": "^28.13.0",
+    "@wordpress/data": "^10.13.0",
+    "@wordpress/element": "^6.13.0",
+    "@wordpress/i18n": "^5.13.0",
+    "@wordpress/scripts": "^30.7.0",
+    "typescript": "^5.6.3"
+  }
+}

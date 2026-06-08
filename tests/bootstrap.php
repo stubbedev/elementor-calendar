@@ -17,6 +17,12 @@ if ( ! function_exists( '__' ) ) {
 if ( ! function_exists( 'esc_html__' ) ) {
 	function esc_html__( $text, $domain = 'default' ) { return $text; }
 }
+if ( ! function_exists( 'sanitize_key' ) ) {
+	function sanitize_key( $key ) { return preg_replace( '/[^a-z0-9_\-]/', '', strtolower( (string) $key ) ); }
+}
+if ( ! function_exists( 'sanitize_text_field' ) ) {
+	function sanitize_text_field( $str ) { return trim( preg_replace( '/\s+/', ' ', (string) $str ) ); }
+}
 
 if ( ! function_exists( 'wp_parse_args' ) ) {
 	function wp_parse_args( $args, $defaults = array() ) {

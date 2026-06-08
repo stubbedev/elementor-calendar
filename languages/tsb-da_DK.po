@@ -2,671 +2,1004 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Timeslot Booking 1.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/timeslot-booking\n"
+"POT-Creation-Date: 2026-06-08T18:35:42+00:00\n"
+"Language: da_DK\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: da_DK\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Domain: tsb\n"
 
-msgid "Custom Elementor widget. Predefined timeslots from an hour range, individual blocks removable, auto-blocks weekends + Danish bank holidays, contact form after slot pick, double-booking prevented."
-msgstr "Brugerdefineret Elementor-widget. Foruddefinerede tidspunkter fra et timeinterval, enkelte blokeringer kan fjernes, blokerer automatisk weekender + danske helligdage, kontaktformular efter valg af tid, dobbeltbooking forhindret."
+#. Plugin Name of the plugin
+#: timeslot-booking.php widgets/class-tsb-widget.php:19
+msgid "Timeslot Booking"
+msgstr ""
 
-msgid "Timeslot Booking requires Elementor to be installed and active. The booking widget will not appear until Elementor is active."
-msgstr "Timeslot Booking kræver, at Elementor er installeret og aktiveret. Booking-widgeten vises ikke før Elementor er aktivt."
+#. Description of the plugin
+#: timeslot-booking.php
+msgid ""
+"Custom Elementor widget. Predefined timeslots from an hour range, individual "
+"blocks removable, auto-blocks weekends + Danish bank holidays, contact form "
+"after slot pick, double-booking prevented."
+msgstr ""
+"Brugerdefineret Elementor-widget. Foruddefinerede tidspunkter fra et "
+"timeinterval, enkelte blokeringer kan fjernes, blokerer automatisk weekender "
+"+ danske helligdage, kontaktformular efter valg af tid, dobbeltbooking "
+"forhindret."
 
-# ---- front-end (JS + widget) ----
-msgid "Loading available times…"
-msgstr "Henter ledige tider…"
-
-msgid "Could not load times. Please try again."
-msgstr "Kunne ikke hente tider. Prøv igen."
-
-msgid "Network error. Please try again."
-msgstr "Netværksfejl. Prøv igen."
-
-msgid "No available times right now."
-msgstr "Ingen ledige tider i øjeblikket."
-
-msgid "at"
-msgstr "kl."
-
-msgid "free"
-msgstr "ledige"
-
-msgid "OK"
-msgstr "OK"
-
-msgid "Error"
-msgstr "Fejl"
-
-msgid "Pick a day:"
-msgstr "Vælg en dag:"
-
-msgid "Highlighted days have available times."
-msgstr "Markerede dage har ledige tider."
-
-msgid "Previous month"
-msgstr "Forrige måned"
-
-msgid "Next month"
-msgstr "Næste måned"
-
-msgid "Name"
-msgstr "Navn"
-
-msgid "Email"
-msgstr "E-mail"
-
-msgid "Phone"
-msgstr "Telefon"
-
-msgid "Message"
-msgstr "Besked"
-
-msgid "Leave this field empty"
-msgstr "Lad dette felt være tomt"
-
-msgid "Back"
-msgstr "Tilbage"
-
-msgid "Confirm booking"
-msgstr "Bekræft booking"
-
-# ---- AJAX responses ----
-msgid "Security check failed. Please reload the page."
-msgstr "Sikkerhedstjek fejlede. Genindlæs siden."
-
-msgid "Thank you! Your time is booked."
-msgstr "Tak! Din tid er booket."
-
-msgid "Thank you! Your time is booked. You will receive a confirmation by email."
-msgstr "Tak! Din tid er booket. Du modtager en bekræftelse på e-mail."
-
-msgid "Invalid time slot."
-msgstr "Ugyldigt tidspunkt."
-
-msgid "Please enter your name and a valid email."
-msgstr "Udfyld navn og en gyldig e-mail."
-
-msgid "Please confirm that you are not a robot."
-msgstr "Bekræft venligst at du ikke er en robot."
-
-msgid "Sorry, that time is no longer available."
-msgstr "Tidspunktet er desværre ikke længere ledigt."
-
-msgid "That time was just taken. Please choose another."
-msgstr "Tidspunktet blev netop optaget. Vælg et andet."
-
-# ---- email defaults ----
-msgid "New booking: {date} {time}"
-msgstr "Ny booking: {date} {time}"
-
-msgid "Name: {name}\nEmail: {email}\nPhone: {phone}\nTime: {date} at {time}\n\nMessage:\n{message}"
-msgstr "Navn: {name}\nE-mail: {email}\nTelefon: {phone}\nTid: {date} kl. {time}\n\nBesked:\n{message}"
-
-msgid "Confirmation of your booking {date} at {time}"
-msgstr "Bekræftelse på din booking {date} kl. {time}"
-
-msgid "Hi {name}\n\nThank you for your booking.\n\nDate: {date}\nTime: {time}\n\nWe look forward to seeing you. Reply to this email if you need to change the time."
-msgstr "Hej {name}\n\nTak for din booking.\n\nDato: {date}\nTid: {time}\n\nVi glæder os til at se dig. Svar på denne mail hvis du skal ændre tiden."
-
-msgid "Booking: {name}"
-msgstr "Booking: {name}"
+#. Author of the plugin
+#: timeslot-booking.php
+msgid "you"
+msgstr ""
 
 # ---- admin: menu / tabs ----
+#: admin/class-tsb-admin.php:22 assets/admin/admin.js:76
 msgid "Bookings"
 msgstr "Bookinger"
 
+#: admin/class-tsb-admin.php:23
 msgid "All bookings"
 msgstr "Alle bookinger"
 
+#: admin/class-tsb-admin.php:24
 msgid "Settings"
 msgstr "Indstillinger"
 
-msgid "Booking settings"
-msgstr "Booking-indstillinger"
-
-msgid "Availability"
-msgstr "Tilgængelighed"
-
-msgid "Emails"
-msgstr "E-mails"
-
-msgid "Spam protection"
-msgstr "Spam-beskyttelse"
-
-msgid "Blocks"
-msgstr "Blokeringer"
-
-# ---- admin: bookings list ----
-msgid "Export CSV"
-msgstr "Eksportér CSV"
-
-msgid "Search"
-msgstr "Søg"
-
-msgid "No bookings."
-msgstr "Ingen bookinger."
-
+#: admin/class-tsb-admin.php:70 assets/admin/admin.js:60
+#: assets/admin/admin.js:332
 msgid "Date"
 msgstr "Dato"
 
+#: admin/class-tsb-admin.php:70 assets/admin/admin.js:60
+#: assets/admin/admin.js:332
 msgid "Time"
 msgstr "Tid"
 
+#: admin/class-tsb-admin.php:70 widgets/class-tsb-widget.php:310
+#: assets/admin/admin.js:61
+msgid "Name"
+msgstr "Navn"
+
+#: admin/class-tsb-admin.php:70 widgets/class-tsb-widget.php:311
+#: assets/admin/admin.js:61
+msgid "Email"
+msgstr "E-mail"
+
+#: admin/class-tsb-admin.php:71 includes/class-tsb-availability.php:67
+#: assets/admin/admin.js:62 assets/admin/admin.js:257
+msgid "Phone"
+msgstr "Telefon"
+
+#: admin/class-tsb-admin.php:71 includes/class-tsb-availability.php:68
+#: assets/admin/admin.js:258
+msgid "Message"
+msgstr "Besked"
+
+#: admin/class-tsb-admin.php:71 assets/admin/admin.js:62
 msgid "Status"
 msgstr "Status"
 
+#: admin/class-tsb-admin.php:71
 msgid "Created"
 msgstr "Oprettet"
 
-msgid "Cancel"
-msgstr "Annullér"
-
-msgid "Delete permanently"
-msgstr "Slet permanent"
-
-msgid "Move"
-msgstr "Flyt"
-
-msgid "Delete"
-msgstr "Slet"
-
-msgid "Cancel booking? The time becomes available again."
-msgstr "Aflys booking? Tiden bliver ledig igen."
-
-msgid "Delete permanently?"
-msgstr "Slet permanent?"
-
-# ---- admin: notices ----
-msgid "Booking moved."
-msgstr "Booking flyttet."
-
-msgid "That time is already taken. Choose another."
-msgstr "Tidspunktet er allerede optaget. Vælg et andet."
-
-msgid "Invalid date/time."
-msgstr "Ugyldig dato/tid."
-
-msgid "Booking(s) cancelled. The time is available again."
-msgstr "Booking(er) aflyst. Tiden er ledig igen."
-
-msgid "Booking(s) deleted."
-msgstr "Booking(er) slettet."
-
-# ---- admin: move screen ----
-msgid "Move booking"
-msgstr "Flyt booking"
-
-msgid "Booking not found."
-msgstr "Booking ikke fundet."
-
-msgid "current time: %s"
-msgstr "nuværende tid: %s"
-
-msgid "New date"
-msgstr "Ny dato"
-
-msgid "New time"
-msgstr "Ny tid"
-
-# ---- admin: availability tab ----
-msgid "Base business hours"
-msgstr "Basisåbningstider"
-
-msgid "Base hours (from–to, 24h)"
-msgstr "Basistider (fra–til, 24t)"
-
-msgid "Days marked “Follow base hours” use these hours."
-msgstr "Dage markeret “Følg basistider” bruger disse tider."
-
-msgid "Opening hours per weekday"
-msgstr "Åbningstider pr. ugedag"
-
-msgid "Day"
-msgstr "Dag"
-
-msgid "Open"
-msgstr "Åben"
-
-msgid "Follow base hours"
-msgstr "Følg basistider"
-
-msgid "Own hours from"
-msgstr "Egne tider fra"
-
-msgid "To"
-msgstr "Til"
-
-msgid "Slots"
-msgstr "Slots"
-
-msgid "Slot length (min)"
-msgstr "Slot-længde (min)"
-
-msgid "How long each time slot is."
-msgstr "Hvor lang hver tid er."
-
-msgid "Start offset (min)"
-msgstr "Startforskydning (min)"
-
-msgid "Minutes after opening before the first slot. 0 = start at opening."
-msgstr "Minutter efter åbning før første slot. 0 = start ved åbning."
-
-msgid "Gap between slots (min)"
-msgstr "Mellemrum mellem slots (min)"
-
-msgid "Buffer between two slots. 0 = none."
-msgstr "Buffer mellem to slots. 0 = ingen."
-
-msgid "Days ahead"
-msgstr "Dage frem"
-
-msgid "Minimum lead time (hours)"
-msgstr "Mindste varsel (timer)"
-
-msgid "0 = bookable right now"
-msgstr "0 = kan bookes lige nu"
-
-msgid "Public holidays"
-msgstr "Helligdage"
-
-msgid "Block holidays"
-msgstr "Bloker helligdage"
-
-msgid "Countries"
-msgstr "Lande"
-
-msgid "Holidays are fetched from date.nager.at (cached). Hold Ctrl/Cmd to select several."
-msgstr "Helligdage hentes fra date.nager.at (cachet). Hold Ctrl/Cmd nede for at vælge flere."
-
-# ---- admin: emails tab ----
-msgid "Placeholders:"
-msgstr "Pladsholdere:"
-
-msgid "Message to admin"
-msgstr "Besked til admin"
-
-msgid "Send admin notification"
-msgstr "Send admin-notifikation"
-
-msgid "Recipient"
-msgstr "Modtager"
-
-msgid "default"
-msgstr "standard"
-
-msgid "Subject"
-msgstr "Emne"
-
-msgid "Body"
-msgstr "Tekst"
-
-msgid "Confirmation to customer"
-msgstr "Bekræftelse til kunde"
-
-msgid "Send confirmation"
-msgstr "Send bekræftelse"
-
-msgid "Sender"
-msgstr "Afsender"
-
-msgid "Sender name"
-msgstr "Afsendernavn"
-
-msgid "WordPress (default)"
-msgstr "WordPress (standard)"
-
-msgid "Sender email"
-msgstr "Afsender e-mail"
-
-msgid "WordPress default"
-msgstr "standard fra WordPress"
-
-msgid "Use an address on your own domain for better deliverability (typically together with an SMTP plugin)."
-msgstr "Brug en adresse på dit eget domæne for bedre leveringssikkerhed (typisk sammen med en SMTP-plugin)."
-
-msgid "Calendar invite (.ics)"
-msgstr "Kalender-invitation (.ics)"
-
-msgid "Attach .ics to customer email"
-msgstr "Vedhæft .ics til kundemail"
-
-msgid "Title"
-msgstr "Titel"
-
-msgid "Placeholders as in emails, e.g. Booking: {name}."
-msgstr "Pladsholdere som i mails, fx Booking: {name}."
-
-msgid "Location"
-msgstr "Sted"
-
-msgid "optional"
-msgstr "valgfri"
-
-# ---- admin: spam tab ----
-msgid "None"
-msgstr "Ingen"
-
-msgid "Honeypot (hidden field, no keys)"
-msgstr "Honeypot (skjult felt, ingen nøgler)"
-
-msgid "Google reCAPTCHA v2 (checkbox)"
-msgstr "Google reCAPTCHA v2 (afkrydsning)"
-
-msgid "Google reCAPTCHA v3 (invisible, score)"
-msgstr "Google reCAPTCHA v3 (usynlig, score)"
-
-msgid "hCaptcha"
-msgstr "hCaptcha"
-
-msgid "Method"
-msgstr "Metode"
-
-msgid "Honeypot is always active and needs no setup. reCAPTCHA/hCaptcha require the keys below."
-msgstr "Honeypot er altid aktivt og kræver ingen opsætning. reCAPTCHA/hCaptcha kræver nøglerne nedenfor."
-
-msgid "Site key"
-msgstr "Site key"
-
-msgid "Secret key"
-msgstr "Secret key"
-
-msgid "v3 minimum score"
-msgstr "v3 mindste score"
-
-msgid "reCAPTCHA v3 only. 0.5 recommended; higher = stricter."
-msgstr "Kun reCAPTCHA v3. 0,5 anbefalet; højere = strengere."
-
-# ---- admin: blocks tab ----
-msgid "Remove individual times / days from availability"
-msgstr "Fjern enkelte tider / dage fra tilgængelighed"
-
-msgid "Reason"
-msgstr "Årsag"
-
-msgid "empty = whole day"
-msgstr "tom = hele dagen"
-
-msgid "Block"
-msgstr "Bloker"
-
-msgid "No blocks."
-msgstr "Ingen blokeringer."
-
-msgid "whole day"
-msgstr "hele dagen"
-
-msgid "Delete block?"
-msgstr "Slet blokering?"
-
-# ---- Elementor widget controls ----
-msgid "Content"
-msgstr "Indhold"
-
-msgid "Intro text"
-msgstr "Intro-tekst"
-
-msgid "Opening hours, slot length, holidays, emails, spam protection and blocks are managed under <strong>Bookings → Settings</strong> in wp-admin."
-msgstr "Åbningstider, slot-længde, helligdage, e-mails, spam-beskyttelse og blokeringer styres under <strong>Bookinger → Indstillinger</strong> i wp-admin."
-
-msgid "Calendar"
-msgstr "Kalender"
-
-msgid "Accent color"
-msgstr "Accentfarve"
-
-msgid "Defaults to your theme/Elementor primary color."
-msgstr "Bruger som standard dit temas/Elementors primærfarve."
-
-msgid "Cell spacing"
-msgstr "Celleafstand"
-
-msgid "Month title color"
-msgstr "Månedstitel-farve"
-
-msgid "Weekday header color"
-msgstr "Ugedag-header farve"
-
-msgid "Day cell typography"
-msgstr "Dagcelle-typografi"
-
-msgid "Day text color"
-msgstr "Dag tekstfarve"
-
-msgid "Day background"
-msgstr "Dagbaggrund"
-
-msgid "Day hover border"
-msgstr "Dag hover-kant"
-
-msgid "Selected day background"
-msgstr "Valgt dag baggrund"
-
-msgid "Cell corner radius"
-msgstr "Cellehjørneradius"
-
-msgid "Time slots"
-msgstr "Tidspunkter"
-
-msgid "Text color"
-msgstr "Tekstfarve"
-
-msgid "Background"
-msgstr "Baggrund"
-
-msgid "Hover background"
-msgstr "Hover-baggrund"
-
-msgid "Padding"
-msgstr "Indvendig margin"
-
-msgid "Form & fields"
-msgstr "Formular & felter"
-
-msgid "Color"
-msgstr "Farve"
-
-msgid "Chosen-time box"
-msgstr "Valgt-tid boks"
-
-msgid "Labels"
-msgstr "Etiketter"
-
-msgid "Label color"
-msgstr "Etiketfarve"
-
-msgid "Input fields"
-msgstr "Inputfelter"
-
-msgid "Corner radius"
-msgstr "Hjørneradius"
-
-msgid "Buttons & messages"
-msgstr "Knapper & beskeder"
-
-msgid "Confirm button"
-msgstr "Bekræft-knap"
-
-msgid "Background (hover)"
-msgstr "Baggrund (hover)"
-
-msgid "Back button"
-msgstr "Tilbage-knap"
-
-msgid "Result messages"
-msgstr "Resultatbeskeder"
-
-msgid "Success text"
-msgstr "Succes-tekst"
-
-msgid "Success background"
-msgstr "Succes-baggrund"
-
-msgid "Error text"
-msgstr "Fejl-tekst"
-
-msgid "Error background"
-msgstr "Fejl-baggrund"
-
-# ---- new style controls ----
-msgid "General"
-msgstr "Generelt"
-
-msgid "Widget background"
-msgstr "Widget-baggrund"
-
-msgid "Max width"
-msgstr "Maksbredde"
-
-msgid "Leave empty to inherit the theme / Elementor primary color."
-msgstr "Lad stå tom for at arve temaets/Elementors primærfarve."
-
-msgid "Header (month / back)"
-msgstr "Header (måned / tilbage)"
-
-msgid "Nav arrow color"
-msgstr "Pilfarve"
-
-msgid "Nav arrow hover"
-msgstr "Pil hover"
-
-msgid "Header margin"
-msgstr "Header-margin"
-
-msgid "Weekday header"
-msgstr "Ugedag-header"
-
-msgid "Day cells"
-msgstr "Dagceller"
-
-msgid "Hover border"
-msgstr "Hover-kant"
-
-msgid "Selected background"
-msgstr "Valgt baggrund"
-
-msgid "Selected text"
-msgstr "Valgt tekst"
-
-msgid "Hint text"
-msgstr "Hjælpetekst"
-
-msgid "Spacing between slots"
-msgstr "Afstand mellem slots"
-
-msgid "Slots area margin"
-msgstr "Slot-område margin"
-
-msgid "Slot buttons"
-msgstr "Slot-knapper"
-
-msgid "Hover text"
-msgstr "Hover-tekst"
-
-msgid "Margin"
-msgstr "Margin"
-
-msgid "Field spacing"
-msgstr "Feltafstand"
-
-msgid "Form max width"
-msgstr "Formular maksbredde"
-
-msgid "Focus border"
-msgstr "Fokus-kant"
-
-msgid "Text (hover)"
-msgstr "Tekst (hover)"
-
-msgid "Back to days"
-msgstr "Tilbage til dage"
-
-# ---- form improvements (fields, consent, validation, summary) ----
-msgid "Form"
-msgstr "Formular"
-
-msgid "Name and email are always shown and required."
-msgstr "Navn og e-mail vises altid og er påkrævede."
-
-msgid "Optional fields"
-msgstr "Valgfrie felter"
-
-msgid "Field"
-msgstr "Felt"
-
-msgid "Show"
-msgstr "Vis"
-
-msgid "Required"
-msgstr "Påkrævet"
-
-msgid "Custom field"
-msgstr "Brugerdefineret felt"
-
-msgid "Custom"
-msgstr "Felt"
-
-msgid "Company"
-msgstr "Virksomhed"
-
-msgid "Label"
-msgstr "Etiket"
-
-msgid "Consent (GDPR)"
-msgstr "Samtykke (GDPR)"
-
-msgid "Require consent checkbox"
-msgstr "Kræv samtykke-felt"
-
-msgid "Consent text"
-msgstr "Samtykketekst"
-
-msgid "Link text"
-msgstr "Linktekst"
-
-msgid "Link URL"
-msgstr "Link-URL"
-
-msgid "If set, the link text is shown as a link after the consent text."
-msgstr "Hvis udfyldt, vises linkteksten som et link efter samtykketeksten."
-
-msgid "Privacy policy"
-msgstr "Privatlivspolitik"
-
-msgid "I accept that my information is processed in order to handle my booking."
-msgstr "Jeg accepterer, at mine oplysninger behandles for at håndtere min booking."
-
-msgid "Please fill in all required fields."
-msgstr "Udfyld venligst alle påkrævede felter."
-
-msgid "Please accept the consent to continue."
-msgstr "Accepter venligst samtykket for at fortsætte."
-
-msgid "Please accept to continue."
-msgstr "Accepter venligst for at fortsætte."
-
-msgid "Please enter a valid email."
-msgstr "Indtast en gyldig e-mail."
-
-msgid "This field is required."
-msgstr "Dette felt er påkrævet."
-
+# ---- AJAX responses ----
+#: includes/class-tsb-ajax.php:10
+msgid "Security check failed. Please reload the page."
+msgstr "Sikkerhedstjek fejlede. Genindlæs siden."
+
+#: includes/class-tsb-ajax.php:58
+msgid "Thank you! Your time is booked."
+msgstr "Tak! Din tid er booket."
+
+#: includes/class-tsb-ajax.php:63
 msgid "Please wait a moment and try again."
 msgstr "Vent et øjeblik og prøv igen."
 
+#: includes/class-tsb-ajax.php:77
+msgid "Invalid time slot."
+msgstr "Ugyldigt tidspunkt."
+
+#: includes/class-tsb-ajax.php:80
+msgid "Please enter your name and a valid email."
+msgstr "Udfyld navn og en gyldig e-mail."
+
+#: includes/class-tsb-ajax.php:86
+msgid "Please fill in all required fields."
+msgstr "Udfyld venligst alle påkrævede felter."
+
+#: includes/class-tsb-ajax.php:89
+msgid "Please accept the consent to continue."
+msgstr "Accepter venligst samtykket for at fortsætte."
+
+#: includes/class-tsb-ajax.php:92
+msgid "Please confirm that you are not a robot."
+msgstr "Bekræft venligst at du ikke er en robot."
+
+#: includes/class-tsb-ajax.php:97
+msgid "Custom"
+msgstr "Felt"
+
+#: includes/class-tsb-ajax.php:105
+msgid "Sorry, that time is no longer available."
+msgstr "Tidspunktet er desværre ikke længere ledigt."
+
+#: includes/class-tsb-ajax.php:126
+msgid "That time was just taken. Please choose another."
+msgstr "Tidspunktet blev netop optaget. Vælg et andet."
+
+#: includes/class-tsb-ajax.php:133
+msgid ""
+"Thank you! Your time is booked. You will receive a confirmation by email."
+msgstr "Tak! Din tid er booket. Du modtager en bekræftelse på e-mail."
+
+# ---- email defaults ----
+#: includes/class-tsb-availability.php:25
+msgid "New booking: {date} {time}"
+msgstr "Ny booking: {date} {time}"
+
+#: includes/class-tsb-availability.php:26
+msgid ""
+"Name: {name}\n"
+"Email: {email}\n"
+"Phone: {phone}\n"
+"Time: {date} at {time}\n"
+"\n"
+"Message:\n"
+"{message}"
+msgstr ""
+"Navn: {name}\n"
+"E-mail: {email}\n"
+"Telefon: {phone}\n"
+"Tid: {date} kl. {time}\n"
+"\n"
+"Besked:\n"
+"{message}"
+
+#: includes/class-tsb-availability.php:28
+msgid "Confirmation of your booking {date} at {time}"
+msgstr "Bekræftelse på din booking {date} kl. {time}"
+
+#: includes/class-tsb-availability.php:29
+msgid ""
+"Hi {name}\n"
+"\n"
+"Thank you for your booking.\n"
+"\n"
+"Date: {date}\n"
+"Time: {time}\n"
+"\n"
+"We look forward to seeing you. Reply to this email if you need to change the "
+"time."
+msgstr ""
+"Hej {name}\n"
+"\n"
+"Tak for din booking.\n"
+"\n"
+"Dato: {date}\n"
+"Tid: {time}\n"
+"\n"
+"Vi glæder os til at se dig. Svar på denne mail hvis du skal ændre tiden."
+
+#: includes/class-tsb-availability.php:33
+msgid "Booking: {name}"
+msgstr "Booking: {name}"
+
+#: includes/class-tsb-availability.php:46
+msgid "Company"
+msgstr "Virksomhed"
+
+#: includes/class-tsb-availability.php:49
+msgid ""
+"I accept that my information is processed in order to handle my booking."
+msgstr ""
+"Jeg accepterer, at mine oplysninger behandles for at håndtere min booking."
+
+#: includes/class-tsb-availability.php:50
+msgid "Privacy policy"
+msgstr "Privatlivspolitik"
+
+# ---- admin: spam tab ----
+#: includes/class-tsb-rest.php:67
+msgid "None"
+msgstr "Ingen"
+
+#: includes/class-tsb-rest.php:68
+msgid "Honeypot (hidden field, no keys)"
+msgstr "Honeypot (skjult felt, ingen nøgler)"
+
+#: includes/class-tsb-rest.php:69
+msgid "Google reCAPTCHA v2 (checkbox)"
+msgstr "Google reCAPTCHA v2 (afkrydsning)"
+
+#: includes/class-tsb-rest.php:70
+msgid "Google reCAPTCHA v3 (invisible, score)"
+msgstr "Google reCAPTCHA v3 (usynlig, score)"
+
+#: includes/class-tsb-rest.php:71
+msgid "hCaptcha"
+msgstr "hCaptcha"
+
+#: includes/class-tsb-rest.php:217 includes/class-tsb-rest.php:265
+msgid "Invalid date/time."
+msgstr "Ugyldig dato/tid."
+
+#: includes/class-tsb-rest.php:225 includes/class-tsb-rest.php:229
+#: assets/admin/admin.js:171
+msgid "That time is already taken. Choose another."
+msgstr "Tidspunktet er allerede optaget. Vælg et andet."
+
+#: timeslot-booking.php:54
+msgid ""
+"Timeslot Booking requires Elementor to be installed and active. The booking "
+"widget will not appear until Elementor is active."
+msgstr ""
+"Timeslot Booking kræver, at Elementor er installeret og aktiveret. Booking-"
+"widgeten vises ikke før Elementor er aktivt."
+
+# ---- front-end (JS + widget) ----
+#: timeslot-booking.php:123 widgets/class-tsb-widget.php:274
+msgid "Loading available times…"
+msgstr "Henter ledige tider…"
+
+#: timeslot-booking.php:124
+msgid "Could not load times. Please try again."
+msgstr "Kunne ikke hente tider. Prøv igen."
+
+#: timeslot-booking.php:125
+msgid "Network error. Please try again."
+msgstr "Netværksfejl. Prøv igen."
+
+#: timeslot-booking.php:126
+msgid "No available times right now."
+msgstr "Ingen ledige tider i øjeblikket."
+
+#: timeslot-booking.php:127
+msgid "at"
+msgstr "kl."
+
+#: timeslot-booking.php:128
+msgid "free"
+msgstr "ledige"
+
+#: timeslot-booking.php:129
+msgid "OK"
+msgstr "OK"
+
+#: timeslot-booking.php:130 assets/admin/admin.js:50 assets/admin/admin.js:148
+#: assets/admin/admin.js:201
+msgid "Error"
+msgstr "Fejl"
+
+#: timeslot-booking.php:131
+msgid "This field is required."
+msgstr "Dette felt er påkrævet."
+
+#: timeslot-booking.php:132
+msgid "Please enter a valid email."
+msgstr "Indtast en gyldig e-mail."
+
+#: timeslot-booking.php:133
+msgid "Please accept to continue."
+msgstr "Accepter venligst for at fortsætte."
+
+#: timeslot-booking.php:134
 msgid "Sending…"
 msgstr "Sender…"
 
+#: timeslot-booking.php:135 widgets/class-tsb-widget.php:361
 msgid "Book another"
 msgstr "Book en ny"
 
+#: timeslot-booking.php:136
 msgid "Reference"
 msgstr "Reference"
 
+#: widgets/class-tsb-widget.php:97 widgets/class-tsb-widget.php:146
+#: widgets/class-tsb-widget.php:153 widgets/class-tsb-widget.php:181
+#: widgets/class-tsb-widget.php:209 widgets/class-tsb-widget.php:226
+msgid "Text color"
+msgstr "Tekstfarve"
+
+#: widgets/class-tsb-widget.php:99 widgets/class-tsb-widget.php:182
+#: widgets/class-tsb-widget.php:210 widgets/class-tsb-widget.php:227
+msgid "Background"
+msgstr "Baggrund"
+
+#: widgets/class-tsb-widget.php:101 widgets/class-tsb-widget.php:154
+#: widgets/class-tsb-widget.php:189
+msgid "Margin"
+msgstr "Margin"
+
+#: widgets/class-tsb-widget.php:102 widgets/class-tsb-widget.php:132
+#: widgets/class-tsb-widget.php:165 widgets/class-tsb-widget.php:188
+#: widgets/class-tsb-widget.php:214 widgets/class-tsb-widget.php:232
+#: widgets/class-tsb-widget.php:242
+msgid "Padding"
+msgstr "Indvendig margin"
+
+# ---- Elementor widget controls ----
+#: widgets/class-tsb-widget.php:108
+msgid "Content"
+msgstr "Indhold"
+
+#: widgets/class-tsb-widget.php:112
+msgid ""
+"Opening hours, slot length, holidays, emails, spam protection and blocks are "
+"managed under <strong>Bookings → Settings</strong> in wp-admin."
+msgstr ""
+"Åbningstider, slot-længde, helligdage, e-mails, spam-beskyttelse og "
+"blokeringer styres under <strong>Bookinger → Indstillinger</strong> i wp-"
+"admin."
+
+# ---- new style controls ----
+#: widgets/class-tsb-widget.php:120
+msgid "General"
+msgstr "Generelt"
+
+#: widgets/class-tsb-widget.php:124
+msgid "Accent color"
+msgstr "Accentfarve"
+
+#: widgets/class-tsb-widget.php:127
+msgid "Leave empty to inherit the theme / Elementor primary color."
+msgstr "Lad stå tom for at arve temaets/Elementors primærfarve."
+
+#: widgets/class-tsb-widget.php:130
+msgid "Widget background"
+msgstr "Widget-baggrund"
+
+#: widgets/class-tsb-widget.php:131
+msgid "Max width"
+msgstr "Maksbredde"
+
+#: widgets/class-tsb-widget.php:138
+msgid "Calendar"
+msgstr "Kalender"
+
+#: widgets/class-tsb-widget.php:142
+msgid "Cell spacing"
+msgstr "Celleafstand"
+
+#: widgets/class-tsb-widget.php:144
+msgid "Header (step title / back)"
+msgstr "Header (trin-titel / tilbage)"
+
+#: widgets/class-tsb-widget.php:147
+msgid "Nav arrow color"
+msgstr "Pilfarve"
+
+#: widgets/class-tsb-widget.php:148
+msgid "Nav arrow hover"
+msgstr "Pil hover"
+
+#: widgets/class-tsb-widget.php:149
+msgid "Header margin"
+msgstr "Header-margin"
+
+#: widgets/class-tsb-widget.php:151
+msgid "Weekday header"
+msgstr "Ugedag-header"
+
+#: widgets/class-tsb-widget.php:156
+msgid "Day cells"
+msgstr "Dagceller"
+
+#: widgets/class-tsb-widget.php:158
+msgid "Day text color"
+msgstr "Dag tekstfarve"
+
+#: widgets/class-tsb-widget.php:159
+msgid "Day background"
+msgstr "Dagbaggrund"
+
+#: widgets/class-tsb-widget.php:160 widgets/class-tsb-widget.php:185
+msgid "Hover border"
+msgstr "Hover-kant"
+
+#: widgets/class-tsb-widget.php:161
+msgid "Selected background"
+msgstr "Valgt baggrund"
+
+#: widgets/class-tsb-widget.php:162
+msgid "Selected text"
+msgstr "Valgt tekst"
+
+#: widgets/class-tsb-widget.php:164 widgets/class-tsb-widget.php:187
+#: widgets/class-tsb-widget.php:213 widgets/class-tsb-widget.php:231
+#: widgets/class-tsb-widget.php:241
+msgid "Corner radius"
+msgstr "Hjørneradius"
+
+#: widgets/class-tsb-widget.php:172
+msgid "Time slots"
+msgstr "Tidspunkter"
+
+#: widgets/class-tsb-widget.php:176
+msgid "Spacing between slots"
+msgstr "Afstand mellem slots"
+
+#: widgets/class-tsb-widget.php:177
+msgid "Slots area margin"
+msgstr "Slot-område margin"
+
+#: widgets/class-tsb-widget.php:179
+msgid "Slot buttons"
+msgstr "Slot-knapper"
+
+#: widgets/class-tsb-widget.php:183
+msgid "Hover text"
+msgstr "Hover-tekst"
+
+#: widgets/class-tsb-widget.php:184
+msgid "Hover background"
+msgstr "Hover-baggrund"
+
+#: widgets/class-tsb-widget.php:196
+msgid "Form & fields"
+msgstr "Formular & felter"
+
+#: widgets/class-tsb-widget.php:200
+msgid "Field spacing"
+msgstr "Feltafstand"
+
+#: widgets/class-tsb-widget.php:201
+msgid "Form max width"
+msgstr "Formular maksbredde"
+
+#: widgets/class-tsb-widget.php:203
+msgid "Labels"
+msgstr "Etiketter"
+
+#: widgets/class-tsb-widget.php:205
+msgid "Label color"
+msgstr "Etiketfarve"
+
+#: widgets/class-tsb-widget.php:207
+msgid "Input fields"
+msgstr "Inputfelter"
+
+#: widgets/class-tsb-widget.php:211
+msgid "Focus border"
+msgstr "Fokus-kant"
+
+#: widgets/class-tsb-widget.php:220
+msgid "Buttons & messages"
+msgstr "Knapper & beskeder"
+
+#: widgets/class-tsb-widget.php:224
+msgid "Confirm button"
+msgstr "Bekræft-knap"
+
+#: widgets/class-tsb-widget.php:228
+msgid "Text (hover)"
+msgstr "Tekst (hover)"
+
+#: widgets/class-tsb-widget.php:229
+msgid "Background (hover)"
+msgstr "Baggrund (hover)"
+
+#: widgets/class-tsb-widget.php:235
+msgid "Result messages"
+msgstr "Resultatbeskeder"
+
+#: widgets/class-tsb-widget.php:237
+msgid "Success text"
+msgstr "Succes-tekst"
+
+#: widgets/class-tsb-widget.php:238
+msgid "Success background"
+msgstr "Succes-baggrund"
+
+#: widgets/class-tsb-widget.php:239
+msgid "Error text"
+msgstr "Fejl-tekst"
+
+#: widgets/class-tsb-widget.php:240
+msgid "Error background"
+msgstr "Fejl-baggrund"
+
+#: widgets/class-tsb-widget.php:280
+msgid "Previous month"
+msgstr "Forrige måned"
+
+#: widgets/class-tsb-widget.php:282
+msgid "Next month"
+msgstr "Næste måned"
+
+#: widgets/class-tsb-widget.php:291
+msgid "Back to days"
+msgstr "Tilbage til dage"
+
+#: widgets/class-tsb-widget.php:302
 msgid "Back to times"
 msgstr "Tilbage til tider"
 
-msgid "Header (step title / back)"
-msgstr "Header (trin-titel / tilbage)"
+#: widgets/class-tsb-widget.php:325
+msgid "Leave this field empty"
+msgstr "Lad dette felt være tomt"
+
+#: widgets/class-tsb-widget.php:352
+msgid "Confirm booking"
+msgstr "Bekræft booking"
+
+#: assets/admin/admin.js:53
+msgid "Delete permanently?"
+msgstr "Slet permanent?"
+
+#: assets/admin/admin.js:55
+msgid "Booking(s) deleted."
+msgstr "Booking(er) slettet."
+
+# ---- admin: bookings list ----
+#: assets/admin/admin.js:77
+msgid "Export CSV"
+msgstr "Eksportér CSV"
+
+# ---- admin SPA ----
+#: assets/admin/admin.js:83
+msgid "Upcoming"
+msgstr "Kommende"
+
+#: assets/admin/admin.js:84
+msgid "Past"
+msgstr "Tidligere"
+
+#: assets/admin/admin.js:85
+msgid "All"
+msgstr "Alle"
+
+#: assets/admin/admin.js:88
+msgid "Search"
+msgstr "Søg"
+
+#: assets/admin/admin.js:105
+msgid "Move"
+msgstr "Flyt"
+
+#: assets/admin/admin.js:107
+msgid "Cancel booking? The time becomes available again."
+msgstr "Aflys booking? Tiden bliver ledig igen."
+
+#: assets/admin/admin.js:107
+msgid "Booking(s) cancelled. The time is available again."
+msgstr "Booking(er) aflyst. Tiden er ledig igen."
+
+#: assets/admin/admin.js:107 assets/admin/admin.js:174
+msgid "Cancel"
+msgstr "Annullér"
+
+# ---- admin: notices ----
+#: assets/admin/admin.js:109 assets/admin/admin.js:123
+msgid "Booking moved."
+msgstr "Booking flyttet."
+
+#: assets/admin/admin.js:109
+msgid "Restore"
+msgstr "Gendan"
+
+#: assets/admin/admin.js:110 assets/admin/admin.js:338
+msgid "Delete"
+msgstr "Slet"
+
+#: assets/admin/admin.js:114
+msgid "No bookings."
+msgstr "Ingen bookinger."
+
+# ---- admin: move screen ----
+#: assets/admin/admin.js:154 assets/admin/admin.js:175
+msgid "Move booking"
+msgstr "Flyt booking"
+
+#: assets/admin/admin.js:156
+msgid "New date"
+msgstr "Ny dato"
+
+#: assets/admin/admin.js:165
+msgid "Already taken"
+msgstr "Allerede optaget"
+
+#: assets/admin/admin.js:169
+msgid "No open times on this day (closed, holiday, or fully blocked)."
+msgstr "Ingen ledige tider denne dag (lukket, helligdag eller helt blokeret)."
+
+#: assets/admin/admin.js:200
+msgid "Settings saved."
+msgstr "Indstillinger gemt."
+
+# ---- admin: availability tab ----
+#: assets/admin/admin.js:214
+msgid "Base business hours"
+msgstr "Basisåbningstider"
+
+#: assets/admin/admin.js:215 assets/admin/admin.js:222
+msgid "From"
+msgstr "Fra"
+
+#: assets/admin/admin.js:215 assets/admin/admin.js:222
+msgid "To"
+msgstr "Til"
+
+#: assets/admin/admin.js:218
+msgid "Opening hours per weekday"
+msgstr "Åbningstider pr. ugedag"
+
+#: assets/admin/admin.js:221
+msgid "Day"
+msgstr "Dag"
+
+#: assets/admin/admin.js:221
+msgid "Open"
+msgstr "Åben"
+
+#: assets/admin/admin.js:222
+msgid "Follow base hours"
+msgstr "Følg basistider"
+
+#: assets/admin/admin.js:236
+msgid "Slots"
+msgstr "Slots"
+
+#: assets/admin/admin.js:237
+msgid "Slot length (min)"
+msgstr "Slot-længde (min)"
+
+#: assets/admin/admin.js:238
+msgid "Start offset (min)"
+msgstr "Startforskydning (min)"
+
+#: assets/admin/admin.js:239
+msgid "Gap between slots (min)"
+msgstr "Mellemrum mellem slots (min)"
+
+#: assets/admin/admin.js:240
+msgid "Days ahead"
+msgstr "Dage frem"
+
+#: assets/admin/admin.js:241
+msgid "Minimum lead time (hours)"
+msgstr "Mindste varsel (timer)"
+
+#: assets/admin/admin.js:244
+msgid "Public holidays"
+msgstr "Helligdage"
+
+#: assets/admin/admin.js:245
+msgid "Block holidays"
+msgstr "Bloker helligdage"
+
+#: assets/admin/admin.js:246
+msgid "Countries"
+msgstr "Lande"
+
+#: assets/admin/admin.js:256
+msgid "Optional fields"
+msgstr "Valgfrie felter"
+
+#: assets/admin/admin.js:257
+msgid "Phone required"
+msgstr "Telefon påkrævet"
+
+#: assets/admin/admin.js:258
+msgid "Message required"
+msgstr "Besked påkrævet"
+
+#: assets/admin/admin.js:259
+msgid "Custom field"
+msgstr "Brugerdefineret felt"
+
+#: assets/admin/admin.js:259
+msgid "Custom field label"
+msgstr "Etiket for brugerdefineret felt"
+
+#: assets/admin/admin.js:259
+msgid "Custom required"
+msgstr "Brugerdefineret påkrævet"
+
+#: assets/admin/admin.js:260
+msgid "Consent (GDPR)"
+msgstr "Samtykke (GDPR)"
+
+#: assets/admin/admin.js:261
+msgid "Require consent checkbox"
+msgstr "Kræv samtykke-felt"
+
+#: assets/admin/admin.js:262
+msgid "Consent text"
+msgstr "Samtykketekst"
+
+#: assets/admin/admin.js:263
+msgid "Link text"
+msgstr "Linktekst"
+
+#: assets/admin/admin.js:264
+msgid "Link URL"
+msgstr "Link-URL"
+
+# ---- admin: emails tab ----
+#: assets/admin/admin.js:268
+msgid "Placeholders:"
+msgstr "Pladsholdere:"
+
+#: assets/admin/admin.js:269
+msgid "Message to admin"
+msgstr "Besked til admin"
+
+#: assets/admin/admin.js:270
+msgid "Send admin notification"
+msgstr "Send admin-notifikation"
+
+#: assets/admin/admin.js:271
+msgid "Recipient"
+msgstr "Modtager"
+
+#: assets/admin/admin.js:271 assets/admin/admin.js:274
+msgid "Subject"
+msgstr "Emne"
+
+#: assets/admin/admin.js:271 assets/admin/admin.js:274
+msgid "Body"
+msgstr "Tekst"
+
+#: assets/admin/admin.js:272
+msgid "Confirmation to customer"
+msgstr "Bekræftelse til kunde"
+
+#: assets/admin/admin.js:273
+msgid "Send confirmation"
+msgstr "Send bekræftelse"
+
+#: assets/admin/admin.js:275
+msgid "Sender"
+msgstr "Afsender"
+
+#: assets/admin/admin.js:276
+msgid "Sender name"
+msgstr "Afsendernavn"
+
+#: assets/admin/admin.js:276
+msgid "Sender email"
+msgstr "Afsender e-mail"
+
+#: assets/admin/admin.js:277
+msgid "Calendar invite (.ics)"
+msgstr "Kalender-invitation (.ics)"
+
+#: assets/admin/admin.js:278
+msgid "Attach .ics to customer email"
+msgstr "Vedhæft .ics til kundemail"
+
+#: assets/admin/admin.js:279
+msgid "Title"
+msgstr "Titel"
+
+#: assets/admin/admin.js:279
+msgid "Location"
+msgstr "Sted"
+
+#: assets/admin/admin.js:283
+msgid "Method"
+msgstr "Metode"
+
+#: assets/admin/admin.js:286
+msgid "Site key"
+msgstr "Site key"
+
+#: assets/admin/admin.js:286
+msgid "Secret key"
+msgstr "Secret key"
+
+#: assets/admin/admin.js:287
+msgid "v3 minimum score"
+msgstr "v3 mindste score"
+
+#: assets/admin/admin.js:292
+msgid "Availability"
+msgstr "Tilgængelighed"
+
+# ---- form improvements (fields, consent, validation, summary) ----
+#: assets/admin/admin.js:293
+msgid "Form"
+msgstr "Formular"
+
+#: assets/admin/admin.js:294
+msgid "Emails"
+msgstr "E-mails"
+
+#: assets/admin/admin.js:295
+msgid "Spam protection"
+msgstr "Spam-beskyttelse"
+
+#: assets/admin/admin.js:296
+msgid "Blocks"
+msgstr "Blokeringer"
+
+#: assets/admin/admin.js:300
+msgid "Booking settings"
+msgstr "Booking-indstillinger"
+
+#: assets/admin/admin.js:306
+msgid "Save settings"
+msgstr "Gem indstillinger"
+
+# ---- admin: blocks tab ----
+#: assets/admin/admin.js:323
+msgid "Remove individual times / days from availability"
+msgstr "Fjern enkelte tider / dage fra tilgængelighed"
+
+#: assets/admin/admin.js:327 assets/admin/admin.js:332
+msgid "Reason"
+msgstr "Årsag"
+
+#: assets/admin/admin.js:328
+msgid "Block"
+msgstr "Bloker"
+
+#: assets/admin/admin.js:330
+msgid "Empty time = whole day."
+msgstr "Tom tid = hele dagen."
+
+#: assets/admin/admin.js:336
+msgid "whole day"
+msgstr "hele dagen"
+
+#: assets/admin/admin.js:339
+msgid "No blocks."
+msgstr "Ingen blokeringer."
+
+#~ msgid "Pick a day:"
+#~ msgstr "Vælg en dag:"
+
+#~ msgid "Highlighted days have available times."
+#~ msgstr "Markerede dage har ledige tider."
+
+#~ msgid "Back"
+#~ msgstr "Tilbage"
+
+#~ msgid "Delete permanently"
+#~ msgstr "Slet permanent"
+
+#~ msgid "Booking not found."
+#~ msgstr "Booking ikke fundet."
+
+#~ msgid "current time: %s"
+#~ msgstr "nuværende tid: %s"
+
+#~ msgid "New time"
+#~ msgstr "Ny tid"
+
+#~ msgid "Base hours (from–to, 24h)"
+#~ msgstr "Basistider (fra–til, 24t)"
+
+#~ msgid "Days marked “Follow base hours” use these hours."
+#~ msgstr "Dage markeret “Følg basistider” bruger disse tider."
+
+#~ msgid "Own hours from"
+#~ msgstr "Egne tider fra"
+
+#~ msgid "How long each time slot is."
+#~ msgstr "Hvor lang hver tid er."
+
+#~ msgid "Minutes after opening before the first slot. 0 = start at opening."
+#~ msgstr "Minutter efter åbning før første slot. 0 = start ved åbning."
+
+#~ msgid "Buffer between two slots. 0 = none."
+#~ msgstr "Buffer mellem to slots. 0 = ingen."
+
+#~ msgid "0 = bookable right now"
+#~ msgstr "0 = kan bookes lige nu"
+
+#~ msgid ""
+#~ "Holidays are fetched from date.nager.at (cached). Hold Ctrl/Cmd to select "
+#~ "several."
+#~ msgstr ""
+#~ "Helligdage hentes fra date.nager.at (cachet). Hold Ctrl/Cmd nede for at "
+#~ "vælge flere."
+
+#~ msgid "default"
+#~ msgstr "standard"
+
+#~ msgid "WordPress (default)"
+#~ msgstr "WordPress (standard)"
+
+#~ msgid "WordPress default"
+#~ msgstr "standard fra WordPress"
+
+#~ msgid ""
+#~ "Use an address on your own domain for better deliverability (typically "
+#~ "together with an SMTP plugin)."
+#~ msgstr ""
+#~ "Brug en adresse på dit eget domæne for bedre leveringssikkerhed (typisk "
+#~ "sammen med en SMTP-plugin)."
+
+#~ msgid "Placeholders as in emails, e.g. Booking: {name}."
+#~ msgstr "Pladsholdere som i mails, fx Booking: {name}."
+
+#~ msgid "optional"
+#~ msgstr "valgfri"
+
+#~ msgid ""
+#~ "Honeypot is always active and needs no setup. reCAPTCHA/hCaptcha require "
+#~ "the keys below."
+#~ msgstr ""
+#~ "Honeypot er altid aktivt og kræver ingen opsætning. reCAPTCHA/hCaptcha "
+#~ "kræver nøglerne nedenfor."
+
+#~ msgid "reCAPTCHA v3 only. 0.5 recommended; higher = stricter."
+#~ msgstr "Kun reCAPTCHA v3. 0,5 anbefalet; højere = strengere."
+
+#~ msgid "empty = whole day"
+#~ msgstr "tom = hele dagen"
+
+#~ msgid "Delete block?"
+#~ msgstr "Slet blokering?"
+
+#~ msgid "Intro text"
+#~ msgstr "Intro-tekst"
+
+#~ msgid "Defaults to your theme/Elementor primary color."
+#~ msgstr "Bruger som standard dit temas/Elementors primærfarve."
+
+#~ msgid "Month title color"
+#~ msgstr "Månedstitel-farve"
+
+#~ msgid "Weekday header color"
+#~ msgstr "Ugedag-header farve"
+
+#~ msgid "Day cell typography"
+#~ msgstr "Dagcelle-typografi"
+
+#~ msgid "Day hover border"
+#~ msgstr "Dag hover-kant"
+
+#~ msgid "Selected day background"
+#~ msgstr "Valgt dag baggrund"
+
+#~ msgid "Cell corner radius"
+#~ msgstr "Cellehjørneradius"
+
+#~ msgid "Color"
+#~ msgstr "Farve"
+
+#~ msgid "Chosen-time box"
+#~ msgstr "Valgt-tid boks"
+
+#~ msgid "Back button"
+#~ msgstr "Tilbage-knap"
+
+#~ msgid "Header (month / back)"
+#~ msgstr "Header (måned / tilbage)"
+
+#~ msgid "Hint text"
+#~ msgstr "Hjælpetekst"
+
+#~ msgid "Name and email are always shown and required."
+#~ msgstr "Navn og e-mail vises altid og er påkrævede."
+
+#~ msgid "Field"
+#~ msgstr "Felt"
+
+#~ msgid "Show"
+#~ msgstr "Vis"
+
+#~ msgid "Required"
+#~ msgstr "Påkrævet"
+
+#~ msgid "Label"
+#~ msgstr "Etiket"
+
+#~ msgid "If set, the link text is shown as a link after the consent text."
+#~ msgstr "Hvis udfyldt, vises linkteksten som et link efter samtykketeksten."
+
+# ---- admin SPA (TS rebuild) ----
+msgid "Available times"
+msgstr "Ledige tider"
+
+msgid "Free"
+msgstr "Ledig"
+
+msgid "Taken"
+msgstr "Optaget"
+
+msgid "Follow base"
+msgstr "Følg basis"
