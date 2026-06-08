@@ -20,18 +20,13 @@ class TSB_Availability {
 			'holiday_countries' => array( 'DK' ),
 			'week'              => self::default_week(),
 			// emails
-			'admin_notify'     => 1,
-			'admin_to'         => '',   // blank => site admin_email
-			'admin_subject'    => __( 'New booking: {date} {time}', 'tsb' ),
-			'admin_body'       => __( "Name: {name}\nEmail: {email}\nPhone: {phone}\nTime: {date} at {time}\n\nMessage:\n{message}", 'tsb' ),
-			'customer_confirm' => 1,
-			'customer_subject' => __( 'Confirmation of your booking {date} at {time}', 'tsb' ),
-			'customer_body'    => __( "Hi {name}\n\nThank you for your booking.\n\nDate: {date}\nTime: {time}\n\nWe look forward to seeing you. Reply to this email if you need to change the time.", 'tsb' ),
 			'from_name'        => '', // blank => WordPress default
 			'from_email'       => '',
 			'ics_attach'       => 1,
-			'ics_summary'      => __( 'Booking: {name}', 'tsb' ),
+			'ics_summary'      => 'Booking: {{name}}',
 			'ics_location'     => '',
+			'emails'           => class_exists( 'TSB_Emails' ) ? TSB_Emails::default_templates() : array(),
+			'reminder_hours'   => 24,
 			// spam
 			'captcha_mode'      => 'honeypot', // none | honeypot | recaptcha | recaptcha_v3 | hcaptcha
 			'captcha_site'      => '',
@@ -55,6 +50,13 @@ class TSB_Availability {
 			$s['holiday_countries'] = array( 'DK' );
 		}
 		$s['fields'] = self::normalize_fields( $s['fields'] );
+		if ( class_exists( 'TSB_Emails' ) ) {
+			$def_em      = TSB_Emails::default_templates();
+			$s['emails'] = is_array( $s['emails'] ?? null ) ? $s['emails'] : array();
+			foreach ( $def_em as $k => $v ) {
+				$s['emails'][ $k ] = isset( $s['emails'][ $k ] ) ? array_merge( $v, (array) $s['emails'][ $k ] ) : $v;
+			}
+		}
 		return $s;
 	}
 

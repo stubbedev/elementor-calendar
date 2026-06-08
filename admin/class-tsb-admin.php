@@ -39,6 +39,7 @@ class TSB_Admin {
 			'rest'      => esc_url_raw( rest_url( TSB_REST::NS . '/' ) ),
 			'nonce'     => wp_create_nonce( 'wp_rest' ),
 			'exportUrl' => wp_nonce_url( admin_url( 'admin-post.php?action=tsb_export_csv' ), 'tsb_export_csv' ),
+			'buildUrl'  => TSB_URL . 'build/',
 		) );
 		wp_set_script_translations( 'tsb-admin', 'tsb', TSB_PATH . 'languages' );
 	}

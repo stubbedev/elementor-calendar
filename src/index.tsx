@@ -1,3 +1,7 @@
+// Load webpack-split chunks (the MJML compiler) from the plugin's build/ dir.
+// eslint-disable-next-line camelcase
+__webpack_public_path__ = tsbAdmin.buildUrl;
+
 import { createRoot } from '@wordpress/element';
 import './admin.scss';
 import Bookings from './Bookings';

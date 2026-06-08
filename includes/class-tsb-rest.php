@@ -76,6 +76,14 @@ class TSB_REST {
 					'number'   => __( 'Number', 'tsb' ),
 				),
 				'adminEmail'  => get_option( 'admin_email' ),
+				'emailEvents' => array(
+					'confirm'  => __( 'Customer confirmation', 'tsb' ),
+					'admin'    => __( 'Admin notification', 'tsb' ),
+					'move'     => __( 'Booking moved', 'tsb' ),
+					'cancel'   => __( 'Booking cancelled', 'tsb' ),
+					'reminder' => __( 'Reminder', 'tsb' ),
+				),
+				'emailTokens' => TSB_Emails::tokens(),
 				'captchaModes' => array(
 					'none'         => __( 'None', 'tsb' ),
 					'honeypot'     => __( 'Honeypot (hidden field, no keys)', 'tsb' ),
@@ -131,18 +139,27 @@ class TSB_REST {
 			$s['week'] = $week;
 		}
 
-		// emails
-		foreach ( array( 'admin_subject', 'customer_subject', 'from_name', 'ics_summary', 'ics_location' ) as $k ) {
+		// emails: sender + .ics
+		foreach ( array( 'from_name', 'ics_summary', 'ics_location' ) as $k ) {
 			if ( array_key_exists( $k, $in ) ) { $s[ $k ] = sanitize_text_field( $in[ $k ] ); }
 		}
-		foreach ( array( 'admin_body', 'customer_body' ) as $k ) {
-			if ( array_key_exists( $k, $in ) ) { $s[ $k ] = sanitize_textarea_field( $in[ $k ] ); }
-		}
-		foreach ( array( 'admin_to', 'from_email' ) as $k ) {
-			if ( array_key_exists( $k, $in ) ) { $s[ $k ] = sanitize_email( $in[ $k ] ); }
-		}
-		foreach ( array( 'admin_notify', 'customer_confirm', 'ics_attach' ) as $k ) {
-			if ( array_key_exists( $k, $in ) ) { $s[ $k ] = $bool( $k ); }
+		if ( array_key_exists( 'from_email', $in ) ) { $s['from_email'] = sanitize_email( $in['from_email'] ); }
+		if ( array_key_exists( 'ics_attach', $in ) ) { $s['ics_attach'] = $bool( 'ics_attach' ); }
+		if ( array_key_exists( 'reminder_hours', $in ) ) { $s['reminder_hours'] = max( 1, (int) $in['reminder_hours'] ); }
+
+		// emails: per-event templates (admin is trusted → MJML/HTML stored raw).
+		if ( array_key_exists( 'emails', $in ) && is_array( $in['emails'] ) ) {
+			foreach ( array( 'confirm', 'admin', 'move', 'cancel', 'reminder' ) as $ev ) {
+				if ( ! isset( $in['emails'][ $ev ] ) || ! is_array( $in['emails'][ $ev ] ) ) {
+					continue;
+				}
+				$e = $in['emails'][ $ev ];
+				$s['emails'][ $ev ]['enabled'] = empty( $e['enabled'] ) ? 0 : 1;
+				if ( isset( $e['subject'] ) ) { $s['emails'][ $ev ]['subject'] = sanitize_text_field( $e['subject'] ); }
+				if ( isset( $e['mjml'] ) )    { $s['emails'][ $ev ]['mjml']    = (string) $e['mjml']; }
+				if ( isset( $e['html'] ) )    { $s['emails'][ $ev ]['html']    = (string) $e['html']; }
+				if ( 'admin' === $ev && isset( $e['to'] ) ) { $s['emails'][ $ev ]['to'] = sanitize_email( $e['to'] ); }
+			}
 		}
 
 		// spam
@@ -212,12 +229,29 @@ class TSB_REST {
 
 	public static function update_booking( $req ) {
 		global $wpdb;
-		$id = (int) $req['id'];
-		$t  = TSB_DB::bookings_table();
-		$op = sanitize_key( (string) $req->get_param( 'op' ) );
+		$id  = (int) $req['id'];
+		$t   = TSB_DB::bookings_table();
+		$op  = sanitize_key( (string) $req->get_param( 'op' ) );
+		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $t WHERE id = %d", $id ) );
+		if ( ! $row ) {
+			return new WP_Error( 'tsb_notfound', __( 'Booking not found.', 'tsb' ), array( 'status' => 404 ) );
+		}
+		$as_email = function ( $r, $date = null, $time = null ) {
+			return array(
+				'name'    => $r->name,
+				'email'   => $r->email,
+				'phone'   => $r->phone,
+				'message' => $r->message,
+				'date'    => $date ?? $r->slot_date,
+				'time'    => $time ?? substr( $r->slot_time, 0, 5 ),
+				'ref'     => (int) $r->id,
+				'fields'  => $r->meta ? (array) json_decode( $r->meta, true ) : array(),
+			);
+		};
 
 		if ( 'cancel' === $op ) {
 			$wpdb->update( $t, array( 'status' => 'cancelled', 'active' => null ), array( 'id' => $id ), array( '%s', '%s' ), array( '%d' ) );
+			TSB_Emails::on_cancel( $as_email( $row ) );
 			return rest_ensure_response( array( 'ok' => true ) );
 		}
 		if ( 'restore' === $op ) {
@@ -230,7 +264,6 @@ class TSB_REST {
 			if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date ) || ! preg_match( '/^\d{2}:\d{2}$/', $time ) ) {
 				return new WP_Error( 'tsb_badtime', __( 'Invalid date/time.', 'tsb' ), array( 'status' => 400 ) );
 			}
-			// Reject if the target is already taken by another active booking.
 			$taken = (int) $wpdb->get_var( $wpdb->prepare(
 				"SELECT COUNT(*) FROM $t WHERE slot_date = %s AND slot_time = %s AND status != 'cancelled' AND id != %d",
 				$date, $time . ':00', $id
@@ -238,10 +271,11 @@ class TSB_REST {
 			if ( $taken ) {
 				return new WP_Error( 'tsb_taken', __( 'That time is already taken. Choose another.', 'tsb' ), array( 'status' => 409 ) );
 			}
-			$res = $wpdb->update( $t, array( 'slot_date' => $date, 'slot_time' => $time . ':00' ), array( 'id' => $id ), array( '%s', '%s' ), array( '%d' ) );
+			$res = $wpdb->update( $t, array( 'slot_date' => $date, 'slot_time' => $time . ':00', 'reminded' => 0 ), array( 'id' => $id ), array( '%s', '%s', '%d' ), array( '%d' ) );
 			if ( false === $res ) {
 				return new WP_Error( 'tsb_taken', __( 'That time is already taken. Choose another.', 'tsb' ), array( 'status' => 409 ) );
 			}
+			TSB_Emails::on_move( $as_email( $row, $date, $time ), $row->slot_date, substr( $row->slot_time, 0, 5 ) );
 			return rest_ensure_response( array( 'ok' => true ) );
 		}
 		return new WP_Error( 'tsb_badop', 'Unknown operation.', array( 'status' => 400 ) );

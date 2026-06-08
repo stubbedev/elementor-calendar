@@ -122,12 +122,21 @@
 	}
 	.tsb-tabs > .components-tab-panel__tabs { margin-bottom: .5em; }
 
-	/* ---- field builder ---- */
+	/* ---- field builder ----
+	   One grid on the container; every row is a subgrid spanning all columns, so
+	   the header and all rows share the exact same column tracks (reliable
+	   alignment, unlike independent per-row grids). */
+	.tsb-fields {
+		display: grid;
+		grid-template-columns: 1.4em minmax( 0, 1.6fr ) minmax( 0, 1fr ) minmax( 0, 1fr ) 5em 5.5em 5em;
+		column-gap: .75em;
+	}
+	.tsb-fields > * { grid-column: 1 / -1; } /* non-row children (help text, add btn) span full width */
 	.tsb-fieldrow {
 		display: grid;
-		grid-template-columns: 1.4em 1.6fr 1fr 1fr auto auto 2em;
+		grid-template-columns: subgrid;
+		grid-column: 1 / -1;
 		align-items: center;
-		gap: .75em;
 		padding: .4em 0;
 		border-bottom: 1px solid #f0f0f1;
 		.components-base-control { margin-bottom: 0; }
@@ -143,8 +152,78 @@
 	.tsb-fieldrow.is-dragging { opacity: .4; }
 	.tsb-fieldrow[draggable="true"] { cursor: grab; }
 	.tsb-drag { color: #9aa3af; cursor: grab; user-select: none; text-align: center; }
-	.tsb-field-del { justify-self: center; }
+	.tsb-field-del { justify-self: start; }
 	.tsb-fields-add { margin-top: 1em; }
+
+	/* ---- email editor ---- */
+	.tsb-email-head { display: grid; gap: .5em; margin: .5em 0 1em; }
+	.tsb-token-palette {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: .35em;
+		margin-bottom: .75em;
+		.tsb-help { margin: 0 .25em 0 0; }
+	}
+	.tsb-email-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1.5em;
+		align-items: start;
+	}
+	@media ( max-width: 1100px ) {
+		.tsb-email-grid { grid-template-columns: 1fr; }
+	}
+	.tsb-mjml-label,
+	.tsb-email-previewbar {
+		display: flex;
+		align-items: center;
+		gap: .5em;
+		font-size: 11px;
+		text-transform: uppercase;
+		color: #6b7280;
+		font-weight: 600;
+		margin-bottom: 4px;
+	}
+	.tsb-device-buttons { margin-left: auto; display: flex; gap: .25em; }
+	.tsb-email-stage {
+		border: 1px solid #d0d5dd;
+		border-radius: 6px;
+		background: #eef1f5;
+		overflow: auto;
+	}
+	.tsb-email-stage.is-desktop { background: #fff; }
+	.tsb-email-stage.is-tablet,
+	.tsb-email-stage.is-mobile {
+		display: flex;
+		justify-content: center;
+		padding: 12px;
+	}
+	.tsb-email-stage.is-tablet .tsb-email-preview,
+	.tsb-email-stage.is-mobile .tsb-email-preview {
+		min-height: 596px;
+		box-shadow: 0 2px 10px rgba( 0, 0, 0, .12 );
+	}
+	.tsb-mjml-textarea {
+		width: 100%;
+		min-height: 620px;
+		resize: vertical;
+		font-family: Menlo, Consolas, monospace;
+		font-size: 13px;
+		line-height: 1.6;
+		tab-size: 2;
+		padding: .8em;
+		border: 1px solid #d0d5dd;
+		border-radius: 6px;
+		box-sizing: border-box;
+	}
+	.tsb-email-preview {
+		width: 100%;
+		min-height: 620px;
+		border: 0;
+		display: block;
+		background: #fff;
+	}
 
 	/* ---- day-picker (blocks) ---- */
 	.tsb-daypick {
@@ -156,6 +235,7 @@
 	@media ( max-width: 782px ) {
 		.tsb-daypick { grid-template-columns: 1fr; }
 	}
+	.tsb-daypick-panel .components-notice { margin-top: 1em; }
 
 	.tsb-legend-cal { flex-wrap: wrap; }
 	.tsb-legend-cal .tsb-legend-dot.is-free { background: #12b76a; }

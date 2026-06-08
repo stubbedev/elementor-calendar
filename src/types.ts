@@ -17,18 +17,13 @@ export interface Settings {
 	holiday_countries: string[];
 	week: Record<string, WeekDay>;
 
-	admin_notify: number;
-	admin_to: string;
-	admin_subject: string;
-	admin_body: string;
-	customer_confirm: number;
-	customer_subject: string;
-	customer_body: string;
 	from_name: string;
 	from_email: string;
 	ics_attach: number;
 	ics_summary: string;
 	ics_location: string;
+	emails: Record<string, EmailTemplate>;
+	reminder_hours: number;
 
 	captcha_mode: string;
 	captcha_site: string;
@@ -50,10 +45,20 @@ export interface Field {
 	required: number;
 }
 
+export interface EmailTemplate {
+	enabled: number;
+	subject: string;
+	mjml: string;
+	html: string;
+	to?: string;
+}
+
 export interface Meta {
 	weekdays: Record<string, string>;
 	countries: Record<string, string>;
 	fieldTypes: Record<string, string>;
+	emailEvents: Record<string, string>;
+	emailTokens: string[];
 	adminEmail: string;
 	captchaModes: Record<string, string>;
 }

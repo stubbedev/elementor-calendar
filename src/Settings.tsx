@@ -20,6 +20,7 @@ import { __ } from '@wordpress/i18n';
 import { api } from './api';
 import Blocks from './Blocks';
 import FieldBuilder from './FieldBuilder';
+import EmailEditor from './EmailEditor';
 import type { Settings as TSettings, Meta, WeekDay } from './types';
 
 function hourOptions( from: number, to: number ) {
@@ -218,25 +219,14 @@ export default function Settings() {
 	/* ---- Emails ---- */
 	const tabEmails = (
 		<VStack spacing={ 5 }>
-			<p className="tsb-help">{ __( 'Placeholders:', 'tsb' ) } <code>{ '{name} {email} {phone} {message} {date} {time}' }</code></p>
+			<EmailEditor
+				emails={ d.emails }
+				events={ m.emailEvents }
+				tokens={ m.emailTokens }
+				adminEmail={ m.adminEmail }
+				onChange={ ( emails ) => set( 'emails', emails ) }
+			/>
 			<Grid columns={ 2 } gap={ 5 } className="tsb-cards-2">
-				<Card className="tsb-card">
-					<CardHeader>{ __( 'Message to admin', 'tsb' ) }</CardHeader>
-					<CardBody><VStack spacing={ 3 }>
-						{ tog( 'admin_notify', __( 'Send admin notification', 'tsb' ) ) }
-						{ txt( 'admin_to', __( 'Recipient', 'tsb' ), m.adminEmail ) }
-						{ txt( 'admin_subject', __( 'Subject', 'tsb' ) ) }
-						{ area( 'admin_body', __( 'Body', 'tsb' ) ) }
-					</VStack></CardBody>
-				</Card>
-				<Card className="tsb-card">
-					<CardHeader>{ __( 'Confirmation to customer', 'tsb' ) }</CardHeader>
-					<CardBody><VStack spacing={ 3 }>
-						{ tog( 'customer_confirm', __( 'Send confirmation', 'tsb' ) ) }
-						{ txt( 'customer_subject', __( 'Subject', 'tsb' ) ) }
-						{ area( 'customer_body', __( 'Body', 'tsb' ) ) }
-					</VStack></CardBody>
-				</Card>
 				<Card className="tsb-card">
 					<CardHeader>{ __( 'Sender', 'tsb' ) }</CardHeader>
 					<CardBody><VStack spacing={ 3 }>
@@ -251,6 +241,12 @@ export default function Settings() {
 						{ txt( 'ics_summary', __( 'Title', 'tsb' ) ) }
 						{ txt( 'ics_location', __( 'Location', 'tsb' ) ) }
 					</VStack></CardBody>
+				</Card>
+				<Card className="tsb-card">
+					<CardHeader>{ __( 'Reminder', 'tsb' ) }</CardHeader>
+					<CardBody>
+						{ num( 'reminder_hours', __( 'Send reminder this many hours before', 'tsb' ), 1, __( 'Enable the “Reminder” email template above.', 'tsb' ) ) }
+					</CardBody>
 				</Card>
 			</Grid>
 		</VStack>

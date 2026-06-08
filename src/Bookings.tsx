@@ -12,6 +12,7 @@ import { useState, useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { api, qs } from './api';
 import MoveModal from './MoveModal';
+import ConfirmButton from './ConfirmButton';
 import type { Booking } from './types';
 
 const PER = 20;
@@ -49,9 +50,6 @@ export default function Bookings() {
 			.catch( ( e: { message?: string } ) => setNotice( { type: 'error', msg: e?.message || __( 'Error', 'tsb' ) } ) );
 	}
 	function del( id: number ) {
-		if ( ! window.confirm( __( 'Delete permanently?', 'tsb' ) ) ) {
-			return;
-		}
 		api( 'bookings/' + id, { method: 'DELETE' } ).then( () => {
 			setNotice( { type: 'success', msg: __( 'Booking(s) deleted.', 'tsb' ) } );
 			load();
@@ -164,27 +162,23 @@ export default function Bookings() {
 															</Button>
 														) }
 														{ ! cancelled && (
-															<Button
+															<ConfirmButton
 																variant="tertiary"
 																size="small"
 																isDestructive
-																onClick={ () => {
-																	if ( window.confirm( __( 'Cancel booking? The time becomes available again.', 'tsb' ) ) ) {
-																		act( b.id, { op: 'cancel' }, __( 'Booking(s) cancelled. The time is available again.', 'tsb' ) );
-																	}
-																} }
+																onConfirm={ () => act( b.id, { op: 'cancel' }, __( 'Booking(s) cancelled. The time is available again.', 'tsb' ) ) }
 															>
 																{ __( 'Cancel', 'tsb' ) }
-															</Button>
+															</ConfirmButton>
 														) }
 														{ cancelled && (
 															<Button variant="secondary" size="small" onClick={ () => act( b.id, { op: 'restore' }, __( 'Booking moved.', 'tsb' ) ) }>
 																{ __( 'Restore', 'tsb' ) }
 															</Button>
 														) }
-														<Button variant="tertiary" size="small" isDestructive onClick={ () => del( b.id ) }>
+														<ConfirmButton variant="tertiary" size="small" isDestructive onConfirm={ () => del( b.id ) }>
 															{ __( 'Delete', 'tsb' ) }
-														</Button>
+														</ConfirmButton>
 													</div>
 												</td>
 											</tr>

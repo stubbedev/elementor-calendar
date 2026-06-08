@@ -163,7 +163,6 @@ export default function Blocks() {
 							<tr>
 								<th>{ __( 'Date', 'tsb' ) }</th>
 								<th>{ __( 'Time', 'tsb' ) }</th>
-								<th>{ __( 'Reason', 'tsb' ) }</th>
 								<th className="tsb-col-actions" />
 							</tr>
 						</thead>
@@ -179,7 +178,6 @@ export default function Blocks() {
 											} }>{ b.block_date }</a>
 										</td>
 										<td>{ b.block_time || <em>{ __( 'whole day', 'tsb' ) }</em> }</td>
-										<td>{ b.reason }</td>
 										<td className="tsb-col-actions">
 											<Button variant="tertiary" size="small" isDestructive onClick={ () => delBlock( b.id ) }>
 												{ __( 'Delete', 'tsb' ) }
@@ -189,7 +187,7 @@ export default function Blocks() {
 								) )
 							) : (
 								<tr>
-									<td colSpan={ 4 }>
+									<td colSpan={ 3 }>
 										<em>{ __( 'No blocks.', 'tsb' ) }</em>
 									</td>
 								</tr>

@@ -20,11 +20,17 @@ require_once TSB_PATH . 'includes/class-tsb-holidays.php';
 require_once TSB_PATH . 'includes/class-tsb-availability.php';
 require_once TSB_PATH . 'includes/class-tsb-i18n.php';
 require_once TSB_PATH . 'includes/class-tsb-ics.php';
+require_once TSB_PATH . 'includes/class-tsb-emails.php';
 require_once TSB_PATH . 'includes/class-tsb-ajax.php';
 require_once TSB_PATH . 'includes/class-tsb-rest.php';
 require_once TSB_PATH . 'admin/class-tsb-admin.php';
 
 TSB_REST::init();
+
+// Reminder cron.
+add_action( TSB_Emails::CRON_HOOK, array( 'TSB_Emails', 'run_reminders' ) );
+add_action( 'plugins_loaded', array( 'TSB_Emails', 'schedule_cron' ) );
+register_deactivation_hook( __FILE__, array( 'TSB_Emails', 'clear_cron' ) );
 
 register_activation_hook( __FILE__, array( 'TSB_DB', 'create_tables' ) );
 

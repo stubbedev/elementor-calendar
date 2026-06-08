@@ -77,15 +77,17 @@ class TSB_Ajax {
 
 		// Dynamic, user-defined fields. phone → its own column; a textarea named
 		// "message" is the raw message body; everything else is labelled into it.
-		$phone   = '';
-		$message = '';
-		$extra   = array();
+		$phone     = '';
+		$message   = '';
+		$extra     = array();
+		$fieldvals = array();
 		foreach ( TSB_Availability::form_fields() as $f ) {
 			$raw = isset( $_POST[ $f['name'] ] ) ? wp_unslash( $_POST[ $f['name'] ] ) : '';
 			$val = ( 'textarea' === $f['type'] ) ? sanitize_textarea_field( $raw ) : sanitize_text_field( $raw );
 			if ( $f['required'] && '' === trim( $val ) ) {
 				wp_send_json_error( array( 'message' => __( 'Please fill in all required fields.', 'tsb' ) ) );
 			}
+			$fieldvals[ $f['name'] ] = $val; // every field is available for email interpolation
 			if ( '' === $val ) {
 				continue;
 			}
@@ -124,8 +126,9 @@ class TSB_Ajax {
 				'message'   => $msg,
 				'status'    => 'confirmed',
 				'active'    => 1,
+				'meta'      => wp_json_encode( $fieldvals ),
 			),
-			array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d' )
+			array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s' )
 		);
 
 		// false => UNIQUE(slot_date, slot_time) collision: just taken.
@@ -134,7 +137,16 @@ class TSB_Ajax {
 		}
 
 		$booking_id = (int) $wpdb->insert_id;
-		self::send_mails( $s, compact( 'name', 'email', 'phone', 'msg', 'date', 'time', 'booking_id' ) );
+		TSB_Emails::on_book( array(
+			'name'    => $name,
+			'email'   => $email,
+			'phone'   => $phone,
+			'message' => $msg,
+			'date'    => $date,
+			'time'    => $time,
+			'ref'     => $booking_id,
+			'fields'  => $fieldvals,
+		) );
 
 		wp_send_json_success( array(
 			'message' => __( 'Thank you! Your time is booked. You will receive a confirmation by email.', 'tsb' ),
@@ -145,77 +157,6 @@ class TSB_Ajax {
 				'ref'  => $booking_id,
 			),
 		) );
-	}
-
-	protected static function send_mails( $s, $d ) {
-		$repl = array(
-			'{name}'    => $d['name'],
-			'{email}'   => $d['email'],
-			'{phone}'   => $d['phone'],
-			'{message}' => $d['msg'],
-			'{date}'    => $d['date'],
-			'{time}'    => $d['time'],
-		);
-		$tr = function ( $t ) use ( $repl ) {
-			return strtr( (string) $t, $repl );
-		};
-
-		// WPML String Translation: localize the configured templates first.
-		$admin_subject = TSB_I18N::translate( 'admin_subject', $s['admin_subject'] );
-		$admin_body    = TSB_I18N::translate( 'admin_body', $s['admin_body'] );
-		$cust_subject  = TSB_I18N::translate( 'customer_subject', $s['customer_subject'] );
-		$cust_body     = TSB_I18N::translate( 'customer_body', $s['customer_body'] );
-		$ics_summary   = TSB_I18N::translate( 'ics_summary', $s['ics_summary'] );
-
-		// Optional custom sender.
-		$from = '';
-		if ( ! empty( $s['from_email'] ) && is_email( $s['from_email'] ) ) {
-			$from = $s['from_name'] ? sprintf( 'From: %s <%s>', $s['from_name'], $s['from_email'] ) : 'From: ' . $s['from_email'];
-		}
-
-		// Build the .ics once, attach as a string via a one-shot PHPMailer hook.
-		$ics_cb = null;
-		if ( ! empty( $s['ics_attach'] ) ) {
-			$ics = TSB_ICS::generate(
-				array(
-					'id'          => $d['booking_id'],
-					'date'        => $d['date'],
-					'time'        => $d['time'],
-					'name'        => $d['name'],
-					'email'       => $d['email'],
-					'summary'     => strtr( $ics_summary, $repl ),
-					'location'    => $s['ics_location'],
-					'description' => $d['msg'],
-				),
-				$s['slot_minutes']
-			);
-			$ics_cb = function ( $phpmailer ) use ( $ics ) {
-				$phpmailer->addStringAttachment( $ics, 'booking.ics', 'base64', 'text/calendar; charset=utf-8; method=PUBLISH' );
-			};
-		}
-
-		if ( ! empty( $s['admin_notify'] ) ) {
-			$to      = ! empty( $s['admin_to'] ) ? $s['admin_to'] : get_option( 'admin_email' );
-			$headers = array();
-			if ( $from ) {
-				$headers[] = $from;
-			}
-			// Lets admin reply straight to the customer.
-			if ( is_email( $d['email'] ) ) {
-				$headers[] = 'Reply-To: ' . $d['name'] . ' <' . $d['email'] . '>';
-			}
-			wp_mail( $to, $tr( $admin_subject ), $tr( $admin_body ), $headers );
-		}
-		if ( ! empty( $s['customer_confirm'] ) && is_email( $d['email'] ) ) {
-			$headers = $from ? array( $from ) : array();
-			if ( $ics_cb ) {
-				add_action( 'phpmailer_init', $ics_cb );
-			}
-			wp_mail( $d['email'], $tr( $cust_subject ), $tr( $cust_body ), $headers );
-			if ( $ics_cb ) {
-				remove_action( 'phpmailer_init', $ics_cb );
-			}
-		}
 	}
 
 	/** Verify reCAPTCHA v2/v3 + hCaptcha. honeypot + none always pass here. */

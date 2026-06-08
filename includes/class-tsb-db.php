@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class TSB_DB {
 
-	const DB_VERSION = '1';
+	const DB_VERSION = '3';
 
 	/**
 	 * Idempotent schema guard. Runs on every load but does real work only when
@@ -61,6 +61,8 @@ class TSB_DB {
 			message TEXT NULL,
 			status VARCHAR(20) NOT NULL DEFAULT 'confirmed',
 			active TINYINT NULL DEFAULT 1,
+			reminded TINYINT NOT NULL DEFAULT 0,
+			meta LONGTEXT NULL,
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (id),
 			UNIQUE KEY slot (slot_date, slot_time, active)

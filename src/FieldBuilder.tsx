@@ -1,6 +1,7 @@
 import { Button, TextControl, SelectControl, ToggleControl } from '@wordpress/components';
 import { useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
+import ConfirmButton from './ConfirmButton';
 import type { Field } from './types';
 
 const RESERVED = [ 'name', 'email', 'consent', 'date', 'time', 'stamp', 'captcha_token', 'tsb_hp', 'action', 'nonce', 'lang' ];
@@ -119,16 +120,15 @@ export default function FieldBuilder( { fields, types, onChange }: Props ) {
 						onChange={ ( v ) => update( i, { required: v ? 1 : 0 } ) }
 						__nextHasNoMarginBottom
 					/>
-					<Button
+					<ConfirmButton
 						className="tsb-field-del"
 						variant="tertiary"
 						size="small"
 						isDestructive
-						label={ __( 'Delete', 'tsb' ) }
-						onClick={ () => del( i ) }
+						onConfirm={ () => del( i ) }
 					>
-						×
-					</Button>
+						{ __( 'Delete', 'tsb' ) }
+					</ConfirmButton>
 				</div>
 			) ) }
 
