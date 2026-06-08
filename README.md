@@ -1,9 +1,13 @@
 # Timeslot Booking
 
-Custom WordPress + Elementor plugin. Visitors pick a predefined timeslot, fill a
-contact form, and book. Availability is generated from per-weekday opening hours,
-with Danish public holidays, weekends, and individual slots/days auto-blocked.
-Double-booking is prevented at the database level.
+Custom WordPress + Elementor plugin. Visitors **pick a day** on a month calendar
+(days with free times are marked and show a count), **then pick a timeslot**,
+**then** fill the contact form on a separate step with a back button. Availability
+is generated from per-weekday opening hours (slot length, start offset, and gap
+between slots all configurable), with public holidays (any country, via
+date.nager.at), weekends, and individual slots/days auto-blocked. Double-booking
+is prevented at the database level. Bookings appear in their own top-level
+**Bookinger** menu as a native, sortable, searchable list.
 
 ## Requirements
 
@@ -17,18 +21,30 @@ Double-booking is prevented at the database level.
 1. Copy the `timeslot-booking/` folder into `wp-content/plugins/`.
 2. Activate **Timeslot Booking** in *Plugins*. Activation creates two tables
    (`{prefix}_tsb_bookings`, `{prefix}_tsb_blocked`).
-3. Configure under **Booking** in wp-admin (see Tabs).
+3. Configure under **Bookinger → Indstillinger** in wp-admin (see Tabs).
 4. Edit a page in Elementor → drag the **Timeslot Booking** widget onto the page.
 
-## Admin (wp-admin → Booking)
+## Admin
+
+**Bookinger** is a top-level menu (like Posts/Pages):
+
+- **Alle bookinger** — native `WP_List_Table`: sortable columns, search, bulk
+  cancel/delete, per-row Flyt (reschedule) / Aflys / Slet, CSV export.
+- **Indstillinger** — the settings tabs below.
 
 | Tab | What it controls |
 |-----|------------------|
-| **Tilgængelighed** | Per-weekday open/closed + hours, slot length, days ahead, minimum lead time, Danish-holiday blocking |
+| **Tilgængelighed** | Base business hours; per-weekday open/closed (follow base or own hours); slot length, **start offset**, **gap between slots**; days ahead; minimum lead time; holiday blocking + **country list** |
 | **E-mails** | Admin notification + customer confirmation (toggles, templates), custom sender (From), `.ics` calendar invite |
 | **Spam-beskyttelse** | none / honeypot / reCAPTCHA v2 / reCAPTCHA v3 (score) / hCaptcha + keys |
 | **Blokeringer** | Remove individual times or whole days from availability |
-| **Bookinger** | Upcoming + past bookings; cancel / reschedule / delete; CSV export |
+
+### Widget styling (Elementor)
+
+The widget exposes Elementor **Style** controls (Calendar, Form, Buttons):
+accent colour, calendar cell typography/colour/background/radius, form label and
+input typography/colour/background/border/radius, and submit/back button
+typography, colours, hover, and radius — all themeable per instance.
 
 ### Email placeholders
 
@@ -38,12 +54,17 @@ and the `.ics` title.
 ## How it works
 
 - **Slot generation** — `TSB_Availability::build()` walks each day up to
-  *days ahead*, skips closed weekdays, holidays, whole-day blocks, then steps the
-  day's open hours by *slot length*, dropping blocked, booked, and within-lead
-  slots.
-- **Danish holidays** — `TSB_Holidays` computes Easter (Meeus/Jones/Butcher) and
-  derives all helligdage. Store Bededag is included only for years before 2024
-  (abolished as a public holiday from 2024).
+  *days ahead*, skips closed weekdays, holidays, whole-day blocks, then lays out
+  the day's open hours: first slot at *open + start offset*, each slot *slot
+  length* long, stepped by *slot length + gap*, never running past close —
+  dropping blocked, booked, and within-lead slots. Each returned day carries a
+  `count` so the calendar can show availability per date.
+- **Holidays** — `TSB_Holidays` fetches public holidays from the free
+  [date.nager.at](https://date.nager.at) API for any configured country (ISO
+  alpha-2), cached per country+year in a transient (30 days). Denmark also has an
+  offline computus fallback (Meeus/Jones/Butcher Easter; Store Bededag only
+  pre-2024), so DK keeps working with no network — and the unit tests run with no
+  HTTP at all.
 - **No double-booking** — `UNIQUE(slot_date, slot_time, active)` on the bookings
   table. `active` is `1` for live bookings and `NULL` when cancelled, so a
   cancelled slot frees up and is rebookable while live double-booking is blocked
@@ -91,12 +112,14 @@ timeslot-booking/
 ├── uninstall.php                 drops tables + options on delete
 ├── includes/
 │   ├── class-tsb-db.php          table schema + queries
-│   ├── class-tsb-holidays.php    Danish helligdage (computus)
+│   ├── class-tsb-holidays.php    holidays (Nager.Date API + DK computus fallback)
 │   ├── class-tsb-availability.php slot generation
 │   ├── class-tsb-ics.php         .ics calendar invite builder
 │   └── class-tsb-ajax.php        get-slots + book endpoints, mail, captcha
-├── widgets/class-tsb-widget.php  Elementor widget + controls
-├── admin/class-tsb-admin.php     settings tabs + booking/block management
+├── widgets/class-tsb-widget.php  Elementor widget + content/style controls
+├── admin/
+│   ├── class-tsb-admin.php       menu, settings tabs, booking/block management
+│   └── class-tsb-bookings-table.php  native WP_List_Table for bookings
 ├── assets/booking.js, booking.css
 └── tests/                        PHPUnit (holiday + availability)
 ```

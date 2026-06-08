@@ -13,7 +13,14 @@ class TSB_Ajax {
 
 	public static function get_slots() {
 		self::verify();
-		wp_send_json_success( array( 'days' => TSB_Availability::build() ) );
+		$s   = TSB_Availability::settings();
+		$tz  = wp_timezone();
+		$min = ( new DateTime( 'today', $tz ) )->format( 'Y-m-d' );
+		$max = ( new DateTime( 'today', $tz ) )->modify( '+' . max( 1, (int) $s['days_ahead'] ) . ' days' )->format( 'Y-m-d' );
+		wp_send_json_success( array(
+			'days'  => TSB_Availability::build(),
+			'range' => array( 'min' => $min, 'max' => $max ),
+		) );
 	}
 
 	public static function book() {

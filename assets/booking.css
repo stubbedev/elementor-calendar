@@ -1,29 +1,99 @@
-.tsb { --tsb-accent: #2563eb; max-width: 640px; }
+.tsb { --tsb-accent: #2563eb; --tsb-border: #d0d5dd; max-width: 480px; }
 .tsb-intro { font-weight: 600; margin: 0 0 .75em; }
 .tsb-loading { color: #666; }
 
-.tsb-days, .tsb-slots { display: flex; flex-wrap: wrap; gap: .5em; margin: .5em 0 1em; }
-.tsb-slots-head { width: 100%; margin: 0 0 .25em; font-weight: 600; }
-
-.tsb-day, .tsb-slot {
+/* ---------- calendar ---------- */
+.tsb-cal-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin: 0 0 .5em;
+}
+.tsb-cal-title { font-weight: 600; text-transform: capitalize; }
+.tsb-cal-nav {
 	cursor: pointer;
-	border: 1px solid #d0d5dd;
+	border: 1px solid var(--tsb-border);
+	background: #fff;
+	border-radius: 8px;
+	width: 2em;
+	height: 2em;
+	line-height: 1;
+	font-size: 1.1em;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.tsb-cal-nav:hover:not(:disabled) { border-color: var(--tsb-accent); color: var(--tsb-accent); }
+.tsb-cal-nav:disabled { opacity: .35; cursor: default; }
+
+.tsb-cal-weekdays {
+	display: grid;
+	grid-template-columns: repeat( 7, 1fr );
+	gap: .35em;
+	margin: 0 0 .35em;
+	font-size: .72em;
+	color: #667085;
+	text-align: center;
+	text-transform: uppercase;
+	letter-spacing: .02em;
+}
+.tsb-cal-grid {
+	display: grid;
+	grid-template-columns: repeat( 7, 1fr );
+	gap: .35em;
+}
+.tsb-day {
+	position: relative;
+	aspect-ratio: 1 / 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	border-radius: 8px;
+	font: inherit;
+	line-height: 1.1;
+	border: 1px solid transparent;
+	background: transparent;
+}
+.tsb-day.is-blank { border: 0; background: none; }
+.tsb-day.is-empty { color: #b0b6c0; }
+.tsb-day.is-open {
+	cursor: pointer;
+	border-color: var(--tsb-border);
+	background: #fff;
+	transition: border-color .15s, background .15s, color .15s;
+}
+.tsb-day.is-open:hover { border-color: var(--tsb-accent); }
+.tsb-day.is-open.is-selected { background: var(--tsb-accent); color: #fff; border-color: var(--tsb-accent); }
+.tsb-day-n { font-size: .95em; }
+.tsb-day-c { font-size: .62em; opacity: .8; }
+.tsb-day.is-open.is-selected .tsb-day-c { opacity: .95; }
+.tsb-cal-hint { margin: .6em 0 0; font-size: .75em; color: #667085; }
+
+/* ---------- slots ---------- */
+.tsb-slots { display: flex; flex-wrap: wrap; gap: .5em; margin: 1em 0; }
+.tsb-slots-head { width: 100%; margin: 0 0 .25em; font-weight: 600; }
+.tsb-slot {
+	cursor: pointer;
+	border: 1px solid var(--tsb-border);
 	background: #fff;
 	border-radius: 8px;
 	padding: .5em .9em;
 	font: inherit;
 	line-height: 1.2;
+	min-width: 4.5em;
+	text-align: center;
 	transition: border-color .15s, background .15s;
 }
-.tsb-day:hover, .tsb-slot:hover { border-color: var(--tsb-accent); }
-.tsb-slot { min-width: 4.5em; text-align: center; }
+.tsb-slot:hover { border-color: var(--tsb-accent); }
 
+/* ---------- form ---------- */
 .tsb-form { display: grid; gap: .75em; max-width: 420px; }
 .tsb-form label { display: grid; gap: .25em; font-size: .9em; }
 .tsb-form input, .tsb-form textarea {
 	font: inherit;
 	padding: .55em .7em;
-	border: 1px solid #d0d5dd;
+	border: 1px solid var(--tsb-border);
 	border-radius: 8px;
 	width: 100%;
 	box-sizing: border-box;
@@ -49,7 +119,7 @@
 .tsb-submit:disabled { opacity: .6; cursor: default; }
 .tsb-back {
 	cursor: pointer;
-	border: 1px solid #d0d5dd;
+	border: 1px solid var(--tsb-border);
 	background: #fff;
 	border-radius: 8px;
 	padding: .65em 1.2em;

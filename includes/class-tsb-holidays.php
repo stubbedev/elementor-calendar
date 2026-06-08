@@ -4,20 +4,120 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Danish public holidays (helligdage), computed — no external API.
- * Note: Store Bededag was abolished as a public holiday from 2024, so it is
- * only included for years before 2024.
+ * Public holidays via the Nager.Date API (https://date.nager.at) — free, no key.
+ * Each country+year is fetched once and cached in a transient. Denmark also has
+ * an offline computus fallback, so DK keeps working with no network (and under
+ * the test harness, which has no HTTP).
  */
 class TSB_Holidays {
 
+	const API = 'https://date.nager.at/api/v3/PublicHolidays/%d/%s';
+	const TTL = 2592000; // 30 days
+
 	protected static $cache = array();
 
-	/** @return array map 'Y-m-d' => holiday name for $year. */
-	public static function for_year( $year ) {
-		if ( isset( self::$cache[ $year ] ) ) {
-			return self::$cache[ $year ];
+	/** ISO-3166 alpha-2 => display name. Curated subset of Nager's country list. */
+	public static function countries() {
+		return array(
+			'DK' => 'Danmark', 'SE' => 'Sverige', 'NO' => 'Norge', 'FI' => 'Finland',
+			'IS' => 'Island', 'DE' => 'Tyskland', 'NL' => 'Holland', 'BE' => 'Belgien',
+			'GB' => 'Storbritannien', 'IE' => 'Irland', 'FR' => 'Frankrig', 'ES' => 'Spanien',
+			'PT' => 'Portugal', 'IT' => 'Italien', 'CH' => 'Schweiz', 'AT' => 'Østrig',
+			'PL' => 'Polen', 'CZ' => 'Tjekkiet', 'SK' => 'Slovakiet', 'HU' => 'Ungarn',
+			'EE' => 'Estland', 'LV' => 'Letland', 'LT' => 'Litauen', 'GR' => 'Grækenland',
+			'RO' => 'Rumænien', 'BG' => 'Bulgarien', 'HR' => 'Kroatien', 'SI' => 'Slovenien',
+			'LU' => 'Luxembourg', 'US' => 'USA', 'CA' => 'Canada', 'AU' => 'Australien',
+			'NZ' => 'New Zealand', 'JP' => 'Japan', 'BR' => 'Brasilien', 'MX' => 'Mexico',
+			'ZA' => 'Sydafrika', 'IN' => 'Indien', 'TR' => 'Tyrkiet', 'UA' => 'Ukraine',
+		);
+	}
+
+	/**
+	 * Holiday date map for one country+year: 'Y-m-d' => name.
+	 */
+	public static function for_country_year( $country, $year ) {
+		$country = strtoupper( substr( (string) $country, 0, 2 ) );
+		$year    = (int) $year;
+		$mem     = $country . ':' . $year;
+		if ( isset( self::$cache[ $mem ] ) ) {
+			return self::$cache[ $mem ];
 		}
 
+		$transient = 'tsb_hol_' . $country . '_' . $year;
+		if ( function_exists( 'get_transient' ) ) {
+			$cached = get_transient( $transient );
+			if ( is_array( $cached ) ) {
+				self::$cache[ $mem ] = $cached;
+				return $cached;
+			}
+		}
+
+		$map = self::fetch_api( $country, $year );
+		if ( null === $map ) {
+			// API unavailable: offline computus for DK, empty elsewhere.
+			$map = ( 'DK' === $country ) ? self::dk_year( $year ) : array();
+			if ( function_exists( 'set_transient' ) ) {
+				// Short cache so we retry the API soon after a failure.
+				$ttl = defined( 'HOUR_IN_SECONDS' ) ? HOUR_IN_SECONDS : 3600;
+				set_transient( $transient, $map, $ttl );
+			}
+		} elseif ( function_exists( 'set_transient' ) ) {
+			set_transient( $transient, $map, self::TTL );
+		}
+
+		self::$cache[ $mem ] = $map;
+		return $map;
+	}
+
+	/** True if $ymd is a holiday in ANY of $countries (ISO alpha-2). */
+	public static function is_holiday( $ymd, $countries = array( 'DK' ) ) {
+		$countries = array_filter( (array) $countries );
+		if ( empty( $countries ) ) {
+			$countries = array( 'DK' );
+		}
+		$year = (int) substr( $ymd, 0, 4 );
+		foreach ( $countries as $c ) {
+			$map = self::for_country_year( $c, $year );
+			if ( isset( $map[ $ymd ] ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** @return array|null 'Y-m-d' => name, or null on any failure. */
+	protected static function fetch_api( $country, $year ) {
+		if ( ! function_exists( 'wp_remote_get' ) ) {
+			return null;
+		}
+		$resp = wp_remote_get( sprintf( self::API, $year, $country ), array( 'timeout' => 6 ) );
+		if ( is_wp_error( $resp ) || 200 !== (int) wp_remote_retrieve_response_code( $resp ) ) {
+			return null;
+		}
+		$rows = json_decode( wp_remote_retrieve_body( $resp ), true );
+		if ( ! is_array( $rows ) ) {
+			return null;
+		}
+		$map = array();
+		foreach ( $rows as $r ) {
+			if ( empty( $r['date'] ) ) {
+				continue;
+			}
+			$map[ $r['date'] ] = ! empty( $r['localName'] ) ? $r['localName'] : ( $r['name'] ?? '' );
+		}
+		return $map;
+	}
+
+	/* ---------- offline Danish fallback (computus) ---------- */
+
+	/** Back-compat alias used by older callers/tests. */
+	public static function for_year( $year ) {
+		return self::dk_year( $year );
+	}
+
+	/** @return array 'Y-m-d' => name, Danish holidays for $year. */
+	public static function dk_year( $year ) {
+		$year   = (int) $year;
 		$easter = self::easter( $year );
 		$off    = function ( $days ) use ( $easter ) {
 			$c = clone $easter;
@@ -39,19 +139,11 @@ class TSB_Holidays {
 		$h[ $off( 50 ) ]    = '2. pinsedag';
 		$h[ "$year-12-25" ] = 'Juledag';
 		$h[ "$year-12-26" ] = '2. juledag';
-
-		self::$cache[ $year ] = $h;
 		return $h;
 	}
 
-	public static function is_holiday( $ymd ) {
-		$year = (int) substr( $ymd, 0, 4 );
-		$h    = self::for_year( $year );
-		return isset( $h[ $ymd ] );
-	}
-
 	/** Computus (Meeus/Jones/Butcher) -> Easter Sunday as DateTime. */
-	protected static function easter( $year ) {
+	public static function easter( $year ) {
 		$a     = $year % 19;
 		$b     = intdiv( $year, 100 );
 		$c     = $year % 100;

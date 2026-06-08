@@ -88,7 +88,9 @@ services:
         # Keep site/home URL in sync if WP_PORT changed between runs.
         wp option update siteurl $${URL} --allow-root
         wp option update home $${URL} --allow-root
-        wp plugin install elementor --activate --allow-root
+        # Idempotent: a persistent wp volume may already hold the elementor files.
+        wp plugin is-installed elementor --allow-root || wp plugin install elementor --allow-root
+        wp plugin activate elementor --allow-root
         wp plugin activate timeslot-booking --allow-root
         wp option update timezone_string Europe/Copenhagen --allow-root
         echo "READY -> $${URL}/wp-admin  (admin / admin)"

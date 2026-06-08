@@ -9,11 +9,16 @@ class TSB_Availability {
 	public static function settings() {
 		$def = array(
 			// availability
-			'slot_minutes'     => 30,
-			'days_ahead'       => 30,
-			'lead_hours'       => 0,    // min hours from now before a slot is bookable
-			'block_holidays'   => 1,
-			'week'             => self::default_week(),
+			'slot_minutes'      => 30,  // slot length
+			'slot_offset'       => 0,   // minutes after open before the first slot
+			'slot_gap'          => 0,   // minutes between consecutive slots
+			'base_start'        => 9,   // base business hours, applied to days set to "use base"
+			'base_end'          => 17,
+			'days_ahead'        => 30,
+			'lead_hours'        => 0,    // min hours from now before a slot is bookable
+			'block_holidays'    => 1,
+			'holiday_countries' => array( 'DK' ),
+			'week'              => self::default_week(),
 			// emails
 			'admin_notify'     => 1,
 			'admin_to'         => '',   // blank => site admin_email
@@ -37,17 +42,21 @@ class TSB_Availability {
 		if ( empty( $s['week'] ) || ! is_array( $s['week'] ) ) {
 			$s['week'] = self::default_week();
 		}
+		if ( empty( $s['holiday_countries'] ) || ! is_array( $s['holiday_countries'] ) ) {
+			$s['holiday_countries'] = array( 'DK' );
+		}
 		return $s;
 	}
 
-	/** Mon–Fri open 9–17, weekend closed. */
+	/** Mon–Fri open, weekend closed, all following the base business hours. */
 	public static function default_week() {
 		$w = array();
 		for ( $d = 1; $d <= 7; $d++ ) {
 			$w[ $d ] = array(
-				'open'  => ( $d <= 5 ) ? 1 : 0,
-				'start' => 9,
-				'end'   => 17,
+				'open'     => ( $d <= 5 ) ? 1 : 0,
+				'use_base' => 1,     // follow base_start/base_end
+				'start'    => 9,     // only used when use_base = 0
+				'end'      => 17,
 			);
 		}
 		return $w;
@@ -57,15 +66,28 @@ class TSB_Availability {
 		return array( 1 => 'Mandag', 2 => 'Tirsdag', 3 => 'Onsdag', 4 => 'Torsdag', 5 => 'Fredag', 6 => 'Lørdag', 7 => 'Søndag' );
 	}
 
+	/** Effective open/close hours for a weekday config, honouring the base toggle. */
+	protected static function day_hours( $wd, $s ) {
+		if ( ! empty( $wd['use_base'] ) ) {
+			return array( (int) $s['base_start'], (int) $s['base_end'] );
+		}
+		return array( (int) $wd['start'], (int) $wd['end'] );
+	}
+
 	/**
 	 * Build bookable days + slots from global settings.
-	 * @return array[] each: ['date'=>'Y-m-d','label'=>'Mandag 9. jun','slots'=>['09:00',...]]
+	 * @return array[] each: ['date'=>'Y-m-d','label'=>'Mandag 9. jun','count'=>3,'slots'=>['09:00',...]]
 	 */
 	public static function build() {
 		$s   = self::settings();
 		$tz  = wp_timezone();
 		$now = new DateTime( 'now', $tz );
 		$out = array();
+
+		$len    = max( 5, (int) $s['slot_minutes'] );
+		$offset = max( 0, (int) $s['slot_offset'] );
+		$gap    = max( 0, (int) $s['slot_gap'] );
+		$step   = $len + $gap;
 
 		$cursor = new DateTime( 'today', $tz );
 		for ( $i = 0; $i <= (int) $s['days_ahead']; $i++ ) {
@@ -79,7 +101,7 @@ class TSB_Availability {
 			if ( ! $wd || empty( $wd['open'] ) ) {
 				continue;
 			}
-			if ( $s['block_holidays'] && TSB_Holidays::is_holiday( $ymd ) ) {
+			if ( $s['block_holidays'] && TSB_Holidays::is_holiday( $ymd, $s['holiday_countries'] ) ) {
 				continue;
 			}
 
@@ -102,12 +124,16 @@ class TSB_Availability {
 				$booked[ substr( $t, 0, 5 ) ] = true;
 			}
 
-			$step  = max( 5, (int) $s['slot_minutes'] );
-			$start = ( clone $cursor )->setTime( (int) $wd['start'], 0 );
-			$end   = ( clone $cursor )->setTime( (int) $wd['end'], 0 );
+			list( $open_h, $close_h ) = self::day_hours( $wd, $s );
+			$start = ( clone $cursor )->setTime( $open_h, 0 )->modify( "+$offset minutes" );
+			$end   = ( clone $cursor )->setTime( $close_h, 0 );
 
 			$slots = array();
-			for ( $t = clone $start; $t < $end; $t->modify( "+$step minutes" ) ) {
+			for ( $t = clone $start; ; $t->modify( "+$step minutes" ) ) {
+				$slot_end = ( clone $t )->modify( "+$len minutes" );
+				if ( $slot_end > $end ) {
+					break; // slot would run past close
+				}
 				$hm = $t->format( 'H:i' );
 				if ( isset( $blocked_times[ $hm ] ) || isset( $booked[ $hm ] ) ) {
 					continue;
@@ -126,6 +152,7 @@ class TSB_Availability {
 				$out[] = array(
 					'date'  => $ymd,
 					'label' => self::da_label( $cursor ),
+					'count' => count( $slots ),
 					'slots' => $slots,
 				);
 			}
