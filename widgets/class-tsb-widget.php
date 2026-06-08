@@ -142,8 +142,8 @@ class TSB_Widget extends Widget_Base {
 		$this->ctl_slider( 'cal_gap', __( 'Cell spacing', 'tsb' ), '{{WRAPPER}} .tsb', '--tsb-cal-gap: {{SIZE}}{{UNIT}};', 30, array( 'px', 'em' ) );
 
 		$this->ctl_heading( 'cal_head_head', __( 'Header (step title / back)', 'tsb' ) );
-		$this->ctl_typo( 'title_typo', '{{WRAPPER}} .tsb-cal-title, {{WRAPPER}} .tsb-slots-day, {{WRAPPER}} .tsb-chosen' );
-		$this->ctl_color( 'title_color', __( 'Text color', 'tsb' ), '{{WRAPPER}} .tsb-cal-title, {{WRAPPER}} .tsb-slots-day, {{WRAPPER}} .tsb-chosen' );
+		$this->ctl_typo( 'title_typo', '{{WRAPPER}} .tsb-cal-title, {{WRAPPER}} .tsb-slots-day, {{WRAPPER}} .tsb-chosen, {{WRAPPER}} .tsb-summary-when' );
+		$this->ctl_color( 'title_color', __( 'Text color', 'tsb' ), '{{WRAPPER}} .tsb-cal-title, {{WRAPPER}} .tsb-slots-day, {{WRAPPER}} .tsb-chosen, {{WRAPPER}} .tsb-summary-when' );
 		$this->ctl_color( 'nav_color', __( 'Nav arrow color', 'tsb' ), '{{WRAPPER}} .tsb-cal-nav' );
 		$this->ctl_color( 'nav_hover', __( 'Nav arrow hover', 'tsb' ), '{{WRAPPER}} .tsb-cal-nav:hover:not(:disabled)' );
 		$this->ctl_dim( 'cal_head_margin', __( 'Header margin', 'tsb' ), '{{WRAPPER}} .tsb-cal-head', 'margin' );
@@ -244,11 +244,29 @@ class TSB_Widget extends Widget_Base {
 		$this->end_controls_section();
 	}
 
+	/** One labelled, validatable field (input or textarea). */
+	private function field( $name, $label, $type, $required, $autocomplete = '' ) {
+		$ac  = $autocomplete ? ' autocomplete="' . esc_attr( $autocomplete ) . '"' : '';
+		$req = $required ? ' required aria-required="true"' : '';
+		?>
+		<label class="tsb-field" data-field="<?php echo esc_attr( $name ); ?>">
+			<span class="tsb-field-label"><?php echo esc_html( $label ); ?><?php echo $required ? ' <span class="tsb-req">*</span>' : ''; ?></span>
+			<?php if ( 'textarea' === $type ) : ?>
+				<textarea name="<?php echo esc_attr( $name ); ?>" rows="4"<?php echo $req; // phpcs:ignore ?>></textarea>
+			<?php else : ?>
+				<input type="<?php echo esc_attr( $type ); ?>" name="<?php echo esc_attr( $name ); ?>"<?php echo $ac . $req; // phpcs:ignore ?>>
+			<?php endif; ?>
+			<span class="tsb-field-error" role="alert" hidden></span>
+		</label>
+		<?php
+	}
+
 	protected function render() {
-		$set  = TSB_Availability::settings();
-		$mode = $set['captcha_mode'];
-		$site = $set['captcha_site'];
-		$id   = 'tsb-' . $this->get_id();
+		$set    = TSB_Availability::settings();
+		$mode   = $set['captcha_mode'];
+		$site   = $set['captcha_site'];
+		$fields = TSB_Availability::fields();
+		$id     = 'tsb-' . $this->get_id();
 		?>
 		<div class="tsb" id="<?php echo esc_attr( $id ); ?>">
 			<?php // STEP 1: calendar (day view + slot view) ?>
@@ -279,7 +297,7 @@ class TSB_Widget extends Widget_Base {
 				</div>
 
 				<?php // STEP 2: contact form (only after a slot is picked) ?>
-				<form class="tsb-form" hidden>
+				<form class="tsb-form" hidden novalidate>
 					<div class="tsb-cal-head">
 						<button type="button" class="tsb-cal-nav tsb-back" aria-label="<?php esc_attr_e( 'Back to times', 'tsb' ); ?>">&lsaquo;</button>
 						<span class="tsb-chosen"></span>
@@ -288,18 +306,19 @@ class TSB_Widget extends Widget_Base {
 					<input type="hidden" name="date" value="">
 					<input type="hidden" name="time" value="">
 
-					<label><?php esc_html_e( 'Name', 'tsb' ); ?> *
-						<input type="text" name="name" required>
-					</label>
-					<label><?php esc_html_e( 'Email', 'tsb' ); ?> *
-						<input type="email" name="email" required>
-					</label>
-					<label><?php esc_html_e( 'Phone', 'tsb' ); ?>
-						<input type="tel" name="phone">
-					</label>
-					<label><?php esc_html_e( 'Message', 'tsb' ); ?>
-						<textarea name="message" rows="4"></textarea>
-					</label>
+					<?php
+					$this->field( 'name', __( 'Name', 'tsb' ), 'text', true, 'name' );
+					$this->field( 'email', __( 'Email', 'tsb' ), 'email', true, 'email' );
+					if ( $fields['phone']['show'] ) {
+						$this->field( 'phone', $fields['phone']['label'], 'tel', $fields['phone']['req'], 'tel' );
+					}
+					if ( $fields['message']['show'] ) {
+						$this->field( 'message', $fields['message']['label'], 'textarea', $fields['message']['req'] );
+					}
+					if ( $fields['custom']['show'] ) {
+						$this->field( 'custom', $fields['custom']['label'], 'text', $fields['custom']['req'], 'organization' );
+					}
+					?>
 
 					<?php // Honeypot — hidden from humans, bots fill it. ?>
 					<div class="tsb-hp" aria-hidden="true">
@@ -307,6 +326,21 @@ class TSB_Widget extends Widget_Base {
 							<input type="text" name="tsb_hp" tabindex="-1" autocomplete="off">
 						</label>
 					</div>
+
+					<?php if ( ! empty( $set['consent_enable'] ) ) : ?>
+						<label class="tsb-field tsb-consent" data-field="consent">
+							<span class="tsb-consent-row">
+								<input type="checkbox" name="consent" value="1" aria-required="true">
+								<span class="tsb-consent-text"><?php
+									echo esc_html( $set['consent_text'] );
+									if ( ! empty( $set['consent_url'] ) ) {
+										echo ' <a href="' . esc_url( $set['consent_url'] ) . '" target="_blank" rel="noopener">' . esc_html( $set['consent_link_text'] ) . '</a>';
+									}
+								?></span>
+							</span>
+							<span class="tsb-field-error" role="alert" hidden></span>
+						</label>
+					<?php endif; ?>
 
 					<?php if ( 'recaptcha' === $mode && $site ) : ?>
 						<div class="g-recaptcha" data-sitekey="<?php echo esc_attr( $site ); ?>"></div>
@@ -318,9 +352,17 @@ class TSB_Widget extends Widget_Base {
 						<button type="submit" class="tsb-submit"><?php esc_html_e( 'Confirm booking', 'tsb' ); ?></button>
 					</div>
 				</form>
+
+					<?php // Success summary (shown once booked). ?>
+					<div class="tsb-summary" hidden>
+						<div class="tsb-cal-head"><span class="tsb-summary-when"></span></div>
+						<p class="tsb-summary-msg" role="status"></p>
+						<p class="tsb-summary-ref"></p>
+						<button type="button" class="tsb-book-another tsb-submit"><?php esc_html_e( 'Book another', 'tsb' ); ?></button>
+					</div>
 			</div>
 
-			<div class="tsb-result" hidden></div>
+			<div class="tsb-result" role="alert" hidden></div>
 		</div>
 		<?php
 	}

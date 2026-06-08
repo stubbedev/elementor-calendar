@@ -7,7 +7,7 @@ class TSB_Ajax {
 
 	protected static function verify() {
 		if ( ! check_ajax_referer( 'tsb_nonce', 'nonce', false ) ) {
-			wp_send_json_error( array( 'message' => __( 'Security check failed. Please reload the page.', 'tsb' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Security check failed. Please reload the page.', 'tsb' ), 'code' => 'nonce' ), 403 );
 		}
 		// Render slots/emails in the visitor's language (WPML/Polylang).
 		if ( ! empty( $_POST['lang'] ) ) {
@@ -24,7 +24,29 @@ class TSB_Ajax {
 		wp_send_json_success( array(
 			'days'  => TSB_Availability::build(),
 			'range' => array( 'min' => $min, 'max' => $max ),
+			'nonce' => wp_create_nonce( 'tsb_nonce' ), // lets a cached page refresh its token
+			'stamp' => self::make_stamp(),             // time-trap token
 		) );
+	}
+
+	/** Signed timestamp token issued with the slots; checked on booking. */
+	protected static function make_stamp() {
+		$t = time();
+		return $t . '.' . substr( hash_hmac( 'sha256', (string) $t, wp_salt( 'nonce' ) ), 0, 16 );
+	}
+
+	/** Valid signature + submitted no faster than 3s and within 2h. */
+	protected static function check_stamp( $stamp ) {
+		if ( ! preg_match( '/^(\d+)\.([a-f0-9]{16})$/', (string) $stamp, $m ) ) {
+			return false;
+		}
+		$t = (int) $m[1];
+		$sig = substr( hash_hmac( 'sha256', (string) $t, wp_salt( 'nonce' ) ), 0, 16 );
+		if ( ! hash_equals( $sig, $m[2] ) ) {
+			return false;
+		}
+		$age = time() - $t;
+		return $age >= 3 && $age <= 7200;
 	}
 
 	public static function book() {
@@ -36,12 +58,20 @@ class TSB_Ajax {
 			wp_send_json_success( array( 'message' => __( 'Thank you! Your time is booked.', 'tsb' ) ) );
 		}
 
-		$date  = isset( $_POST['date'] ) ? sanitize_text_field( wp_unslash( $_POST['date'] ) ) : '';
-		$time  = isset( $_POST['time'] ) ? sanitize_text_field( wp_unslash( $_POST['time'] ) ) : '';
-		$name  = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
-		$email = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
-		$phone = isset( $_POST['phone'] ) ? sanitize_text_field( wp_unslash( $_POST['phone'] ) ) : '';
-		$msg   = isset( $_POST['message'] ) ? sanitize_textarea_field( wp_unslash( $_POST['message'] ) ) : '';
+		// Time-trap: blocks instant/scripted posts that skipped loading the slots.
+		if ( ! self::check_stamp( $_POST['stamp'] ?? '' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Please wait a moment and try again.', 'tsb' ), 'code' => 'stamp' ) );
+		}
+
+		$fields = TSB_Availability::fields();
+
+		$date   = isset( $_POST['date'] ) ? sanitize_text_field( wp_unslash( $_POST['date'] ) ) : '';
+		$time   = isset( $_POST['time'] ) ? sanitize_text_field( wp_unslash( $_POST['time'] ) ) : '';
+		$name   = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
+		$email  = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+		$phone  = isset( $_POST['phone'] ) ? sanitize_text_field( wp_unslash( $_POST['phone'] ) ) : '';
+		$msg    = isset( $_POST['message'] ) ? sanitize_textarea_field( wp_unslash( $_POST['message'] ) ) : '';
+		$custom = isset( $_POST['custom'] ) ? sanitize_text_field( wp_unslash( $_POST['custom'] ) ) : '';
 
 		if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date ) || ! preg_match( '/^\d{2}:\d{2}$/', $time ) ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid time slot.', 'tsb' ) ) );
@@ -49,8 +79,27 @@ class TSB_Ajax {
 		if ( '' === $name || ! is_email( $email ) ) {
 			wp_send_json_error( array( 'message' => __( 'Please enter your name and a valid email.', 'tsb' ) ) );
 		}
+		// Required optional fields (only those enabled + marked required).
+		if ( ( $fields['phone']['show'] && $fields['phone']['req'] && '' === $phone )
+			|| ( $fields['message']['show'] && $fields['message']['req'] && '' === $msg )
+			|| ( $fields['custom']['show'] && $fields['custom']['req'] && '' === $custom ) ) {
+			wp_send_json_error( array( 'message' => __( 'Please fill in all required fields.', 'tsb' ) ) );
+		}
+		if ( ! empty( $s['consent_enable'] ) && empty( $_POST['consent'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'Please accept the consent to continue.', 'tsb' ) ) );
+		}
 		if ( ! self::captcha_ok( $s ) ) {
 			wp_send_json_error( array( 'message' => __( 'Please confirm that you are not a robot.', 'tsb' ) ) );
+		}
+
+		// Fold the custom field into the stored/emailed message.
+		if ( $fields['custom']['show'] && '' !== $custom ) {
+			$label = $fields['custom']['label'] ? $fields['custom']['label'] : __( 'Custom', 'tsb' );
+			$msg   = $label . ': ' . $custom . ( '' !== $msg ? "\n\n" . $msg : '' );
+		}
+		// Drop a field that's off entirely.
+		if ( ! $fields['phone']['show'] ) {
+			$phone = '';
 		}
 		if ( ! self::slot_available( $date, $time ) ) {
 			wp_send_json_error( array( 'message' => __( 'Sorry, that time is no longer available.', 'tsb' ) ) );
@@ -80,7 +129,15 @@ class TSB_Ajax {
 		$booking_id = (int) $wpdb->insert_id;
 		self::send_mails( $s, compact( 'name', 'email', 'phone', 'msg', 'date', 'time', 'booking_id' ) );
 
-		wp_send_json_success( array( 'message' => __( 'Thank you! Your time is booked. You will receive a confirmation by email.', 'tsb' ) ) );
+		wp_send_json_success( array(
+			'message' => __( 'Thank you! Your time is booked. You will receive a confirmation by email.', 'tsb' ),
+			'booking' => array(
+				'date' => $date,
+				'time' => $time,
+				'name' => $name,
+				'ref'  => $booking_id,
+			),
+		) );
 	}
 
 	protected static function send_mails( $s, $d ) {

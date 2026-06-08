@@ -79,6 +79,19 @@ class TSB_Admin {
 			$s['captcha_site']      = sanitize_text_field( $in['captcha_site'] ?? '' );
 			$s['captcha_secret']    = sanitize_text_field( $in['captcha_secret'] ?? '' );
 			$s['captcha_min_score'] = max( 0, min( 1, (float) ( $in['captcha_min_score'] ?? 0.5 ) ) );
+
+		} elseif ( 'fields' === $section ) {
+			$s['field_phone']        = empty( $in['field_phone'] ) ? 0 : 1;
+			$s['field_phone_req']    = empty( $in['field_phone_req'] ) ? 0 : 1;
+			$s['field_message']      = empty( $in['field_message'] ) ? 0 : 1;
+			$s['field_message_req']  = empty( $in['field_message_req'] ) ? 0 : 1;
+			$s['field_custom']       = empty( $in['field_custom'] ) ? 0 : 1;
+			$s['field_custom_label'] = sanitize_text_field( $in['field_custom_label'] ?? '' );
+			$s['field_custom_req']   = empty( $in['field_custom_req'] ) ? 0 : 1;
+			$s['consent_enable']     = empty( $in['consent_enable'] ) ? 0 : 1;
+			$s['consent_text']       = sanitize_text_field( $in['consent_text'] ?? '' );
+			$s['consent_link_text']  = sanitize_text_field( $in['consent_link_text'] ?? '' );
+			$s['consent_url']        = esc_url_raw( $in['consent_url'] ?? '' );
 		}
 
 		return $s;
@@ -315,6 +328,7 @@ class TSB_Admin {
 		$tab  = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'availability'; // phpcs:ignore WordPress.Security.NonceVerification
 		$tabs = array(
 			'availability' => __( 'Availability', 'tsb' ),
+			'fields'       => __( 'Form', 'tsb' ),
 			'emails'       => __( 'Emails', 'tsb' ),
 			'spam'         => __( 'Spam protection', 'tsb' ),
 			'blocks'       => __( 'Blocks', 'tsb' ),
@@ -401,6 +415,51 @@ class TSB_Admin {
 					</select>
 					<p class="description"><?php esc_html_e( 'Holidays are fetched from date.nager.at (cached). Hold Ctrl/Cmd to select several.', 'tsb' ); ?></p>
 				</td></tr>
+			</table>
+			<?php submit_button(); ?>
+		</form>
+		<?php
+	}
+
+	protected function tab_fields() {
+		$s = TSB_Availability::settings();
+		?>
+		<form method="post" action="options.php">
+			<?php settings_fields( 'tsb_group' ); ?>
+			<input type="hidden" name="tsb_settings[_section]" value="fields">
+			<p class="description"><?php esc_html_e( 'Name and email are always shown and required.', 'tsb' ); ?></p>
+
+			<h2><?php esc_html_e( 'Optional fields', 'tsb' ); ?></h2>
+			<table class="widefat striped" style="max-width:560px">
+				<thead><tr><th><?php esc_html_e( 'Field', 'tsb' ); ?></th><th><?php esc_html_e( 'Show', 'tsb' ); ?></th><th><?php esc_html_e( 'Required', 'tsb' ); ?></th></tr></thead>
+				<tbody>
+					<tr>
+						<td><?php esc_html_e( 'Phone', 'tsb' ); ?></td>
+						<td><input type="checkbox" name="tsb_settings[field_phone]" value="1" <?php checked( $s['field_phone'], 1 ); ?>></td>
+						<td><input type="checkbox" name="tsb_settings[field_phone_req]" value="1" <?php checked( $s['field_phone_req'], 1 ); ?>></td>
+					</tr>
+					<tr>
+						<td><?php esc_html_e( 'Message', 'tsb' ); ?></td>
+						<td><input type="checkbox" name="tsb_settings[field_message]" value="1" <?php checked( $s['field_message'], 1 ); ?>></td>
+						<td><input type="checkbox" name="tsb_settings[field_message_req]" value="1" <?php checked( $s['field_message_req'], 1 ); ?>></td>
+					</tr>
+					<tr>
+						<td>
+							<?php esc_html_e( 'Custom field', 'tsb' ); ?><br>
+							<input type="text" class="regular-text" name="tsb_settings[field_custom_label]" value="<?php echo esc_attr( $s['field_custom_label'] ); ?>" placeholder="<?php esc_attr_e( 'Label', 'tsb' ); ?>">
+						</td>
+						<td><input type="checkbox" name="tsb_settings[field_custom]" value="1" <?php checked( $s['field_custom'], 1 ); ?>></td>
+						<td><input type="checkbox" name="tsb_settings[field_custom_req]" value="1" <?php checked( $s['field_custom_req'], 1 ); ?>></td>
+					</tr>
+				</tbody>
+			</table>
+
+			<h2><?php esc_html_e( 'Consent (GDPR)', 'tsb' ); ?></h2>
+			<table class="form-table">
+				<tr><th><?php esc_html_e( 'Require consent checkbox', 'tsb' ); ?></th><td><input type="checkbox" name="tsb_settings[consent_enable]" value="1" <?php checked( $s['consent_enable'], 1 ); ?>></td></tr>
+				<tr><th><?php esc_html_e( 'Consent text', 'tsb' ); ?></th><td><input type="text" class="large-text" name="tsb_settings[consent_text]" value="<?php echo esc_attr( $s['consent_text'] ); ?>"></td></tr>
+				<tr><th><?php esc_html_e( 'Link text', 'tsb' ); ?></th><td><input type="text" class="regular-text" name="tsb_settings[consent_link_text]" value="<?php echo esc_attr( $s['consent_link_text'] ); ?>" placeholder="<?php esc_attr_e( 'Privacy policy', 'tsb' ); ?>"></td></tr>
+				<tr><th><?php esc_html_e( 'Link URL', 'tsb' ); ?></th><td><input type="url" class="regular-text" name="tsb_settings[consent_url]" value="<?php echo esc_attr( $s['consent_url'] ); ?>" placeholder="https://…"><p class="description"><?php esc_html_e( 'If set, the link text is shown as a link after the consent text.', 'tsb' ); ?></p></td></tr>
 			</table>
 			<?php submit_button(); ?>
 		</form>

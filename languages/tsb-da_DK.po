@@ -582,3 +582,91 @@ msgstr "Tekst (hover)"
 
 msgid "Back to days"
 msgstr "Tilbage til dage"
+
+# ---- form improvements (fields, consent, validation, summary) ----
+msgid "Form"
+msgstr "Formular"
+
+msgid "Name and email are always shown and required."
+msgstr "Navn og e-mail vises altid og er påkrævede."
+
+msgid "Optional fields"
+msgstr "Valgfrie felter"
+
+msgid "Field"
+msgstr "Felt"
+
+msgid "Show"
+msgstr "Vis"
+
+msgid "Required"
+msgstr "Påkrævet"
+
+msgid "Custom field"
+msgstr "Brugerdefineret felt"
+
+msgid "Custom"
+msgstr "Felt"
+
+msgid "Company"
+msgstr "Virksomhed"
+
+msgid "Label"
+msgstr "Etiket"
+
+msgid "Consent (GDPR)"
+msgstr "Samtykke (GDPR)"
+
+msgid "Require consent checkbox"
+msgstr "Kræv samtykke-felt"
+
+msgid "Consent text"
+msgstr "Samtykketekst"
+
+msgid "Link text"
+msgstr "Linktekst"
+
+msgid "Link URL"
+msgstr "Link-URL"
+
+msgid "If set, the link text is shown as a link after the consent text."
+msgstr "Hvis udfyldt, vises linkteksten som et link efter samtykketeksten."
+
+msgid "Privacy policy"
+msgstr "Privatlivspolitik"
+
+msgid "I accept that my information is processed in order to handle my booking."
+msgstr "Jeg accepterer, at mine oplysninger behandles for at håndtere min booking."
+
+msgid "Please fill in all required fields."
+msgstr "Udfyld venligst alle påkrævede felter."
+
+msgid "Please accept the consent to continue."
+msgstr "Accepter venligst samtykket for at fortsætte."
+
+msgid "Please accept to continue."
+msgstr "Accepter venligst for at fortsætte."
+
+msgid "Please enter a valid email."
+msgstr "Indtast en gyldig e-mail."
+
+msgid "This field is required."
+msgstr "Dette felt er påkrævet."
+
+msgid "Please wait a moment and try again."
+msgstr "Vent et øjeblik og prøv igen."
+
+msgid "Sending…"
+msgstr "Sender…"
+
+msgid "Book another"
+msgstr "Book en ny"
+
+msgid "Reference"
+msgstr "Reference"
+
+msgid "Back to times"
+msgstr "Tilbage til tider"
+
+msgid "Header (step title / back)"
+msgstr "Header (trin-titel / tilbage)"

@@ -1,8 +1,6 @@
 ( function () {
 	'use strict';
 
-	// Locale strings + month/weekday names, injected from PHP (wp_date). English
-	// fallbacks keep the widget working if localization is unavailable.
 	var I18N = ( window.TSB && TSB.i18n ) || {};
 	var MONTHS = I18N.months || [ 'January','February','March','April','May','June',
 		'July','August','September','October','November','December' ];
@@ -19,30 +17,36 @@
 		}
 		root.dataset.tsbInit = '1';
 
-		var elCal      = root.querySelector( '.tsb-cal' );
-		var elDaysView = root.querySelector( '.tsb-cal-days' );
+		var elCal       = root.querySelector( '.tsb-cal' );
+		var elDaysView  = root.querySelector( '.tsb-cal-days' );
 		var elSlotsView = root.querySelector( '.tsb-cal-slots' );
-		var elWeek     = root.querySelector( '.tsb-cal-weekdays' );
-		var elGrid     = root.querySelector( '.tsb-cal-grid' );
-		var elTitle    = root.querySelector( '.tsb-cal-title' );
-		var elPrev     = root.querySelector( '.tsb-cal-prev' );
-		var elNext     = root.querySelector( '.tsb-cal-next' );
-		var elBackDays = root.querySelector( '.tsb-cal-back' );
-		var elSlotsDay = root.querySelector( '.tsb-slots-day' );
-		var elSlots    = root.querySelector( '.tsb-slots' );
-		var elForm     = root.querySelector( '.tsb-form' );
-		var elLoad     = root.querySelector( '.tsb-loading' );
-		var elResult   = root.querySelector( '.tsb-result' );
-		var elChosen   = root.querySelector( '.tsb-chosen' );
-		var elBack     = root.querySelector( '.tsb-back' );
-		var elCap      = root.querySelector( '.g-recaptcha, .h-captcha' );
+		var elWeek      = root.querySelector( '.tsb-cal-weekdays' );
+		var elGrid      = root.querySelector( '.tsb-cal-grid' );
+		var elTitle     = root.querySelector( '.tsb-cal-title' );
+		var elPrev      = root.querySelector( '.tsb-cal-prev' );
+		var elNext      = root.querySelector( '.tsb-cal-next' );
+		var elBackDays  = root.querySelector( '.tsb-cal-back' );
+		var elSlotsDay  = root.querySelector( '.tsb-slots-day' );
+		var elSlots     = root.querySelector( '.tsb-slots' );
+		var elForm      = root.querySelector( '.tsb-form' );
+		var elLoad      = root.querySelector( '.tsb-loading' );
+		var elResult    = root.querySelector( '.tsb-result' );
+		var elChosen    = root.querySelector( '.tsb-chosen' );
+		var elBack      = root.querySelector( '.tsb-back' );
+		var elCap       = root.querySelector( '.g-recaptcha, .h-captcha' );
+		var elSummary   = root.querySelector( '.tsb-summary' );
+		var elSumWhen   = root.querySelector( '.tsb-summary-when' );
+		var elSumMsg    = root.querySelector( '.tsb-summary-msg' );
+		var elSumRef    = root.querySelector( '.tsb-summary-ref' );
+		var elAnother   = root.querySelector( '.tsb-book-another' );
 
 		var avail   = {};
 		var view    = null;
 		var minM    = 0, maxM = 0;
 		var selDate = null;
+		var stamp   = '';
+		var lastLabel = '', lastTime = '';
 
-		// Weekday header (Monday-first), localized.
 		if ( elWeek && ! elWeek.children.length ) {
 			WEEKDAYS.forEach( function ( w ) {
 				var s = document.createElement( 'span' );
@@ -54,7 +58,7 @@
 		function post( action, body ) {
 			body.action = action;
 			body.nonce  = TSB.nonce;
-			if ( TSB.lang ) { body.lang = TSB.lang; } // WPML/Polylang language context
+			if ( TSB.lang ) { body.lang = TSB.lang; }
 			var fd = new FormData();
 			Object.keys( body ).forEach( function ( k ) { fd.append( k, body[ k ] ); } );
 			return fetch( TSB.ajax, { method: 'POST', body: fd, credentials: 'same-origin' } )
@@ -99,14 +103,13 @@
 			} catch ( e ) {}
 		}
 
-		/* ---------- view helpers ---------- */
-		function showDayView() {
-			elDaysView.hidden  = false;
-			elSlotsView.hidden = true;
-		}
-		function showSlotView() {
-			elDaysView.hidden  = true;
-			elSlotsView.hidden = false;
+		/* ---------- views ---------- */
+		function showDayView()  { elDaysView.hidden = false; elSlotsView.hidden = true; }
+		function showSlotView() { elDaysView.hidden = true;  elSlotsView.hidden = false; }
+
+		function applyTokens( data ) {
+			stamp = data.stamp || stamp;
+			if ( data.nonce ) { TSB.nonce = data.nonce; }
 		}
 
 		/* ---------- load ---------- */
@@ -119,6 +122,7 @@
 					return;
 				}
 				elLoad.hidden = true;
+				applyTokens( res.data );
 				avail = {};
 				( res.data.days || [] ).forEach( function ( d ) { avail[ d.date ] = d; } );
 
@@ -134,6 +138,7 @@
 
 				selDate = null;
 				elForm.hidden = true;
+				elSummary.hidden = true;
 				elResult.hidden = true;
 				elCal.hidden = false;
 				showDayView();
@@ -143,24 +148,34 @@
 			} );
 		}
 
+		// Refresh nonce + time-trap token without disturbing the current view.
+		function refreshTokens() {
+			return post( 'tsb_slots', {} ).then( function ( res ) {
+				if ( res.success ) {
+					applyTokens( res.data );
+					avail = {};
+					( res.data.days || [] ).forEach( function ( d ) { avail[ d.date ] = d; } );
+				}
+			} ).catch( function () {} );
+		}
+
 		function parseDate( s ) {
 			if ( ! s ) { return null; }
 			var p = s.split( '-' );
 			return new Date( +p[ 0 ], +p[ 1 ] - 1, +p[ 2 ] );
 		}
 
-		/* ---------- calendar (day view) ---------- */
+		/* ---------- calendar ---------- */
 		function renderCal() {
 			var y = view.y, m = view.m;
 			elTitle.textContent = MONTHS[ m ] + ' ' + y;
-
 			var cur = monthIndex( y, m );
 			elPrev.disabled = cur <= minM;
 			elNext.disabled = cur >= maxM;
 
 			elGrid.innerHTML = '';
 			var first  = new Date( y, m, 1 );
-			var offset = ( first.getDay() + 6 ) % 7; // Monday-first
+			var offset = ( first.getDay() + 6 ) % 7;
 			var dim    = new Date( y, m + 1, 0 ).getDate();
 
 			for ( var i = 0; i < offset; i++ ) {
@@ -182,7 +197,6 @@
 					} )( key );
 					elGrid.appendChild( b );
 				} else {
-					// Unavailable: rendered, but not interactive.
 					var s = document.createElement( 'span' );
 					s.className = 'tsb-day is-empty';
 					s.setAttribute( 'aria-disabled', 'true' );
@@ -203,12 +217,12 @@
 			renderCal();
 		} );
 
-		/* ---------- slots (slot view) ---------- */
+		/* ---------- slots ---------- */
 		function selectDay( dateKey ) {
 			selDate = dateKey;
 			var day = avail[ dateKey ];
 			if ( ! day ) { return; }
-			renderCal(); // keep the highlight for when we return to the day view
+			renderCal();
 
 			elSlotsDay.textContent = day.label;
 			elSlots.innerHTML = '';
@@ -216,16 +230,14 @@
 				var b = document.createElement( 'button' );
 				b.type = 'button';
 				b.className = 'tsb-slot';
-				b.style.setProperty( '--i', i ); // stagger the entrance animation
+				b.style.setProperty( '--i', i );
 				b.textContent = time;
 				b.addEventListener( 'click', function () { selectSlot( day.date, time, day.label ); } );
 				elSlots.appendChild( b );
 			} );
-
-			// Replace the calendar grid with the slot list.
 			showSlotView();
 			elSlots.classList.remove( 'is-in' );
-			void elSlots.offsetWidth; // force reflow to restart the animation
+			void elSlots.offsetWidth;
 			elSlots.classList.add( 'is-in' );
 			elCal.scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
 		}
@@ -235,20 +247,24 @@
 			elCal.scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
 		} );
 
-		/* ---------- form (step 2, only after a slot is picked) ---------- */
+		/* ---------- form ---------- */
 		function selectSlot( date, time, label ) {
 			elForm.date.value = date;
 			elForm.time.value = time;
+			lastLabel = label; lastTime = time;
 			elChosen.textContent = label + ' ' + t( 'at', 'at' ) + ' ' + time;
 			elCal.hidden = true;
+			elSummary.hidden = true;
+			elResult.hidden = true;
 			elForm.hidden = false;
 			elForm.classList.remove( 'is-in' );
 			void elForm.offsetWidth;
 			elForm.classList.add( 'is-in' );
 			elForm.scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
+			var first = elForm.querySelector( 'input[name="name"]' );
+			if ( first ) { try { first.focus(); } catch ( e ) {} }
 		}
 
-		// Back from the form returns to the chosen day's slot list.
 		elBack.addEventListener( 'click', function () {
 			elForm.hidden = true;
 			elCal.hidden = false;
@@ -256,40 +272,139 @@
 			elCal.scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
 		} );
 
-		elForm.addEventListener( 'submit', function ( e ) {
-			e.preventDefault();
-			var btn = elForm.querySelector( '.tsb-submit' );
-			btn.disabled = true;
-			captchaToken().then( function ( token ) {
-				return post( 'tsb_book', {
-					date: elForm.date.value,
-					time: elForm.time.value,
-					name: elForm.name.value,
-					email: elForm.email.value,
-					phone: elForm.phone.value,
-					message: elForm.message.value,
-					tsb_hp: elForm.tsb_hp ? elForm.tsb_hp.value : '',
-					captcha_token: token
-				} );
-			} ).then( function ( res ) {
+		/* ---------- validation ---------- */
+		function fieldError( f, msg ) {
+			f.classList.add( 'is-invalid' );
+			var e = f.querySelector( '.tsb-field-error' );
+			if ( e ) { e.textContent = msg; e.hidden = false; }
+		}
+		function clearError( f ) {
+			f.classList.remove( 'is-invalid' );
+			var e = f.querySelector( '.tsb-field-error' );
+			if ( e ) { e.hidden = true; e.textContent = ''; }
+		}
+		var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+		function validate() {
+			var firstBad = null;
+			Array.prototype.forEach.call( elForm.querySelectorAll( '.tsb-field' ), function ( f ) {
+				clearError( f );
+				var cb = f.querySelector( 'input[type="checkbox"]' );
+				if ( cb ) {
+					if ( cb.getAttribute( 'aria-required' ) === 'true' && ! cb.checked ) {
+						fieldError( f, t( 'consent', 'Please accept to continue.' ) );
+						firstBad = firstBad || cb;
+					}
+					return;
+				}
+				var inp = f.querySelector( 'input, textarea' );
+				if ( ! inp ) { return; }
+				var val = inp.value.trim();
+				if ( inp.hasAttribute( 'required' ) && ! val ) {
+					fieldError( f, t( 'required', 'This field is required.' ) );
+					firstBad = firstBad || inp;
+					return;
+				}
+				if ( inp.type === 'email' && val && ! EMAIL_RE.test( val ) ) {
+					fieldError( f, t( 'email', 'Please enter a valid email.' ) );
+					firstBad = firstBad || inp;
+				}
+			} );
+			return firstBad;
+		}
+
+		// Clear a field's error as soon as the user edits it.
+		elForm.addEventListener( 'input', function ( e ) {
+			var f = e.target.closest( '.tsb-field' );
+			if ( f ) { clearError( f ); }
+		} );
+		elForm.addEventListener( 'change', function ( e ) {
+			var f = e.target.closest( '.tsb-field' );
+			if ( f ) { clearError( f ); }
+		} );
+
+		/* ---------- submit ---------- */
+		function collectFields( body ) {
+			Array.prototype.forEach.call( elForm.querySelectorAll( '[name]' ), function ( el ) {
+				if ( el.type === 'checkbox' ) {
+					if ( el.checked ) { body[ el.name ] = el.value; }
+				} else {
+					body[ el.name ] = el.value;
+				}
+			} );
+		}
+
+		function setLoading( btn, on ) {
+			if ( on ) {
+				btn.dataset.label = btn.dataset.label || btn.textContent;
+				btn.disabled = true;
+				btn.classList.add( 'is-loading' );
+				btn.textContent = t( 'sending', 'Sending…' );
+			} else {
 				btn.disabled = false;
-				elResult.hidden = false;
-				elResult.className = 'tsb-result is-in ' + ( res.success ? 'ok' : 'err' );
-				elResult.textContent = res.data && res.data.message ? res.data.message : ( res.success ? t( 'ok', 'OK' ) : t( 'error', 'Error' ) );
+				btn.classList.remove( 'is-loading' );
+				if ( btn.dataset.label ) { btn.textContent = btn.dataset.label; }
+			}
+		}
+
+		function showError( msg ) {
+			elResult.hidden = false;
+			elResult.className = 'tsb-result is-in err';
+			elResult.textContent = msg;
+		}
+
+		function showSummary( res ) {
+			var bk = ( res.data && res.data.booking ) || {};
+			elSumWhen.textContent = lastLabel + ' ' + t( 'at', 'at' ) + ' ' + ( bk.time || lastTime );
+			elSumMsg.textContent  = ( res.data && res.data.message ) || t( 'ok', 'OK' );
+			elSumRef.textContent  = bk.ref ? ( t( 'ref', 'Reference' ) + ' #' + bk.ref ) : '';
+			elForm.hidden = true;
+			elCal.hidden = true;
+			elResult.hidden = true;
+			elSummary.hidden = false;
+			elSummary.classList.remove( 'is-in' );
+			void elSummary.offsetWidth;
+			elSummary.classList.add( 'is-in' );
+			elSummary.scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
+		}
+
+		function doBook( retried ) {
+			var btn = elForm.querySelector( '.tsb-submit' );
+			setLoading( btn, true );
+			return captchaToken().then( function ( token ) {
+				var body = { stamp: stamp, captcha_token: token };
+				collectFields( body );
+				return post( 'tsb_book', body );
+			} ).then( function ( res ) {
+				if ( ! res.success && res.data && ( res.data.code === 'nonce' || res.data.code === 'stamp' ) && ! retried ) {
+					return refreshTokens().then( function () { return doBook( true ); } );
+				}
+				setLoading( btn, false );
 				if ( res.success ) {
-					elForm.hidden = true;
-					elCal.hidden = true;
+					showSummary( res );
 				} else {
 					captchaReset();
-					loadDays(); // slot may have been taken meanwhile
+					showError( ( res.data && res.data.message ) || t( 'error', 'Error' ) );
 				}
 			} ).catch( function () {
-				btn.disabled = false;
+				setLoading( btn, false );
 				captchaReset();
-				elResult.hidden = false;
-				elResult.className = 'tsb-result is-in err';
-				elResult.textContent = t( 'netError', 'Network error. Please try again.' );
+				showError( t( 'netError', 'Network error. Please try again.' ) );
 			} );
+		}
+
+		elForm.addEventListener( 'submit', function ( e ) {
+			e.preventDefault();
+			var bad = validate();
+			if ( bad ) { try { bad.focus(); } catch ( err ) {} return; }
+			doBook( false );
+		} );
+
+		elAnother.addEventListener( 'click', function () {
+			elForm.reset();
+			Array.prototype.forEach.call( elForm.querySelectorAll( '.tsb-field' ), clearError );
+			elSummary.hidden = true;
+			loadDays();
 		} );
 
 		loadDays();
@@ -299,7 +414,6 @@
 		document.querySelectorAll( '.tsb' ).forEach( init );
 	} );
 
-	// Elementor editor live preview.
 	if ( window.elementorFrontend ) {
 		window.addEventListener( 'elementor/frontend/init', function () {
 			elementorFrontend.hooks.addAction( 'frontend/element_ready/tsb_booking.default', function ( $scope ) {

@@ -125,6 +125,12 @@ function tsb_js_i18n() {
 		'free'      => __( 'free', 'tsb' ),
 		'ok'        => __( 'OK', 'tsb' ),
 		'error'     => __( 'Error', 'tsb' ),
+		'required'  => __( 'This field is required.', 'tsb' ),
+		'email'     => __( 'Please enter a valid email.', 'tsb' ),
+		'consent'   => __( 'Please accept to continue.', 'tsb' ),
+		'sending'   => __( 'Sending…', 'tsb' ),
+		'another'   => __( 'Book another', 'tsb' ),
+		'ref'       => __( 'Reference', 'tsb' ),
 	);
 }
 

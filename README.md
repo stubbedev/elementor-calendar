@@ -39,10 +39,24 @@ set of Elementor **Style** controls that default to the active theme's colors.
 
 | Tab | What it controls |
 |-----|------------------|
-| **Tilgængelighed** | Base business hours; per-weekday open/closed (follow base or own hours); slot length, **start offset**, **gap between slots**; days ahead; minimum lead time; holiday blocking + **country list** |
-| **E-mails** | Admin notification + customer confirmation (toggles, templates), custom sender (From), `.ics` calendar invite |
-| **Spam-beskyttelse** | none / honeypot / reCAPTCHA v2 / reCAPTCHA v3 (score) / hCaptcha + keys |
-| **Blokeringer** | Remove individual times or whole days from availability |
+| **Availability** | Base business hours; per-weekday open/closed (follow base or own hours); slot length, **start offset**, **gap between slots**; days ahead; minimum lead time; holiday blocking + **country list** |
+| **Form** | Toggle/require phone, message and one custom field; **GDPR consent** checkbox (text + optional link, server-enforced) |
+| **Emails** | Admin notification + customer confirmation (toggles, templates), custom sender (From), `.ics` calendar invite |
+| **Spam protection** | none / honeypot / reCAPTCHA v2 / reCAPTCHA v3 (score) / hCaptcha + keys |
+| **Blocks** | Remove individual times or whole days from availability |
+
+### Form behaviour
+
+- **Inline validation** — required/email checks run client-side with a message
+  under each field; the server re-validates everything as the source of truth.
+- **Submit feedback** — spinner + "Sending…"; on success the form is replaced by a
+  summary card (date/time + booking reference) with a **Book another** button.
+- **Accessibility** — `aria-live`/`role` on status + errors, `aria-required`, focus
+  moves to the first field on step 3 and to the first invalid field on error;
+  browser autocomplete hints on name/email/phone.
+- **Anti-spam** — honeypot **plus** a signed time-trap (rejects sub-3s/scripted
+  posts that skipped loading the slots). A cached page that hits an expired nonce
+  auto-refreshes its token and retries once.
 
 ### Widget styling (Elementor)
 

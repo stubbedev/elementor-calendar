@@ -37,6 +37,18 @@ class TSB_Availability {
 			'captcha_site'      => '',
 			'captcha_secret'    => '',
 			'captcha_min_score' => 0.5, // reCAPTCHA v3 only
+			// form fields
+			'field_phone'         => 1,
+			'field_phone_req'     => 0,
+			'field_message'       => 1,
+			'field_message_req'   => 0,
+			'field_custom'        => 0,
+			'field_custom_label'  => __( 'Company', 'tsb' ),
+			'field_custom_req'    => 0,
+			'consent_enable'      => 0,
+			'consent_text'        => __( 'I accept that my information is processed in order to handle my booking.', 'tsb' ),
+			'consent_link_text'   => __( 'Privacy policy', 'tsb' ),
+			'consent_url'         => '',
 		);
 		$s = wp_parse_args( get_option( 'tsb_settings', array() ), $def );
 		if ( empty( $s['week'] ) || ! is_array( $s['week'] ) ) {
@@ -46,6 +58,16 @@ class TSB_Availability {
 			$s['holiday_countries'] = array( 'DK' );
 		}
 		return $s;
+	}
+
+	/** Optional contact fields: key => [show, req, label, type, autocomplete]. */
+	public static function fields() {
+		$s = self::settings();
+		return array(
+			'phone'   => array( 'show' => ! empty( $s['field_phone'] ),   'req' => ! empty( $s['field_phone_req'] ),   'label' => __( 'Phone', 'tsb' ),   'type' => 'tel',      'autocomplete' => 'tel' ),
+			'message' => array( 'show' => ! empty( $s['field_message'] ), 'req' => ! empty( $s['field_message_req'] ), 'label' => __( 'Message', 'tsb' ), 'type' => 'textarea', 'autocomplete' => '' ),
+			'custom'  => array( 'show' => ! empty( $s['field_custom'] ),  'req' => ! empty( $s['field_custom_req'] ),  'label' => $s['field_custom_label'], 'type' => 'text', 'autocomplete' => 'organization' ),
+		);
 	}
 
 	/** Mon–Fri open, weekend closed, all following the base business hours. */

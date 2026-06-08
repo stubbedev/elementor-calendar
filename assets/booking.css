@@ -6,6 +6,8 @@
 	   naturally on any theme background. */
 	--tsb-line: color-mix( in srgb, currentColor 18%, transparent );
 	--tsb-soft: color-mix( in srgb, var( --tsb-accent ) 10%, transparent );
+	--tsb-radius: 8px;
+	--tsb-error: #b42318;
 	width: 100%;
 	color: inherit;
 }
@@ -28,7 +30,7 @@
 	border: 1px solid var( --tsb-line );
 	background: transparent;
 	color: inherit;
-	border-radius: 8px;
+	border-radius: var( --tsb-radius );
 	width: 2em;
 	height: 2em;
 	line-height: 1;
@@ -60,7 +62,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border-radius: 8px;
+	border-radius: var( --tsb-radius );
 	font: inherit;
 	color: inherit;
 	line-height: 1.1;
@@ -91,7 +93,7 @@
 	border: 1px solid var( --tsb-line );
 	background: transparent;
 	color: inherit;
-	border-radius: 8px;
+	border-radius: var( --tsb-radius );
 	padding: .5em .9em;
 	font: inherit;
 	line-height: 1.2;
@@ -110,7 +112,7 @@
 	color: inherit;
 	padding: .55em .7em;
 	border: 1px solid var( --tsb-line );
-	border-radius: 8px;
+	border-radius: var( --tsb-radius );
 	background: transparent;
 	width: 100%;
 	box-sizing: border-box;
@@ -127,7 +129,7 @@
 	border: 0;
 	background: var( --tsb-accent );
 	color: #fff;
-	border-radius: 8px;
+	border-radius: var( --tsb-radius );
 	padding: .65em 1.2em;
 	font: inherit;
 	font-weight: 600;
@@ -140,7 +142,7 @@
 .tsb-hp { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; overflow: hidden; }
 .g-recaptcha, .h-captcha { margin: .25em 0; }
 
-.tsb-result { margin-top: 1em; padding: .75em 1em; border-radius: 8px; }
+.tsb-result { margin-top: 1em; padding: .75em 1em; border-radius: var( --tsb-radius ); }
 .tsb-result.ok { background: #ecfdf3; color: #027a48; }
 .tsb-result.err { background: #fef3f2; color: #b42318; }
 
@@ -160,9 +162,47 @@
 .tsb-form.is-in { animation: tsb-fade-up .3s ease both; }
 .tsb-result.is-in { animation: tsb-fade-up .25s ease both; }
 
+.tsb-summary.is-in { animation: tsb-fade-up .3s ease both; }
+
 @media ( prefers-reduced-motion: reduce ) {
 	.tsb-slots.is-in .tsb-slot,
 	.tsb-form.is-in,
-	.tsb-result.is-in { animation: none; }
+	.tsb-result.is-in,
+	.tsb-summary.is-in { animation: none; }
 	.tsb-day, .tsb-slot, .tsb-submit, .tsb-cal-nav { transition: none; }
+	.tsb-submit.is-loading::before { animation-duration: 1.2s; }
 }
+
+/* ---------- fields / validation ---------- */
+.tsb-field-label { font-weight: 500; }
+.tsb-req { color: var( --tsb-error ); }
+.tsb-field-error { color: var( --tsb-error ); font-size: .8em; }
+.tsb-field.is-invalid input,
+.tsb-field.is-invalid textarea { border-color: var( --tsb-error ); }
+
+/* consent */
+.tsb-consent .tsb-consent-row { display: flex; gap: .5em; align-items: flex-start; }
+.tsb-consent .tsb-consent-row input { width: auto; margin-top: .2em; flex: none; }
+.tsb-consent-text a { color: var( --tsb-accent ); }
+
+/* submit loading spinner */
+.tsb-submit.is-loading::before {
+	content: '';
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+	margin-right: .5em;
+	border: 2px solid currentColor;
+	border-top-color: transparent;
+	border-radius: 50%;
+	vertical-align: -.15em;
+	animation: tsb-spin .7s linear infinite;
+}
+@keyframes tsb-spin { to { transform: rotate( 360deg ); } }
+
+/* success summary */
+.tsb-summary { display: grid; gap: .75em; justify-items: center; text-align: center; }
+.tsb-summary .tsb-cal-head { display: block; width: 100%; text-align: center; margin: 0; }
+.tsb-summary-when { font-weight: 600; }
+.tsb-summary-msg { margin: 0; }
+.tsb-summary-ref { margin: 0; opacity: .7; font-size: .9em; }
