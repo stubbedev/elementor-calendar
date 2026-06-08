@@ -509,3 +509,76 @@ msgstr "Fejl-tekst"
 
 msgid "Error background"
 msgstr "Fejl-baggrund"
+
+# ---- new style controls ----
+msgid "General"
+msgstr "Generelt"
+
+msgid "Widget background"
+msgstr "Widget-baggrund"
+
+msgid "Max width"
+msgstr "Maksbredde"
+
+msgid "Leave empty to inherit the theme / Elementor primary color."
+msgstr "Lad stå tom for at arve temaets/Elementors primærfarve."
+
+msgid "Header (month / back)"
+msgstr "Header (måned / tilbage)"
+
+msgid "Nav arrow color"
+msgstr "Pilfarve"
+
+msgid "Nav arrow hover"
+msgstr "Pil hover"
+
+msgid "Header margin"
+msgstr "Header-margin"
+
+msgid "Weekday header"
+msgstr "Ugedag-header"
+
+msgid "Day cells"
+msgstr "Dagceller"
+
+msgid "Hover border"
+msgstr "Hover-kant"
+
+msgid "Selected background"
+msgstr "Valgt baggrund"
+
+msgid "Selected text"
+msgstr "Valgt tekst"
+
+msgid "Hint text"
+msgstr "Hjælpetekst"
+
+msgid "Spacing between slots"
+msgstr "Afstand mellem slots"
+
+msgid "Slots area margin"
+msgstr "Slot-område margin"
+
+msgid "Slot buttons"
+msgstr "Slot-knapper"
+
+msgid "Hover text"
+msgstr "Hover-tekst"
+
+msgid "Margin"
+msgstr "Margin"
+
+msgid "Field spacing"
+msgstr "Feltafstand"
+
+msgid "Form max width"
+msgstr "Formular maksbredde"
+
+msgid "Focus border"
+msgstr "Fokus-kant"
+
+msgid "Text (hover)"
+msgstr "Tekst (hover)"
+
+msgid "Back to days"
+msgstr "Tilbage til dage"

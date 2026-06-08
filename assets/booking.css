@@ -6,19 +6,22 @@
 	   naturally on any theme background. */
 	--tsb-line: color-mix( in srgb, currentColor 18%, transparent );
 	--tsb-soft: color-mix( in srgb, var( --tsb-accent ) 10%, transparent );
-	max-width: 480px;
+	width: 100%;
 	color: inherit;
 }
-.tsb-intro { font-weight: 600; margin: 0 0 .75em; }
+/* Only one stage (days / slots / form / result) is ever visible. Class display
+   rules below would otherwise beat the UA [hidden] rule on specificity. */
+.tsb [hidden] { display: none !important; }
 .tsb-loading { opacity: .7; }
 
 /* ---------- calendar ---------- */
 .tsb-cal-head {
-	display: flex;
+	display: grid;
+	grid-template-columns: 2em 1fr 2em;
 	align-items: center;
-	justify-content: space-between;
 	margin: 0 0 .5em;
 }
+.tsb-cal-title, .tsb-slots-day { text-align: center; }
 .tsb-cal-title { font-weight: 600; text-transform: capitalize; }
 .tsb-cal-nav {
 	cursor: pointer;
@@ -79,11 +82,10 @@
 	color: #fff;
 	border-color: var( --tsb-accent );
 }
-.tsb-cal-hint { margin: .6em 0 0; font-size: .75em; opacity: .65; }
 
-/* ---------- slots ---------- */
-.tsb-slots { display: flex; flex-wrap: wrap; gap: .5em; margin: 1em 0; }
-.tsb-slots-head { width: 100%; margin: 0 0 .25em; font-weight: 600; }
+/* ---------- slots (slot view replaces the grid) ---------- */
+.tsb-slots-day { font-weight: 600; }
+.tsb-slots { display: flex; flex-wrap: wrap; gap: .5em; margin: 0; }
 .tsb-slot {
 	cursor: pointer;
 	border: 1px solid var( --tsb-line );
@@ -101,7 +103,7 @@
 .tsb-slot:active { transform: scale( .96 ); }
 
 /* ---------- form ---------- */
-.tsb-form { display: grid; gap: .75em; max-width: 420px; }
+.tsb-form { display: grid; gap: .75em; width: 100%; }
 .tsb-form label { display: grid; gap: .25em; font-size: .9em; }
 .tsb-form input, .tsb-form textarea {
 	font: inherit;
@@ -117,13 +119,8 @@
 	outline: none;
 	border-color: var( --tsb-accent );
 }
-.tsb-chosen {
-	margin: 0;
-	padding: .5em .75em;
-	background: var( --tsb-soft );
-	border-radius: 8px;
-	font-weight: 600;
-}
+/* Step-3 title: same centered header style as the month / day titles. */
+.tsb-chosen { margin: 0; font-weight: 600; text-align: center; }
 .tsb-actions { display: flex; gap: .5em; }
 .tsb-submit {
 	cursor: pointer;
@@ -139,15 +136,6 @@
 .tsb-submit:hover { filter: brightness( 1.07 ); }
 .tsb-submit:active { transform: scale( .98 ); }
 .tsb-submit:disabled { opacity: .6; cursor: default; }
-.tsb-back {
-	cursor: pointer;
-	border: 1px solid var( --tsb-line );
-	background: transparent;
-	color: inherit;
-	border-radius: 8px;
-	padding: .65em 1.2em;
-	font: inherit;
-}
 
 .tsb-hp { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; overflow: hidden; }
 .g-recaptcha, .h-captcha { margin: .25em 0; }

@@ -83,13 +83,28 @@ msgfmt languages/tsb-<locale>.po -o languages/tsb-<locale>.mo
 
 ## Widget styling (Elementor)
 
-`Style` tab sections: **Calendar**, **Time slots**, **Form & fields**,
-**Buttons & messages**. Accent color defaults to the theme/Elementor global
-primary (`--e-global-color-primary`); cells, inputs and slots inherit the theme
-text color via `currentColor`/`color-mix`, so the widget blends into any theme out
-of the box. Knobs include typography, colors, backgrounds, hover states, borders,
-radius, padding and cell spacing. The date→slots→form steps animate in
-(respecting `prefers-reduced-motion`).
+`Style` tab sections: **General**, **Calendar**, **Time slots**,
+**Form & fields**, **Buttons & messages**. Every text element has a full
+Typography group (font family, size, weight, line-height, letter-spacing,
+transform…) plus margin/padding dimension inputs; boxed elements (day cells, slot
+buttons, inputs, buttons, messages) add border, corner-radius and box-shadow
+controls, hover/focus/selected colors, and backgrounds — essentially every visual
+property is an input.
+
+Accent color defaults to the theme/Elementor global primary
+(`--e-global-color-primary`); cells, inputs and slots inherit the theme text color
+via `currentColor`/`color-mix`, so the widget blends into any theme out of the box.
+
+### Front-end flow
+
+1. **Pick a day** on the month grid (unavailable days are shown but not
+   clickable).
+2. The grid is replaced by that day's **time slots**, with a back arrow in the
+   header to return to the days.
+3. Picking a slot reveals the **contact form** (a slot must be chosen first); the
+   form's *Back* returns to the slot list.
+
+Each step animates in, respecting `prefers-reduced-motion`.
 
 ### Email placeholders
 

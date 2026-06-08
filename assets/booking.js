@@ -19,19 +19,23 @@
 		}
 		root.dataset.tsbInit = '1';
 
-		var elCal    = root.querySelector( '.tsb-cal' );
-		var elWeek   = root.querySelector( '.tsb-cal-weekdays' );
-		var elGrid   = root.querySelector( '.tsb-cal-grid' );
-		var elTitle  = root.querySelector( '.tsb-cal-title' );
-		var elPrev   = root.querySelector( '.tsb-cal-prev' );
-		var elNext   = root.querySelector( '.tsb-cal-next' );
-		var elSlots  = root.querySelector( '.tsb-slots' );
-		var elForm   = root.querySelector( '.tsb-form' );
-		var elLoad   = root.querySelector( '.tsb-loading' );
-		var elResult = root.querySelector( '.tsb-result' );
-		var elChosen = root.querySelector( '.tsb-chosen' );
-		var elBack   = root.querySelector( '.tsb-back' );
-		var elCap    = root.querySelector( '.g-recaptcha, .h-captcha' );
+		var elCal      = root.querySelector( '.tsb-cal' );
+		var elDaysView = root.querySelector( '.tsb-cal-days' );
+		var elSlotsView = root.querySelector( '.tsb-cal-slots' );
+		var elWeek     = root.querySelector( '.tsb-cal-weekdays' );
+		var elGrid     = root.querySelector( '.tsb-cal-grid' );
+		var elTitle    = root.querySelector( '.tsb-cal-title' );
+		var elPrev     = root.querySelector( '.tsb-cal-prev' );
+		var elNext     = root.querySelector( '.tsb-cal-next' );
+		var elBackDays = root.querySelector( '.tsb-cal-back' );
+		var elSlotsDay = root.querySelector( '.tsb-slots-day' );
+		var elSlots    = root.querySelector( '.tsb-slots' );
+		var elForm     = root.querySelector( '.tsb-form' );
+		var elLoad     = root.querySelector( '.tsb-loading' );
+		var elResult   = root.querySelector( '.tsb-result' );
+		var elChosen   = root.querySelector( '.tsb-chosen' );
+		var elBack     = root.querySelector( '.tsb-back' );
+		var elCap      = root.querySelector( '.g-recaptcha, .h-captcha' );
 
 		var avail   = {};
 		var view    = null;
@@ -95,6 +99,16 @@
 			} catch ( e ) {}
 		}
 
+		/* ---------- view helpers ---------- */
+		function showDayView() {
+			elDaysView.hidden  = false;
+			elSlotsView.hidden = true;
+		}
+		function showSlotView() {
+			elDaysView.hidden  = true;
+			elSlotsView.hidden = false;
+		}
+
 		/* ---------- load ---------- */
 		function loadDays() {
 			elLoad.hidden = false;
@@ -119,10 +133,10 @@
 				view = { y: openOn.getFullYear(), m: openOn.getMonth() };
 
 				selDate = null;
-				elSlots.hidden = true;
 				elForm.hidden = true;
 				elResult.hidden = true;
 				elCal.hidden = false;
+				showDayView();
 				renderCal();
 			} ).catch( function () {
 				elLoad.textContent = t( 'netError', 'Network error. Please try again.' );
@@ -135,7 +149,7 @@
 			return new Date( +p[ 0 ], +p[ 1 ] - 1, +p[ 2 ] );
 		}
 
-		/* ---------- calendar ---------- */
+		/* ---------- calendar (day view) ---------- */
 		function renderCal() {
 			var y = view.y, m = view.m;
 			elTitle.textContent = MONTHS[ m ] + ' ' + y;
@@ -189,19 +203,15 @@
 			renderCal();
 		} );
 
-		/* ---------- slots ---------- */
+		/* ---------- slots (slot view) ---------- */
 		function selectDay( dateKey ) {
 			selDate = dateKey;
-			renderCal();
 			var day = avail[ dateKey ];
 			if ( ! day ) { return; }
+			renderCal(); // keep the highlight for when we return to the day view
 
+			elSlotsDay.textContent = day.label;
 			elSlots.innerHTML = '';
-			var head = document.createElement( 'p' );
-			head.className = 'tsb-slots-head';
-			head.textContent = day.label;
-			elSlots.appendChild( head );
-
 			day.slots.forEach( function ( time, i ) {
 				var b = document.createElement( 'button' );
 				b.type = 'button';
@@ -211,32 +221,39 @@
 				b.addEventListener( 'click', function () { selectSlot( day.date, time, day.label ); } );
 				elSlots.appendChild( b );
 			} );
-			// Restart the reveal animation.
-			elSlots.hidden = false;
+
+			// Replace the calendar grid with the slot list.
+			showSlotView();
 			elSlots.classList.remove( 'is-in' );
-			void elSlots.offsetWidth; // force reflow
+			void elSlots.offsetWidth; // force reflow to restart the animation
 			elSlots.classList.add( 'is-in' );
-			elSlots.scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
+			elCal.scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
 		}
 
-		/* ---------- form (step 2) ---------- */
+		elBackDays.addEventListener( 'click', function () {
+			showDayView();
+			elCal.scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
+		} );
+
+		/* ---------- form (step 2, only after a slot is picked) ---------- */
 		function selectSlot( date, time, label ) {
 			elForm.date.value = date;
 			elForm.time.value = time;
 			elChosen.textContent = label + ' ' + t( 'at', 'at' ) + ' ' + time;
+			elCal.hidden = true;
 			elForm.hidden = false;
 			elForm.classList.remove( 'is-in' );
 			void elForm.offsetWidth;
 			elForm.classList.add( 'is-in' );
-			elCal.hidden = true;
-			elSlots.hidden = true;
 			elForm.scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
 		}
 
+		// Back from the form returns to the chosen day's slot list.
 		elBack.addEventListener( 'click', function () {
 			elForm.hidden = true;
 			elCal.hidden = false;
-			elSlots.hidden = ! elSlots.children.length;
+			showSlotView();
+			elCal.scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
 		} );
 
 		elForm.addEventListener( 'submit', function ( e ) {
@@ -261,6 +278,7 @@
 				elResult.textContent = res.data && res.data.message ? res.data.message : ( res.success ? t( 'ok', 'OK' ) : t( 'error', 'Error' ) );
 				if ( res.success ) {
 					elForm.hidden = true;
+					elCal.hidden = true;
 				} else {
 					captchaReset();
 					loadDays(); // slot may have been taken meanwhile

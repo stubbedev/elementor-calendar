@@ -9,14 +9,14 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-06-08T16:21:11+00:00\n"
+"POT-Creation-Date: 2026-06-08T16:43:26+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: tsb\n"
 
 #. Plugin Name of the plugin
 #: timeslot-booking.php
-#: widgets/class-tsb-widget.php:18
+#: widgets/class-tsb-widget.php:19
 msgid "Timeslot Booking"
 msgstr ""
 
@@ -59,25 +59,25 @@ msgstr ""
 
 #: admin/class-tsb-admin.php:188
 #: admin/class-tsb-bookings-table.php:29
-#: widgets/class-tsb-widget.php:347
+#: widgets/class-tsb-widget.php:316
 msgid "Name"
 msgstr ""
 
 #: admin/class-tsb-admin.php:188
 #: admin/class-tsb-bookings-table.php:30
-#: widgets/class-tsb-widget.php:350
+#: widgets/class-tsb-widget.php:319
 msgid "Email"
 msgstr ""
 
 #: admin/class-tsb-admin.php:189
 #: admin/class-tsb-bookings-table.php:31
-#: widgets/class-tsb-widget.php:353
+#: widgets/class-tsb-widget.php:322
 msgid "Phone"
 msgstr ""
 
 #: admin/class-tsb-admin.php:189
 #: admin/class-tsb-bookings-table.php:32
-#: widgets/class-tsb-widget.php:356
+#: widgets/class-tsb-widget.php:325
 msgid "Message"
 msgstr ""
 
@@ -128,7 +128,7 @@ msgid "Booking not found."
 msgstr ""
 
 #: admin/class-tsb-admin.php:287
-#: widgets/class-tsb-widget.php:374
+#: widgets/class-tsb-widget.php:343
 msgid "Back"
 msgstr ""
 
@@ -521,7 +521,7 @@ msgid "Timeslot Booking requires Elementor to be installed and active. The booki
 msgstr ""
 
 #: timeslot-booking.php:120
-#: widgets/class-tsb-widget.php:325
+#: widgets/class-tsb-widget.php:285
 msgid "Loading available times…"
 msgstr ""
 
@@ -553,181 +553,264 @@ msgstr ""
 msgid "Error"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:41
-msgid "Content"
-msgstr ""
-
-#: widgets/class-tsb-widget.php:45
-#: widgets/class-tsb-widget.php:173
-msgid "Intro text"
-msgstr ""
-
-#: widgets/class-tsb-widget.php:47
-msgid "Pick a day:"
-msgstr ""
-
-#: widgets/class-tsb-widget.php:52
-msgid "Opening hours, slot length, holidays, emails, spam protection and blocks are managed under <strong>Bookings → Settings</strong> in wp-admin."
-msgstr ""
-
-#: widgets/class-tsb-widget.php:60
-msgid "Calendar"
-msgstr ""
-
-#: widgets/class-tsb-widget.php:65
-msgid "Accent color"
-msgstr ""
-
-#: widgets/class-tsb-widget.php:67
-msgid "Defaults to your theme/Elementor primary color."
-msgstr ""
-
-#: widgets/class-tsb-widget.php:72
-msgid "Cell spacing"
-msgstr ""
-
-#: widgets/class-tsb-widget.php:79
-msgid "Month title color"
-msgstr ""
-
-#: widgets/class-tsb-widget.php:85
-msgid "Weekday header color"
-msgstr ""
-
-#: widgets/class-tsb-widget.php:92
-msgid "Day cell typography"
-msgstr ""
-
-#: widgets/class-tsb-widget.php:97
-msgid "Day text color"
-msgstr ""
-
-#: widgets/class-tsb-widget.php:103
-msgid "Day background"
-msgstr ""
-
-#: widgets/class-tsb-widget.php:109
-msgid "Day hover border"
-msgstr ""
-
-#: widgets/class-tsb-widget.php:115
-msgid "Selected day background"
-msgstr ""
-
-#: widgets/class-tsb-widget.php:121
-msgid "Cell corner radius"
-msgstr ""
-
-#: widgets/class-tsb-widget.php:131
-msgid "Time slots"
-msgstr ""
-
-#: widgets/class-tsb-widget.php:141
-#: widgets/class-tsb-widget.php:186
-#: widgets/class-tsb-widget.php:213
-#: widgets/class-tsb-widget.php:247
-#: widgets/class-tsb-widget.php:276
+#: widgets/class-tsb-widget.php:95
+#: widgets/class-tsb-widget.php:152
+#: widgets/class-tsb-widget.php:159
+#: widgets/class-tsb-widget.php:190
+#: widgets/class-tsb-widget.php:214
+#: widgets/class-tsb-widget.php:225
+#: widgets/class-tsb-widget.php:242
+#: widgets/class-tsb-widget.php:253
 msgid "Text color"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:147
+#: widgets/class-tsb-widget.php:97
 #: widgets/class-tsb-widget.php:191
-#: widgets/class-tsb-widget.php:218
-#: widgets/class-tsb-widget.php:252
-#: widgets/class-tsb-widget.php:281
+#: widgets/class-tsb-widget.php:215
+#: widgets/class-tsb-widget.php:226
+#: widgets/class-tsb-widget.php:243
+#: widgets/class-tsb-widget.php:254
 msgid "Background"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:153
-msgid "Hover background"
+#: widgets/class-tsb-widget.php:99
+#: widgets/class-tsb-widget.php:160
+#: widgets/class-tsb-widget.php:198
+msgid "Margin"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:159
-#: widgets/class-tsb-widget.php:262
+#: widgets/class-tsb-widget.php:100
+#: widgets/class-tsb-widget.php:135
+#: widgets/class-tsb-widget.php:171
+#: widgets/class-tsb-widget.php:197
+#: widgets/class-tsb-widget.php:217
+#: widgets/class-tsb-widget.php:230
+#: widgets/class-tsb-widget.php:248
+#: widgets/class-tsb-widget.php:257
+#: widgets/class-tsb-widget.php:266
 msgid "Padding"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:169
+#: widgets/class-tsb-widget.php:106
+msgid "Content"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:109
+#: widgets/class-tsb-widget.php:137
+msgid "Intro text"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:111
+msgid "Pick a day:"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:115
+msgid "Opening hours, slot length, holidays, emails, spam protection and blocks are managed under <strong>Bookings → Settings</strong> in wp-admin."
+msgstr ""
+
+#: widgets/class-tsb-widget.php:123
+msgid "General"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:127
+msgid "Accent color"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:130
+msgid "Leave empty to inherit the theme / Elementor primary color."
+msgstr ""
+
+#: widgets/class-tsb-widget.php:133
+msgid "Widget background"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:134
+msgid "Max width"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:144
+msgid "Calendar"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:148
+msgid "Cell spacing"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:150
+msgid "Header (month / back)"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:153
+msgid "Nav arrow color"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:154
+msgid "Nav arrow hover"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:155
+msgid "Header margin"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:157
+msgid "Weekday header"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:162
+msgid "Day cells"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:164
+msgid "Day text color"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:165
+msgid "Day background"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:166
+#: widgets/class-tsb-widget.php:194
+msgid "Hover border"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:167
+msgid "Selected background"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:168
+msgid "Selected text"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:170
+#: widgets/class-tsb-widget.php:196
+#: widgets/class-tsb-widget.php:216
+#: widgets/class-tsb-widget.php:229
+#: widgets/class-tsb-widget.php:247
+#: widgets/class-tsb-widget.php:256
+#: widgets/class-tsb-widget.php:265
+msgid "Corner radius"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:174
+msgid "Hint text"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:181
+msgid "Time slots"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:185
+msgid "Spacing between slots"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:186
+msgid "Slots area margin"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:188
+msgid "Slot buttons"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:192
+msgid "Hover text"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:193
+msgid "Hover background"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:205
 msgid "Form & fields"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:179
-msgid "Color"
+#: widgets/class-tsb-widget.php:209
+msgid "Field spacing"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:184
+#: widgets/class-tsb-widget.php:210
+msgid "Form max width"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:212
 msgid "Chosen-time box"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:196
+#: widgets/class-tsb-widget.php:219
 msgid "Labels"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:202
+#: widgets/class-tsb-widget.php:221
 msgid "Label color"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:207
+#: widgets/class-tsb-widget.php:223
 msgid "Input fields"
 msgstr ""
 
 #: widgets/class-tsb-widget.php:227
-#: widgets/class-tsb-widget.php:268
-msgid "Corner radius"
+msgid "Focus border"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:237
+#: widgets/class-tsb-widget.php:236
 msgid "Buttons & messages"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:241
+#: widgets/class-tsb-widget.php:240
 msgid "Confirm button"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:257
+#: widgets/class-tsb-widget.php:244
+msgid "Text (hover)"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:245
 msgid "Background (hover)"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:274
+#: widgets/class-tsb-widget.php:251
 msgid "Back button"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:286
+#: widgets/class-tsb-widget.php:259
 msgid "Result messages"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:288
+#: widgets/class-tsb-widget.php:261
 msgid "Success text"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:293
+#: widgets/class-tsb-widget.php:262
 msgid "Success background"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:298
+#: widgets/class-tsb-widget.php:263
 msgid "Error text"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:303
+#: widgets/class-tsb-widget.php:264
 msgid "Error background"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:329
+#: widgets/class-tsb-widget.php:291
 msgid "Previous month"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:331
+#: widgets/class-tsb-widget.php:293
 msgid "Next month"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:335
+#: widgets/class-tsb-widget.php:297
 msgid "Highlighted days have available times."
 msgstr ""
 
-#: widgets/class-tsb-widget.php:362
+#: widgets/class-tsb-widget.php:303
+msgid "Back to days"
+msgstr ""
+
+#: widgets/class-tsb-widget.php:331
 msgid "Leave this field empty"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:375
+#: widgets/class-tsb-widget.php:344
 msgid "Confirm booking"
 msgstr ""
