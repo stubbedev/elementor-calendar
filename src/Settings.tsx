@@ -53,7 +53,7 @@ export default function Settings() {
 	const m = meta;
 
 	function set< K extends keyof TSettings >( k: K, v: TSettings[ K ] ) {
-		setData( { ...d, [ k ]: v } );
+		setData( ( prev ) => ( prev ? { ...prev, [ k ]: v } : prev ) );
 	}
 	function setWeek( day: string, k: keyof WeekDay, v: number ) {
 		const week = { ...d.week, [ day ]: { ...d.week[ day ], [ k ]: v } };

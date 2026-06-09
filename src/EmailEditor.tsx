@@ -56,8 +56,13 @@ export default function EmailEditor( props: Props ) {
 	const tpl = emails[ event ];
 	const tokens = tokensByEvent[ event ] || [];
 
+	// Always merge against the LATEST emails — the async compile would otherwise
+	// use a stale closure and overwrite the text the user is still typing.
+	const emailsRef = useRef( emails );
+	emailsRef.current = emails;
 	function update( patch: Partial< EmailTemplate > ) {
-		onChange( { ...emails, [ event ]: { ...emails[ event ], ...patch } } );
+		const e = emailsRef.current;
+		onChange( { ...e, [ event ]: { ...e[ event ], ...patch } } );
 	}
 
 	function fill( htmlStr: string ) {
