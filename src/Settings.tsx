@@ -34,6 +34,7 @@ function hourOptions( from: number, to: number ) {
 export default function Settings() {
 	const [ data, setData ] = useState< TSettings | null >( null );
 	const [ meta, setMeta ] = useState< Meta | null >( null );
+	const [ saved, setSaved ] = useState( '' ); // JSON of last-saved settings
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState< { type: 'success' | 'error'; msg: string } | null >( null );
 
@@ -41,6 +42,7 @@ export default function Settings() {
 		api< { settings: TSettings; meta: Meta } >( 'settings' ).then( ( r ) => {
 			setData( r.settings );
 			setMeta( r.meta );
+			setSaved( JSON.stringify( r.settings ) );
 		} );
 	}, [] );
 
@@ -62,6 +64,7 @@ export default function Settings() {
 		api< { settings: TSettings } >( 'settings', { method: 'POST', data: d } )
 			.then( ( r ) => {
 				setData( r.settings );
+				setSaved( JSON.stringify( r.settings ) );
 				setSaving( false );
 				setNotice( { type: 'success', msg: __( 'Settings saved.', 'tsb' ) } );
 			} )
@@ -222,7 +225,10 @@ export default function Settings() {
 			<EmailEditor
 				emails={ d.emails }
 				events={ m.emailEvents }
-				tokens={ m.emailTokens }
+				tokensByEvent={ m.tokensByEvent }
+				tokenLabels={ m.tokenLabels }
+				sampleVars={ m.sampleVars }
+				defaults={ m.emailDefaults }
 				adminEmail={ m.adminEmail }
 				onChange={ ( emails ) => set( 'emails', emails ) }
 			/>
@@ -311,7 +317,10 @@ export default function Settings() {
 						<div className="tsb-tab-body">
 							{ body }
 							<div className="tsb-savebar">
-								<Button variant="primary" isBusy={ saving } onClick={ save } __next40pxDefaultSize>
+								{ saved !== '' && JSON.stringify( d ) !== saved && (
+									<span className="tsb-unsaved">{ __( 'Unsaved changes', 'tsb' ) }</span>
+								) }
+								<Button variant="primary" isBusy={ saving } disabled={ saved !== '' && JSON.stringify( d ) === saved } onClick={ save } __next40pxDefaultSize>
 									{ __( 'Save settings', 'tsb' ) }
 								</Button>
 							</div>

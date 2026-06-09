@@ -31,6 +31,7 @@ class TSB_Admin {
 		}
 		$asset = require TSB_PATH . 'build/index.asset.php'; // deps + content hash from wp-scripts
 
+		wp_enqueue_media(); // image picker in the email editor
 		wp_enqueue_style( 'wp-components' );
 		wp_enqueue_style( 'tsb-admin', TSB_URL . 'build/index.css', array( 'wp-components' ), $asset['version'] );
 

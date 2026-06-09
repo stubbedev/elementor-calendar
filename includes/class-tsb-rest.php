@@ -49,6 +49,12 @@ class TSB_REST {
 			'permission_callback' => $perm,
 		) );
 
+		register_rest_route( self::NS, '/test-email', array(
+			'methods'             => 'POST',
+			'callback'            => array( __CLASS__, 'test_email' ),
+			'permission_callback' => $perm,
+		) );
+
 		register_rest_route( self::NS, '/blocks', array(
 			array( 'methods' => 'GET',  'callback' => array( __CLASS__, 'list_blocks' ), 'permission_callback' => $perm ),
 			array( 'methods' => 'POST', 'callback' => array( __CLASS__, 'add_block' ),   'permission_callback' => $perm ),
@@ -84,6 +90,16 @@ class TSB_REST {
 					'reminder' => __( 'Reminder', 'tsb' ),
 				),
 				'emailTokens' => TSB_Emails::tokens(),
+				'tokensByEvent' => array(
+					'confirm'  => TSB_Emails::tokens_for( 'confirm' ),
+					'admin'    => TSB_Emails::tokens_for( 'admin' ),
+					'move'     => TSB_Emails::tokens_for( 'move' ),
+					'cancel'   => TSB_Emails::tokens_for( 'cancel' ),
+					'reminder' => TSB_Emails::tokens_for( 'reminder' ),
+				),
+				'tokenLabels'   => TSB_Emails::token_labels(),
+				'sampleVars'    => TSB_Emails::sample_vars(),
+				'emailDefaults' => TSB_Emails::default_templates(),
 				'captchaModes' => array(
 					'none'         => __( 'None', 'tsb' ),
 					'honeypot'     => __( 'Honeypot (hidden field, no keys)', 'tsb' ),
@@ -291,6 +307,18 @@ class TSB_REST {
 		$date    = sanitize_text_field( (string) $req->get_param( 'date' ) );
 		$exclude = (int) $req->get_param( 'exclude' );
 		return rest_ensure_response( array( 'slots' => TSB_Availability::day_grid( $date, $exclude ) ) );
+	}
+
+	public static function test_email( $req ) {
+		$event = sanitize_key( (string) $req->get_param( 'event' ) );
+		$to    = sanitize_email( (string) $req->get_param( 'to' ) );
+		if ( ! is_email( $to ) ) {
+			return new WP_Error( 'tsb_bademail', __( 'Enter a valid email.', 'tsb' ), array( 'status' => 400 ) );
+		}
+		if ( ! TSB_Emails::send_test( $event, $to ) ) {
+			return new WP_Error( 'tsb_failed', __( 'Could not send the test email.', 'tsb' ), array( 'status' => 400 ) );
+		}
+		return rest_ensure_response( array( 'ok' => true ) );
 	}
 
 	/** Per-day status for one month, for the calendar overview. */

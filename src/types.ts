@@ -59,6 +59,10 @@ export interface Meta {
 	fieldTypes: Record<string, string>;
 	emailEvents: Record<string, string>;
 	emailTokens: string[];
+	tokensByEvent: Record<string, string[]>;
+	tokenLabels: Record<string, string>;
+	sampleVars: Record<string, string>;
+	emailDefaults: Record<string, EmailTemplate>;
 	adminEmail: string;
 	captchaModes: Record<string, string>;
 }

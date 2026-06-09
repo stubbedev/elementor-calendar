@@ -217,6 +217,35 @@
 		border-radius: 6px;
 		box-sizing: border-box;
 	}
+	.tsb-email-mjml .cm-editor {
+		border: 1px solid #d0d5dd;
+		border-radius: 6px;
+		font-size: 13px;
+		overflow: hidden;
+	}
+	.tsb-email-mjml .cm-editor.cm-focused { outline: 1px solid var( --wp-admin-theme-color, #2271b1 ); }
+	.tsb-email-mjml .cm-scroller { font-family: Menlo, Consolas, monospace; }
+
+	.tsb-reset-tpl { margin-left: auto; }
+	.components-card__header { justify-content: space-between; }
+
+	.tsb-email-subjectline {
+		font-size: 12px;
+		color: #475467;
+		padding: 6px 10px;
+		background: #f4f4f5;
+		border: 1px solid #e5e7eb;
+		border-bottom: 0;
+		border-radius: 6px 6px 0 0;
+	}
+	.tsb-email-subjectline + .tsb-email-stage { border-radius: 0 0 6px 6px; }
+
+	.tsb-test-send {
+		margin-top: 1.25em;
+		.components-base-control { margin-bottom: 0; min-width: 280px; }
+	}
+	.tsb-unsaved { color: #b54708; font-weight: 600; align-self: center; margin-right: 1em; }
+	.tsb-device-buttons .components-toggle-control { margin-right: .5em; }
 	.tsb-email-preview {
 		width: 100%;
 		min-height: 620px;

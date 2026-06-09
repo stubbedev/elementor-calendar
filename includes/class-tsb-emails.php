@@ -120,16 +120,62 @@ class TSB_Emails {
 		return $t;
 	}
 
-	/** Variable tokens offered in the editor palette: base + every configured field. */
+	/** All possible tokens (palette default). */
 	public static function tokens() {
-		$base  = array( 'name', 'email', 'phone', 'message', 'date', 'time', 'ref', 'old_date', 'old_time', 'site' );
-		$names = array();
+		return self::tokens_for( 'move' ); // superset (includes old_*)
+	}
+
+	/** Tokens valid for one event: base + custom fields ( + old_* on move ). */
+	public static function tokens_for( $event ) {
+		$base = array( 'name', 'email', 'phone', 'message', 'date', 'time', 'ref', 'site' );
+		if ( 'move' === $event ) {
+			$base[] = 'old_date';
+			$base[] = 'old_time';
+		}
 		foreach ( TSB_Availability::settings()['fields'] as $f ) {
 			if ( ! empty( $f['enabled'] ) ) {
-				$names[] = $f['name'];
+				$base[] = $f['name'];
 			}
 		}
-		return array_values( array_unique( array_merge( $base, $names ) ) );
+		return array_values( array_unique( $base ) );
+	}
+
+	/** Human descriptions for the standard tokens. */
+	public static function token_labels() {
+		return array(
+			'name'     => __( 'Customer name', 'tsb' ),
+			'email'    => __( 'Customer email', 'tsb' ),
+			'phone'    => __( 'Phone', 'tsb' ),
+			'message'  => __( 'Message + extra fields', 'tsb' ),
+			'date'     => __( 'Booking date', 'tsb' ),
+			'time'     => __( 'Booking time', 'tsb' ),
+			'ref'      => __( 'Reference number', 'tsb' ),
+			'site'     => __( 'Site name', 'tsb' ),
+			'old_date' => __( 'Previous date (move)', 'tsb' ),
+			'old_time' => __( 'Previous time (move)', 'tsb' ),
+		);
+	}
+
+	/** Sample values for live preview + test sends. */
+	public static function sample_vars( $event = 'confirm' ) {
+		$v = array(
+			'name'     => 'Jane Doe',
+			'email'    => 'jane@example.com',
+			'phone'    => '12 34 56 78',
+			'message'  => 'Looking forward to it!',
+			'date'     => '2026-06-20',
+			'time'     => '09:00',
+			'ref'      => '42',
+			'site'     => get_bloginfo( 'name' ),
+			'old_date' => '2026-06-18',
+			'old_time' => '14:00',
+		);
+		foreach ( TSB_Availability::settings()['fields'] as $f ) {
+			if ( ! empty( $f['enabled'] ) && ! isset( $v[ $f['name'] ] ) ) {
+				$v[ $f['name'] ] = $f['label'] ? $f['label'] : $f['name'];
+			}
+		}
+		return $v;
 	}
 
 	/* ---------------- sending ---------------- */
@@ -163,14 +209,18 @@ class TSB_Emails {
 		return array_merge( $vars, $extra );
 	}
 
-	/** Send one template to one recipient. $ics_args optional → attach .ics. */
+	/** Send one template to one recipient (only if enabled). $ics_args → attach .ics. */
 	protected static function send( $event, $to, $vars, $ics_args = null ) {
-		$s   = TSB_Availability::settings();
-		$tpl = $s['emails'][ $event ] ?? null;
+		$tpl = TSB_Availability::settings()['emails'][ $event ] ?? null;
 		if ( ! $tpl || empty( $tpl['enabled'] ) || ! is_email( $to ) ) {
 			return;
 		}
+		self::deliver( $event, $to, $tpl, $vars, $ics_args );
+	}
 
+	/** Render + send a template (enabled check already done by caller). */
+	protected static function deliver( $event, $to, $tpl, $vars, $ics_args = null ) {
+		$s       = TSB_Availability::settings();
 		$subject = self::interpolate( TSB_I18N::translate( $event . '_subject', $tpl['subject'] ), $vars );
 		$html    = self::interpolate( $tpl['html'], $vars );
 
@@ -181,20 +231,27 @@ class TSB_Emails {
 				: 'From: ' . $s['from_email'];
 		}
 
-		$cb = null;
-		if ( $ics_args && ! empty( $s['ics_attach'] ) ) {
-			$ics = TSB_ICS::generate( $ics_args, $s['slot_minutes'] );
-			$cb  = function ( $phpmailer ) use ( $ics ) {
+		// Plain-text fallback + optional .ics, via a one-shot PHPMailer hook.
+		$cb = function ( $phpmailer ) use ( $html, $ics_args, $s ) {
+			$phpmailer->AltBody = wp_strip_all_tags( $html );
+			if ( $ics_args && ! empty( $s['ics_attach'] ) ) {
+				$ics = TSB_ICS::generate( $ics_args, $s['slot_minutes'] );
 				$phpmailer->addStringAttachment( $ics, 'booking.ics', 'base64', 'text/calendar; charset=utf-8; method=PUBLISH' );
-			};
-			add_action( 'phpmailer_init', $cb );
-		}
-
+			}
+		};
+		add_action( 'phpmailer_init', $cb );
 		wp_mail( $to, $subject, $html, $headers );
+		remove_action( 'phpmailer_init', $cb );
+	}
 
-		if ( $cb ) {
-			remove_action( 'phpmailer_init', $cb );
+	/** Send a test of one template to an address, using sample data, ignoring enabled. */
+	public static function send_test( $event, $to ) {
+		$tpl = TSB_Availability::settings()['emails'][ $event ] ?? null;
+		if ( ! $tpl || ! is_email( $to ) ) {
+			return false;
 		}
+		self::deliver( $event, $to, $tpl, self::sample_vars( $event ) );
+		return true;
 	}
 
 	/* ---------------- events ---------------- */
