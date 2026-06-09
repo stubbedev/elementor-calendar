@@ -155,11 +155,10 @@ class TSB_REST {
 			$s['week'] = $week;
 		}
 
-		// emails: sender + .ics
-		foreach ( array( 'from_name', 'ics_summary', 'ics_location' ) as $k ) {
+		// emails: .ics (sender identity is left to the site's mail provider)
+		foreach ( array( 'ics_summary', 'ics_location' ) as $k ) {
 			if ( array_key_exists( $k, $in ) ) { $s[ $k ] = sanitize_text_field( $in[ $k ] ); }
 		}
-		if ( array_key_exists( 'from_email', $in ) ) { $s['from_email'] = sanitize_email( $in['from_email'] ); }
 		if ( array_key_exists( 'ics_attach', $in ) ) { $s['ics_attach'] = $bool( 'ics_attach' ); }
 		if ( array_key_exists( 'reminder_hours', $in ) ) { $s['reminder_hours'] = max( 1, (int) $in['reminder_hours'] ); }
 

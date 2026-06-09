@@ -224,12 +224,9 @@ class TSB_Emails {
 		$subject = self::interpolate( TSB_I18N::translate( $event . '_subject', $tpl['subject'] ), $vars );
 		$html    = self::interpolate( $tpl['html'], $vars );
 
+		// No From header — the site's mail provider (SMTP plugin, etc.) owns the
+		// sender identity so it stays aligned with the verified/authenticated domain.
 		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
-		if ( ! empty( $s['from_email'] ) && is_email( $s['from_email'] ) ) {
-			$headers[] = $s['from_name']
-				? sprintf( 'From: %s <%s>', $s['from_name'], $s['from_email'] )
-				: 'From: ' . $s['from_email'];
-		}
 
 		// Plain-text fallback + optional .ics, via a one-shot PHPMailer hook.
 		$cb = function ( $phpmailer ) use ( $html, $ics_args, $s ) {

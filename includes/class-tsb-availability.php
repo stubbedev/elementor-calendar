@@ -20,8 +20,6 @@ class TSB_Availability {
 			'holiday_countries' => array( 'DK' ),
 			'week'              => self::default_week(),
 			// emails
-			'from_name'        => '', // blank => WordPress default
-			'from_email'       => '',
 			'ics_attach'       => 1,
 			'ics_summary'      => 'Booking: {{name}}',
 			'ics_location'     => '',

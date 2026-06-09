@@ -17,8 +17,6 @@ export interface Settings {
 	holiday_countries: string[];
 	week: Record<string, WeekDay>;
 
-	from_name: string;
-	from_email: string;
 	ics_attach: number;
 	ics_summary: string;
 	ics_location: string;

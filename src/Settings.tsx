@@ -235,13 +235,6 @@ export default function Settings() {
 			/>
 			<Grid columns={ 2 } gap={ 5 } className="tsb-cards-2">
 				<Card className="tsb-card">
-					<CardHeader>{ __( 'Sender', 'tsb' ) }</CardHeader>
-					<CardBody><VStack spacing={ 3 }>
-						{ txt( 'from_name', __( 'Sender name', 'tsb' ) ) }
-						{ txt( 'from_email', __( 'Sender email', 'tsb' ) ) }
-					</VStack></CardBody>
-				</Card>
-				<Card className="tsb-card">
 					<CardHeader>{ __( 'Calendar invite (.ics)', 'tsb' ) }</CardHeader>
 					<CardBody><VStack spacing={ 3 }>
 						{ tog( 'ics_attach', __( 'Attach .ics to customer email', 'tsb' ) ) }
