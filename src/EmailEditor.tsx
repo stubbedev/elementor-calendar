@@ -88,15 +88,23 @@ export default function EmailEditor( props: Props ) {
 		setCompiling( false );
 	}
 
+	// On event switch, show the stored compiled HTML immediately (no recompile).
 	useEffect( () => {
 		setPreview( tpl.html );
 		setErrors( [] );
 	}, [ event ] );
 
+	// Recompile whenever the template markup changes. Keyed on the rendered
+	// value (not the keystroke handler) so the preview tracks the input through
+	// every re-render — including the async compile's own state write.
+	useEffect( () => {
+		clearTimeout( debounce.current );
+		debounce.current = setTimeout( () => compile( tpl.mjml ), 450 );
+		return () => clearTimeout( debounce.current );
+	}, [ tpl.mjml ] );
+
 	function onMjml( v: string ) {
 		update( { mjml: v } );
-		clearTimeout( debounce.current );
-		debounce.current = setTimeout( () => compile( v ), 450 );
 	}
 
 	function insert( text: string ) {
