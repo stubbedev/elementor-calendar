@@ -58,7 +58,6 @@ const MjmlCodeEditor = forwardRef< CodeEditorHandle, Props >( ( { value, errors,
 		<CodeMirror
 			ref={ cm }
 			value={ value }
-			height="600px"
 			extensions={ extensions }
 			onChange={ onChange }
 			basicSetup={ { lineNumbers: true, bracketMatching: true, foldGutter: true, highlightActiveLine: true } }

@@ -21,6 +21,7 @@ import { api } from './api';
 import Blocks from './Blocks';
 import FieldBuilder from './FieldBuilder';
 import EmailEditor from './EmailEditor';
+import VarMenu from './VarMenu';
 import type { Settings as TSettings, Meta, WeekDay } from './types';
 
 function hourOptions( from: number, to: number ) {
@@ -244,7 +245,10 @@ export default function Settings() {
 					<CardHeader>{ __( 'Calendar invite (.ics)', 'tsb' ) }</CardHeader>
 					<CardBody><VStack spacing={ 3 }>
 						{ tog( 'ics_attach', __( 'Attach .ics to customer email', 'tsb' ) ) }
-						{ txt( 'ics_summary', __( 'Title', 'tsb' ) ) }
+						<VarMenu tokens={ m.tokensByEvent.confirm || [] } labels={ m.tokenLabels }>
+							{ txt( 'ics_summary', __( 'Title', 'tsb' ) ) }
+						</VarMenu>
+						<p className="tsb-help tsb-varmenu-hint">{ __( 'Right-click the title to insert a variable.', 'tsb' ) }</p>
 						{ txt( 'ics_location', __( 'Location', 'tsb' ) ) }
 					</VStack></CardBody>
 				</Card>
