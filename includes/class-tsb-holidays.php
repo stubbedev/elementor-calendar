@@ -16,19 +16,20 @@ class TSB_Holidays {
 
 	protected static $cache = array();
 
-	/** ISO-3166 alpha-2 => display name. Curated subset of Nager's country list. */
+	/** ISO-3166 alpha-2 => display name. Curated subset of Nager's country list.
+	 * Names are English source strings, localized via the 'tsb' text domain. */
 	public static function countries() {
 		return array(
-			'DK' => 'Danmark', 'SE' => 'Sverige', 'NO' => 'Norge', 'FI' => 'Finland',
-			'IS' => 'Island', 'DE' => 'Tyskland', 'NL' => 'Holland', 'BE' => 'Belgien',
-			'GB' => 'Storbritannien', 'IE' => 'Irland', 'FR' => 'Frankrig', 'ES' => 'Spanien',
-			'PT' => 'Portugal', 'IT' => 'Italien', 'CH' => 'Schweiz', 'AT' => 'Østrig',
-			'PL' => 'Polen', 'CZ' => 'Tjekkiet', 'SK' => 'Slovakiet', 'HU' => 'Ungarn',
-			'EE' => 'Estland', 'LV' => 'Letland', 'LT' => 'Litauen', 'GR' => 'Grækenland',
-			'RO' => 'Rumænien', 'BG' => 'Bulgarien', 'HR' => 'Kroatien', 'SI' => 'Slovenien',
-			'LU' => 'Luxembourg', 'US' => 'USA', 'CA' => 'Canada', 'AU' => 'Australien',
-			'NZ' => 'New Zealand', 'JP' => 'Japan', 'BR' => 'Brasilien', 'MX' => 'Mexico',
-			'ZA' => 'Sydafrika', 'IN' => 'Indien', 'TR' => 'Tyrkiet', 'UA' => 'Ukraine',
+			'DK' => __( 'Denmark', 'tsb' ), 'SE' => __( 'Sweden', 'tsb' ), 'NO' => __( 'Norway', 'tsb' ), 'FI' => __( 'Finland', 'tsb' ),
+			'IS' => __( 'Iceland', 'tsb' ), 'DE' => __( 'Germany', 'tsb' ), 'NL' => __( 'Netherlands', 'tsb' ), 'BE' => __( 'Belgium', 'tsb' ),
+			'GB' => __( 'United Kingdom', 'tsb' ), 'IE' => __( 'Ireland', 'tsb' ), 'FR' => __( 'France', 'tsb' ), 'ES' => __( 'Spain', 'tsb' ),
+			'PT' => __( 'Portugal', 'tsb' ), 'IT' => __( 'Italy', 'tsb' ), 'CH' => __( 'Switzerland', 'tsb' ), 'AT' => __( 'Austria', 'tsb' ),
+			'PL' => __( 'Poland', 'tsb' ), 'CZ' => __( 'Czechia', 'tsb' ), 'SK' => __( 'Slovakia', 'tsb' ), 'HU' => __( 'Hungary', 'tsb' ),
+			'EE' => __( 'Estonia', 'tsb' ), 'LV' => __( 'Latvia', 'tsb' ), 'LT' => __( 'Lithuania', 'tsb' ), 'GR' => __( 'Greece', 'tsb' ),
+			'RO' => __( 'Romania', 'tsb' ), 'BG' => __( 'Bulgaria', 'tsb' ), 'HR' => __( 'Croatia', 'tsb' ), 'SI' => __( 'Slovenia', 'tsb' ),
+			'LU' => __( 'Luxembourg', 'tsb' ), 'US' => __( 'United States', 'tsb' ), 'CA' => __( 'Canada', 'tsb' ), 'AU' => __( 'Australia', 'tsb' ),
+			'NZ' => __( 'New Zealand', 'tsb' ), 'JP' => __( 'Japan', 'tsb' ), 'BR' => __( 'Brazil', 'tsb' ), 'MX' => __( 'Mexico', 'tsb' ),
+			'ZA' => __( 'South Africa', 'tsb' ), 'IN' => __( 'India', 'tsb' ), 'TR' => __( 'Turkey', 'tsb' ), 'UA' => __( 'Ukraine', 'tsb' ),
 		);
 	}
 

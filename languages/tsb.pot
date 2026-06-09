@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-06-08T18:35:42+00:00\n"
+"POT-Creation-Date: 2026-06-09T18:21:54+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: tsb\n"
@@ -31,7 +31,7 @@ msgid "you"
 msgstr ""
 
 #: admin/class-tsb-admin.php:22
-#: assets/admin/admin.js:76
+#: build/index.js:1
 msgid "Bookings"
 msgstr ""
 
@@ -43,49 +43,48 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: admin/class-tsb-admin.php:70
-#: assets/admin/admin.js:60
-#: assets/admin/admin.js:332
+#: admin/class-tsb-admin.php:73
+#: build/index.js:1
 msgid "Date"
 msgstr ""
 
-#: admin/class-tsb-admin.php:70
-#: assets/admin/admin.js:60
-#: assets/admin/admin.js:332
+#: admin/class-tsb-admin.php:73
+#: build/index.js:1
 msgid "Time"
 msgstr ""
 
-#: admin/class-tsb-admin.php:70
-#: widgets/class-tsb-widget.php:310
-#: assets/admin/admin.js:61
+#: admin/class-tsb-admin.php:73
+#: widgets/class-tsb-widget.php:309
+#: build/index.js:1
 msgid "Name"
 msgstr ""
 
-#: admin/class-tsb-admin.php:70
-#: widgets/class-tsb-widget.php:311
-#: assets/admin/admin.js:61
+#: admin/class-tsb-admin.php:73
+#: includes/class-tsb-rest.php:79
+#: widgets/class-tsb-widget.php:310
+#: build/index.js:1
 msgid "Email"
 msgstr ""
 
-#: admin/class-tsb-admin.php:71
-#: includes/class-tsb-availability.php:67
-#: assets/admin/admin.js:62
-#: assets/admin/admin.js:257
+#: admin/class-tsb-admin.php:74
+#: includes/class-tsb-availability.php:35
+#: includes/class-tsb-emails.php:148
+#: includes/class-tsb-rest.php:80
+#: build/index.js:1
 msgid "Phone"
 msgstr ""
 
-#: admin/class-tsb-admin.php:71
-#: includes/class-tsb-availability.php:68
-#: assets/admin/admin.js:258
+#: admin/class-tsb-admin.php:74
+#: includes/class-tsb-availability.php:36
 msgid "Message"
 msgstr ""
 
-#: admin/class-tsb-admin.php:71
-#: assets/admin/admin.js:62
+#: admin/class-tsb-admin.php:74
+#: build/index.js:1
 msgid "Status"
 msgstr ""
 
-#: admin/class-tsb-admin.php:71
+#: admin/class-tsb-admin.php:74
 msgid "Created"
 msgstr ""
 
@@ -101,182 +100,399 @@ msgstr ""
 msgid "Please wait a moment and try again."
 msgstr ""
 
-#: includes/class-tsb-ajax.php:77
+#: includes/class-tsb-ajax.php:72
 msgid "Invalid time slot."
 msgstr ""
 
-#: includes/class-tsb-ajax.php:80
+#: includes/class-tsb-ajax.php:75
 msgid "Please enter your name and a valid email."
 msgstr ""
 
-#: includes/class-tsb-ajax.php:86
+#: includes/class-tsb-ajax.php:88
 msgid "Please fill in all required fields."
 msgstr ""
 
-#: includes/class-tsb-ajax.php:89
+#: includes/class-tsb-ajax.php:108
 msgid "Please accept the consent to continue."
 msgstr ""
 
-#: includes/class-tsb-ajax.php:92
+#: includes/class-tsb-ajax.php:111
 msgid "Please confirm that you are not a robot."
 msgstr ""
 
-#: includes/class-tsb-ajax.php:97
-msgid "Custom"
-msgstr ""
-
-#: includes/class-tsb-ajax.php:105
+#: includes/class-tsb-ajax.php:114
 msgid "Sorry, that time is no longer available."
 msgstr ""
 
-#: includes/class-tsb-ajax.php:126
+#: includes/class-tsb-ajax.php:136
 msgid "That time was just taken. Please choose another."
 msgstr ""
 
-#: includes/class-tsb-ajax.php:133
+#: includes/class-tsb-ajax.php:152
 msgid "Thank you! Your time is booked. You will receive a confirmation by email."
 msgstr ""
 
-#: includes/class-tsb-availability.php:25
-msgid "New booking: {date} {time}"
-msgstr ""
-
-#: includes/class-tsb-availability.php:26
-msgid ""
-"Name: {name}\n"
-"Email: {email}\n"
-"Phone: {phone}\n"
-"Time: {date} at {time}\n"
-"\n"
-"Message:\n"
-"{message}"
-msgstr ""
-
-#: includes/class-tsb-availability.php:28
-msgid "Confirmation of your booking {date} at {time}"
-msgstr ""
-
-#: includes/class-tsb-availability.php:29
-msgid ""
-"Hi {name}\n"
-"\n"
-"Thank you for your booking.\n"
-"\n"
-"Date: {date}\n"
-"Time: {time}\n"
-"\n"
-"We look forward to seeing you. Reply to this email if you need to change the time."
-msgstr ""
-
-#: includes/class-tsb-availability.php:33
-msgid "Booking: {name}"
-msgstr ""
-
-#: includes/class-tsb-availability.php:46
-msgid "Company"
-msgstr ""
-
-#: includes/class-tsb-availability.php:49
+#: includes/class-tsb-availability.php:39
 msgid "I accept that my information is processed in order to handle my booking."
 msgstr ""
 
-#: includes/class-tsb-availability.php:50
+#: includes/class-tsb-availability.php:40
 msgid "Privacy policy"
 msgstr ""
 
-#: includes/class-tsb-rest.php:67
+#: includes/class-tsb-emails.php:38
+msgid "Confirmation of your booking {{date}} at {{time}}"
+msgstr ""
+
+#: includes/class-tsb-emails.php:56
+msgid "New booking: {{date}} {{time}}"
+msgstr ""
+
+#: includes/class-tsb-emails.php:73
+msgid "Your booking has been moved to {{date}} {{time}}"
+msgstr ""
+
+#: includes/class-tsb-emails.php:92
+msgid "Your booking on {{date}} has been cancelled"
+msgstr ""
+
+#: includes/class-tsb-emails.php:107
+msgid "Reminder: your booking {{date}} at {{time}}"
+msgstr ""
+
+#: includes/class-tsb-emails.php:146
+msgid "Customer name"
+msgstr ""
+
+#: includes/class-tsb-emails.php:147
+msgid "Customer email"
+msgstr ""
+
+#: includes/class-tsb-emails.php:149
+msgid "Message + extra fields"
+msgstr ""
+
+#: includes/class-tsb-emails.php:150
+msgid "Booking date"
+msgstr ""
+
+#: includes/class-tsb-emails.php:151
+msgid "Booking time"
+msgstr ""
+
+#: includes/class-tsb-emails.php:152
+msgid "Reference number"
+msgstr ""
+
+#: includes/class-tsb-emails.php:153
+msgid "Site name"
+msgstr ""
+
+#: includes/class-tsb-emails.php:154
+msgid "Previous date (move)"
+msgstr ""
+
+#: includes/class-tsb-emails.php:155
+msgid "Previous time (move)"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:23
+msgid "Denmark"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:23
+msgid "Sweden"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:23
+msgid "Norway"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:23
+msgid "Finland"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:24
+msgid "Iceland"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:24
+msgid "Germany"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:24
+msgid "Netherlands"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:24
+msgid "Belgium"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:25
+msgid "United Kingdom"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:25
+msgid "Ireland"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:25
+msgid "France"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:25
+msgid "Spain"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:26
+msgid "Portugal"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:26
+msgid "Italy"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:26
+msgid "Switzerland"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:26
+msgid "Austria"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:27
+msgid "Poland"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:27
+msgid "Czechia"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:27
+msgid "Slovakia"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:27
+msgid "Hungary"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:28
+msgid "Estonia"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:28
+msgid "Latvia"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:28
+msgid "Lithuania"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:28
+msgid "Greece"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:29
+msgid "Romania"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:29
+msgid "Bulgaria"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:29
+msgid "Croatia"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:29
+msgid "Slovenia"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:30
+msgid "Luxembourg"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:30
+msgid "United States"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:30
+msgid "Canada"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:30
+msgid "Australia"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:31
+msgid "New Zealand"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:31
+msgid "Japan"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:31
+msgid "Brazil"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:31
+msgid "Mexico"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:32
+msgid "South Africa"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:32
+msgid "India"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:32
+msgid "Turkey"
+msgstr ""
+
+#: includes/class-tsb-holidays.php:32
+msgid "Ukraine"
+msgstr ""
+
+#: includes/class-tsb-rest.php:78
+#: build/index.js:1
+msgid "Text"
+msgstr ""
+
+#: includes/class-tsb-rest.php:81
+msgid "Text area"
+msgstr ""
+
+#: includes/class-tsb-rest.php:82
+msgid "Number"
+msgstr ""
+
+#: includes/class-tsb-rest.php:86
+msgid "Customer confirmation"
+msgstr ""
+
+#: includes/class-tsb-rest.php:87
+msgid "Admin notification"
+msgstr ""
+
+#: includes/class-tsb-rest.php:88
+msgid "Booking moved"
+msgstr ""
+
+#: includes/class-tsb-rest.php:89
+msgid "Booking cancelled"
+msgstr ""
+
+#: includes/class-tsb-rest.php:90
+#: build/index.js:1
+msgid "Reminder"
+msgstr ""
+
+#: includes/class-tsb-rest.php:104
 msgid "None"
 msgstr ""
 
-#: includes/class-tsb-rest.php:68
+#: includes/class-tsb-rest.php:105
 msgid "Honeypot (hidden field, no keys)"
 msgstr ""
 
-#: includes/class-tsb-rest.php:69
+#: includes/class-tsb-rest.php:106
 msgid "Google reCAPTCHA v2 (checkbox)"
 msgstr ""
 
-#: includes/class-tsb-rest.php:70
+#: includes/class-tsb-rest.php:107
 msgid "Google reCAPTCHA v3 (invisible, score)"
 msgstr ""
 
-#: includes/class-tsb-rest.php:71
+#: includes/class-tsb-rest.php:108
 msgid "hCaptcha"
 msgstr ""
 
-#: includes/class-tsb-rest.php:217
-#: includes/class-tsb-rest.php:265
+#: includes/class-tsb-rest.php:252
+msgid "Booking not found."
+msgstr ""
+
+#: includes/class-tsb-rest.php:280
+#: includes/class-tsb-rest.php:380
 msgid "Invalid date/time."
 msgstr ""
 
-#: includes/class-tsb-rest.php:225
-#: includes/class-tsb-rest.php:229
-#: assets/admin/admin.js:171
+#: includes/class-tsb-rest.php:287
+#: includes/class-tsb-rest.php:291
+#: build/index.js:1
 msgid "That time is already taken. Choose another."
 msgstr ""
 
-#: timeslot-booking.php:54
+#: includes/class-tsb-rest.php:315
+msgid "Enter a valid email."
+msgstr ""
+
+#: includes/class-tsb-rest.php:318
+msgid "Could not send the test email."
+msgstr ""
+
+#: timeslot-booking.php:60
 msgid "Timeslot Booking requires Elementor to be installed and active. The booking widget will not appear until Elementor is active."
 msgstr ""
 
-#: timeslot-booking.php:123
-#: widgets/class-tsb-widget.php:274
+#: timeslot-booking.php:129
+#: widgets/class-tsb-widget.php:273
 msgid "Loading available times…"
 msgstr ""
 
-#: timeslot-booking.php:124
+#: timeslot-booking.php:130
 msgid "Could not load times. Please try again."
 msgstr ""
 
-#: timeslot-booking.php:125
+#: timeslot-booking.php:131
 msgid "Network error. Please try again."
 msgstr ""
 
-#: timeslot-booking.php:126
+#: timeslot-booking.php:132
 msgid "No available times right now."
 msgstr ""
 
-#: timeslot-booking.php:127
+#: timeslot-booking.php:133
 msgid "at"
 msgstr ""
 
-#: timeslot-booking.php:128
+#: timeslot-booking.php:134
 msgid "free"
 msgstr ""
 
-#: timeslot-booking.php:129
+#: timeslot-booking.php:135
 msgid "OK"
 msgstr ""
 
-#: timeslot-booking.php:130
-#: assets/admin/admin.js:50
-#: assets/admin/admin.js:148
-#: assets/admin/admin.js:201
+#: timeslot-booking.php:136
+#: build/index.js:1
 msgid "Error"
 msgstr ""
 
-#: timeslot-booking.php:131
+#: timeslot-booking.php:137
 msgid "This field is required."
 msgstr ""
 
-#: timeslot-booking.php:132
+#: timeslot-booking.php:138
 msgid "Please enter a valid email."
 msgstr ""
 
-#: timeslot-booking.php:133
+#: timeslot-booking.php:139
 msgid "Please accept to continue."
 msgstr ""
 
-#: timeslot-booking.php:134
+#: timeslot-booking.php:140
 msgid "Sending…"
 msgstr ""
 
-#: timeslot-booking.php:135
-#: widgets/class-tsb-widget.php:361
+#: timeslot-booking.php:141
+#: widgets/class-tsb-widget.php:354
 msgid "Book another"
 msgstr ""
 
-#: timeslot-booking.php:136
+#: timeslot-booking.php:142
 msgid "Reference"
 msgstr ""
 
@@ -489,351 +705,546 @@ msgstr ""
 msgid "Error background"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:280
+#: widgets/class-tsb-widget.php:279
 msgid "Previous month"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:282
+#: widgets/class-tsb-widget.php:281
 msgid "Next month"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:291
+#: widgets/class-tsb-widget.php:290
 msgid "Back to days"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:302
+#: widgets/class-tsb-widget.php:301
 msgid "Back to times"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:325
+#: widgets/class-tsb-widget.php:318
 msgid "Leave this field empty"
 msgstr ""
 
-#: widgets/class-tsb-widget.php:352
+#: widgets/class-tsb-widget.php:345
 msgid "Confirm booking"
 msgstr ""
 
-#: assets/admin/admin.js:53
-msgid "Delete permanently?"
-msgstr ""
-
-#: assets/admin/admin.js:55
-msgid "Booking(s) deleted."
-msgstr ""
-
-#: assets/admin/admin.js:77
-msgid "Export CSV"
-msgstr ""
-
-#: assets/admin/admin.js:83
-msgid "Upcoming"
-msgstr ""
-
-#: assets/admin/admin.js:84
-msgid "Past"
-msgstr ""
-
-#: assets/admin/admin.js:85
-msgid "All"
-msgstr ""
-
-#: assets/admin/admin.js:88
-msgid "Search"
-msgstr ""
-
-#: assets/admin/admin.js:105
-msgid "Move"
-msgstr ""
-
-#: assets/admin/admin.js:107
-msgid "Cancel booking? The time becomes available again."
-msgstr ""
-
-#: assets/admin/admin.js:107
-msgid "Booking(s) cancelled. The time is available again."
-msgstr ""
-
-#: assets/admin/admin.js:107
-#: assets/admin/admin.js:174
-msgid "Cancel"
-msgstr ""
-
-#: assets/admin/admin.js:109
-#: assets/admin/admin.js:123
-msgid "Booking moved."
-msgstr ""
-
-#: assets/admin/admin.js:109
-msgid "Restore"
-msgstr ""
-
-#: assets/admin/admin.js:110
-#: assets/admin/admin.js:338
-msgid "Delete"
-msgstr ""
-
-#: assets/admin/admin.js:114
-msgid "No bookings."
-msgstr ""
-
-#: assets/admin/admin.js:154
-#: assets/admin/admin.js:175
+#: build/index.js:1
 msgid "Move booking"
 msgstr ""
 
-#: assets/admin/admin.js:156
-msgid "New date"
+#: build/index.js:1
+msgid "Available times"
 msgstr ""
 
-#: assets/admin/admin.js:165
-msgid "Already taken"
+#: build/index.js:1
+msgid "Free"
 msgstr ""
 
-#: assets/admin/admin.js:169
+#: build/index.js:1
+msgid "Taken"
+msgstr ""
+
+#: build/index.js:1
 msgid "No open times on this day (closed, holiday, or fully blocked)."
 msgstr ""
 
-#: assets/admin/admin.js:200
-msgid "Settings saved."
+#: build/index.js:1
+msgid "Cancel"
 msgstr ""
 
-#: assets/admin/admin.js:214
-msgid "Base business hours"
+#: build/index.js:1
+msgid "Sure?"
 msgstr ""
 
-#: assets/admin/admin.js:215
-#: assets/admin/admin.js:222
-msgid "From"
+#: build/index.js:1
+msgid "Export CSV"
 msgstr ""
 
-#: assets/admin/admin.js:215
-#: assets/admin/admin.js:222
-msgid "To"
+#: build/index.js:1
+msgid "Show"
 msgstr ""
 
-#: assets/admin/admin.js:218
-msgid "Opening hours per weekday"
+#: build/index.js:1
+msgid "Upcoming"
 msgstr ""
 
-#: assets/admin/admin.js:221
-msgid "Day"
+#: build/index.js:1
+msgid "Past"
 msgstr ""
 
-#: assets/admin/admin.js:221
-msgid "Open"
+#: build/index.js:1
+msgid "All"
 msgstr ""
 
-#: assets/admin/admin.js:222
-msgid "Follow base hours"
+#: build/index.js:1
+msgid "Search"
 msgstr ""
 
-#: assets/admin/admin.js:236
-msgid "Slots"
+#: build/index.js:1
+msgid "Move"
 msgstr ""
 
-#: assets/admin/admin.js:237
-msgid "Slot length (min)"
+#: build/index.js:1
+msgid "Booking(s) cancelled. The time is available again."
 msgstr ""
 
-#: assets/admin/admin.js:238
-msgid "Start offset (min)"
+#: build/index.js:1
+msgid "Booking moved."
 msgstr ""
 
-#: assets/admin/admin.js:239
-msgid "Gap between slots (min)"
+#: build/index.js:1
+msgid "Restore"
 msgstr ""
 
-#: assets/admin/admin.js:240
-msgid "Days ahead"
+#: build/index.js:1
+msgid "Booking(s) deleted."
 msgstr ""
 
-#: assets/admin/admin.js:241
-msgid "Minimum lead time (hours)"
+#: build/index.js:1
+msgid "Delete"
 msgstr ""
 
-#: assets/admin/admin.js:244
-msgid "Public holidays"
+#: build/index.js:1
+msgid "No bookings."
 msgstr ""
 
-#: assets/admin/admin.js:245
-msgid "Block holidays"
+#: build/index.js:1
+msgid "Block times"
 msgstr ""
 
-#: assets/admin/admin.js:246
-msgid "Countries"
+#: build/index.js:1
+msgid "Some taken"
 msgstr ""
 
-#: assets/admin/admin.js:256
-msgid "Optional fields"
+#: build/index.js:1
+msgid "Fully blocked"
 msgstr ""
 
-#: assets/admin/admin.js:257
-msgid "Phone required"
+#: build/index.js:1
+msgid "Closed"
 msgstr ""
 
-#: assets/admin/admin.js:258
-msgid "Message required"
+#: build/index.js:1
+msgid "Block the whole day"
 msgstr ""
 
-#: assets/admin/admin.js:259
-msgid "Custom field"
+#: build/index.js:1
+msgid "The whole day is blocked."
 msgstr ""
 
-#: assets/admin/admin.js:259
-msgid "Custom field label"
+#: build/index.js:1
+msgid "Click a time to block or unblock it."
 msgstr ""
 
-#: assets/admin/admin.js:259
-msgid "Custom required"
+#: build/index.js:1
+msgid "Booked"
 msgstr ""
 
-#: assets/admin/admin.js:260
-msgid "Consent (GDPR)"
+#: build/index.js:1
+msgid "Blocked"
 msgstr ""
 
-#: assets/admin/admin.js:261
-msgid "Require consent checkbox"
+#: build/index.js:1
+msgid "No open times on this day (closed weekday or holiday)."
 msgstr ""
 
-#: assets/admin/admin.js:262
-msgid "Consent text"
+#: build/index.js:1
+msgid "All blocks"
 msgstr ""
 
-#: assets/admin/admin.js:263
-msgid "Link text"
-msgstr ""
-
-#: assets/admin/admin.js:264
-msgid "Link URL"
-msgstr ""
-
-#: assets/admin/admin.js:268
-msgid "Placeholders:"
-msgstr ""
-
-#: assets/admin/admin.js:269
-msgid "Message to admin"
-msgstr ""
-
-#: assets/admin/admin.js:270
-msgid "Send admin notification"
-msgstr ""
-
-#: assets/admin/admin.js:271
-msgid "Recipient"
-msgstr ""
-
-#: assets/admin/admin.js:271
-#: assets/admin/admin.js:274
-msgid "Subject"
-msgstr ""
-
-#: assets/admin/admin.js:271
-#: assets/admin/admin.js:274
-msgid "Body"
-msgstr ""
-
-#: assets/admin/admin.js:272
-msgid "Confirmation to customer"
-msgstr ""
-
-#: assets/admin/admin.js:273
-msgid "Send confirmation"
-msgstr ""
-
-#: assets/admin/admin.js:275
-msgid "Sender"
-msgstr ""
-
-#: assets/admin/admin.js:276
-msgid "Sender name"
-msgstr ""
-
-#: assets/admin/admin.js:276
-msgid "Sender email"
-msgstr ""
-
-#: assets/admin/admin.js:277
-msgid "Calendar invite (.ics)"
-msgstr ""
-
-#: assets/admin/admin.js:278
-msgid "Attach .ics to customer email"
-msgstr ""
-
-#: assets/admin/admin.js:279
-msgid "Title"
-msgstr ""
-
-#: assets/admin/admin.js:279
-msgid "Location"
-msgstr ""
-
-#: assets/admin/admin.js:283
-msgid "Method"
-msgstr ""
-
-#: assets/admin/admin.js:286
-msgid "Site key"
-msgstr ""
-
-#: assets/admin/admin.js:286
-msgid "Secret key"
-msgstr ""
-
-#: assets/admin/admin.js:287
-msgid "v3 minimum score"
-msgstr ""
-
-#: assets/admin/admin.js:292
-msgid "Availability"
-msgstr ""
-
-#: assets/admin/admin.js:293
-msgid "Form"
-msgstr ""
-
-#: assets/admin/admin.js:294
-msgid "Emails"
-msgstr ""
-
-#: assets/admin/admin.js:295
-msgid "Spam protection"
-msgstr ""
-
-#: assets/admin/admin.js:296
-msgid "Blocks"
-msgstr ""
-
-#: assets/admin/admin.js:300
-msgid "Booking settings"
-msgstr ""
-
-#: assets/admin/admin.js:306
-msgid "Save settings"
-msgstr ""
-
-#: assets/admin/admin.js:323
-msgid "Remove individual times / days from availability"
-msgstr ""
-
-#: assets/admin/admin.js:327
-#: assets/admin/admin.js:332
-msgid "Reason"
-msgstr ""
-
-#: assets/admin/admin.js:328
-msgid "Block"
-msgstr ""
-
-#: assets/admin/admin.js:330
-msgid "Empty time = whole day."
-msgstr ""
-
-#: assets/admin/admin.js:336
+#: build/index.js:1
 msgid "whole day"
 msgstr ""
 
-#: assets/admin/admin.js:339
+#: build/index.js:1
 msgid "No blocks."
+msgstr ""
+
+#: build/index.js:1
+msgid "Label"
+msgstr ""
+
+#: build/index.js:1
+msgid "Type"
+msgstr ""
+
+#: build/index.js:1
+msgid "Shown"
+msgstr ""
+
+#: build/index.js:1
+msgid "Required"
+msgstr ""
+
+#: build/index.js:1
+msgid "No fields yet. Name and email are always shown."
+msgstr ""
+
+#: build/index.js:1
+msgid "Drag to reorder"
+msgstr ""
+
+#: build/index.js:1
+msgid "+ Add field"
+msgstr ""
+
+#: build/index.js:1
+msgid "Insert variable"
+msgstr ""
+
+#: build/index.js:1
+msgid "Button"
+msgstr ""
+
+#: build/index.js:1
+msgid "Image"
+msgstr ""
+
+#: build/index.js:1
+msgid "Page link"
+msgstr ""
+
+#: build/index.js:1
+msgid "Divider"
+msgstr ""
+
+#: build/index.js:1
+msgid "Spacer"
+msgstr ""
+
+#: build/index.js:1
+msgid "Section"
+msgstr ""
+
+#: build/index.js:1
+msgid "2 columns"
+msgstr ""
+
+#: build/index.js:1
+msgid "Group"
+msgstr ""
+
+#: build/index.js:1
+msgid "Wrapper"
+msgstr ""
+
+#: build/index.js:1
+msgid "Hero"
+msgstr ""
+
+#: build/index.js:1
+msgid "Accordion"
+msgstr ""
+
+#: build/index.js:1
+msgid "Carousel"
+msgstr ""
+
+#: build/index.js:1
+msgid "Social"
+msgstr ""
+
+#: build/index.js:1
+msgid "Navbar"
+msgstr ""
+
+#: build/index.js:1
+msgid "Table"
+msgstr ""
+
+#: build/index.js:1
+msgid "Raw HTML"
+msgstr ""
+
+#: build/index.js:1
+msgid "Email templates"
+msgstr ""
+
+#: build/index.js:1
+msgid "Reset to default"
+msgstr ""
+
+#: build/index.js:1
+msgid "Enabled"
+msgstr ""
+
+#: build/index.js:1
+msgid "Subject"
+msgstr ""
+
+#: build/index.js:1
+msgid "Recipient"
+msgstr ""
+
+#: build/index.js:1
+msgid "Tip: right-click the subject or MJML editor to insert a variable."
+msgstr ""
+
+#: build/index.js:1
+msgid "Insert block:"
+msgstr ""
+
+#: build/index.js:1
+msgid "Select image"
+msgstr ""
+
+#: build/index.js:1
+msgid "Insert page link"
+msgstr ""
+
+#: build/index.js:1
+msgid "Search pages…"
+msgstr ""
+
+#: build/index.js:1
+msgid "No pages match."
+msgstr ""
+
+#: build/index.js:1
+msgid "No published pages found."
+msgstr ""
+
+#: build/index.js:1
+msgid "View page"
+msgstr ""
+
+#: build/index.js:1
+msgid "Unknown variables for this email:"
+msgstr ""
+
+#: build/index.js:1
+msgid "Live preview"
+msgstr ""
+
+#: build/index.js:1
+msgid "Sample data"
+msgstr ""
+
+#: build/index.js:1
+msgid "Desktop"
+msgstr ""
+
+#: build/index.js:1
+msgid "Tablet"
+msgstr ""
+
+#: build/index.js:1
+msgid "Mobile"
+msgstr ""
+
+#: build/index.js:1
+msgid "Email preview"
+msgstr ""
+
+#: build/index.js:1
+msgid "Send a test to"
+msgstr ""
+
+#: build/index.js:1
+msgid "Test email sent."
+msgstr ""
+
+#: build/index.js:1
+msgid "Could not send."
+msgstr ""
+
+#: build/index.js:1
+msgid "Send test email"
+msgstr ""
+
+#: build/index.js:1
+msgid "Settings saved."
+msgstr ""
+
+#: build/index.js:1
+msgid "Base business hours"
+msgstr ""
+
+#: build/index.js:1
+msgid "From"
+msgstr ""
+
+#: build/index.js:1
+msgid "To"
+msgstr ""
+
+#: build/index.js:1
+msgid "Days set to “Follow base hours” use these."
+msgstr ""
+
+#: build/index.js:1
+msgid "Opening hours per weekday"
+msgstr ""
+
+#: build/index.js:1
+msgid "Day"
+msgstr ""
+
+#: build/index.js:1
+msgid "Open"
+msgstr ""
+
+#: build/index.js:1
+msgid "Follow base"
+msgstr ""
+
+#: build/index.js:1
+msgid "Slots"
+msgstr ""
+
+#: build/index.js:1
+msgid "Slot length (min)"
+msgstr ""
+
+#: build/index.js:1
+msgid "How long each time slot is."
+msgstr ""
+
+#: build/index.js:1
+msgid "Start offset (min)"
+msgstr ""
+
+#: build/index.js:1
+msgid "Minutes after opening before the first slot."
+msgstr ""
+
+#: build/index.js:1
+msgid "Gap between slots (min)"
+msgstr ""
+
+#: build/index.js:1
+msgid "Buffer between two slots."
+msgstr ""
+
+#: build/index.js:1
+msgid "Days ahead"
+msgstr ""
+
+#: build/index.js:1
+msgid "Minimum lead time (hours)"
+msgstr ""
+
+#: build/index.js:1
+msgid "0 = bookable right now."
+msgstr ""
+
+#: build/index.js:1
+msgid "Public holidays"
+msgstr ""
+
+#: build/index.js:1
+msgid "Block holidays"
+msgstr ""
+
+#: build/index.js:1
+msgid "Countries"
+msgstr ""
+
+#: build/index.js:1
+msgid "Holidays are fetched from date.nager.at (cached)."
+msgstr ""
+
+#: build/index.js:1
+msgid "Form fields"
+msgstr ""
+
+#: build/index.js:1
+msgid "Name and email are always shown and required. Add your own fields below — drag to reorder."
+msgstr ""
+
+#: build/index.js:1
+msgid "Consent (GDPR)"
+msgstr ""
+
+#: build/index.js:1
+msgid "Require consent checkbox"
+msgstr ""
+
+#: build/index.js:1
+msgid "Consent text"
+msgstr ""
+
+#: build/index.js:1
+msgid "Link text"
+msgstr ""
+
+#: build/index.js:1
+msgid "Link URL"
+msgstr ""
+
+#: build/index.js:1
+msgid "Calendar invite (.ics)"
+msgstr ""
+
+#: build/index.js:1
+msgid "Attach .ics to customer email"
+msgstr ""
+
+#: build/index.js:1
+msgid "Title"
+msgstr ""
+
+#: build/index.js:1
+msgid "Right-click the title to insert a variable."
+msgstr ""
+
+#: build/index.js:1
+msgid "Location"
+msgstr ""
+
+#: build/index.js:1
+msgid "Send reminder this many hours before"
+msgstr ""
+
+#: build/index.js:1
+msgid "Enable the “Reminder” email template above."
+msgstr ""
+
+#: build/index.js:1
+msgid "Spam protection"
+msgstr ""
+
+#: build/index.js:1
+msgid "Method"
+msgstr ""
+
+#: build/index.js:1
+msgid "Site key"
+msgstr ""
+
+#: build/index.js:1
+msgid "Secret key"
+msgstr ""
+
+#: build/index.js:1
+msgid "v3 minimum score"
+msgstr ""
+
+#: build/index.js:1
+msgid "Availability"
+msgstr ""
+
+#: build/index.js:1
+msgid "Form"
+msgstr ""
+
+#: build/index.js:1
+msgid "Emails"
+msgstr ""
+
+#: build/index.js:1
+msgid "Blocks"
+msgstr ""
+
+#: build/index.js:1
+msgid "Booking settings"
+msgstr ""
+
+#: build/index.js:1
+msgid "Unsaved changes"
+msgstr ""
+
+#: build/index.js:1
+msgid "Save settings"
 msgstr ""
