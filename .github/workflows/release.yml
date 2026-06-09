@@ -1,0 +1,37 @@
+name: Release
+
+# Build the installable plugin zip and publish a GitHub release for every
+# version tag (e.g. v0.1.0). The tag is the single source of truth for the
+# version — it is injected into the plugin header at build time.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build plugin zip
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          # `git archive` honours .gitattributes export-ignore → dev paths dropped,
+          # committed build/ shipped. Extract, stamp the version, then zip.
+          mkdir -p dist
+          git archive --format=tar --prefix=timeslot-booking/ HEAD | tar -x -C dist
+          PLUGIN="dist/timeslot-booking/timeslot-booking.php"
+          sed -i "s/^ \* Version: .*/ * Version: ${VERSION}/" "$PLUGIN"
+          sed -i "s/define( 'TSB_VER', '[^']*' )/define( 'TSB_VER', '${VERSION}' )/" "$PLUGIN"
+          ( cd dist && zip -r "../timeslot-booking-${VERSION}.zip" timeslot-booking )
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: timeslot-booking-*.zip
+          generate_release_notes: true
