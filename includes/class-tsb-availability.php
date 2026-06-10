@@ -100,6 +100,54 @@ class TSB_Availability {
 		return $out;
 	}
 
+	/** Phone value from a stored meta map (the dynamic field named "phone"). */
+	public static function phone_from_meta( $fieldvals ) {
+		return is_array( $fieldvals ) && isset( $fieldvals['phone'] ) ? (string) $fieldvals['phone'] : '';
+	}
+
+	/**
+	 * Rebuild the human-readable booking body from a stored meta map. This is the
+	 * single source for what used to live in the `message` column: every non-core
+	 * field rendered as "Label: value", with the message textarea appended last.
+	 * Phone is excluded (it's surfaced on its own). Falls back to the raw field
+	 * name when a field has since been removed from the form config.
+	 */
+	public static function summary_from_meta( $fieldvals ) {
+		if ( ! is_array( $fieldvals ) ) {
+			return '';
+		}
+		$known   = array();
+		$extra   = array();
+		$message = '';
+		foreach ( self::form_fields() as $f ) {
+			$known[ $f['name'] ] = true;
+			$val = isset( $fieldvals[ $f['name'] ] ) ? trim( (string) $fieldvals[ $f['name'] ] ) : '';
+			if ( '' === $val || 'phone' === $f['name'] ) {
+				continue;
+			}
+			if ( 'message' === $f['name'] && 'textarea' === $f['type'] ) {
+				$message = $val;
+				continue;
+			}
+			$extra[] = $f['label'] . ': ' . $val;
+		}
+		// Values whose field was removed from the form since booking — keep them.
+		foreach ( $fieldvals as $name => $val ) {
+			if ( isset( $known[ $name ] ) || 'phone' === $name ) {
+				continue;
+			}
+			$val = trim( (string) $val );
+			if ( '' !== $val ) {
+				$extra[] = $name . ': ' . $val;
+			}
+		}
+		$msg = implode( "\n", $extra );
+		if ( '' !== $message ) {
+			$msg = ( '' !== $msg ? $msg . "\n\n" : '' ) . $message;
+		}
+		return $msg;
+	}
+
 	/** Autocomplete hint for a field type/name. */
 	public static function field_autocomplete( $field ) {
 		if ( 'phone' === $field['name'] || 'tel' === $field['type'] ) {
@@ -137,45 +185,93 @@ class TSB_Availability {
 	}
 
 	/** Effective open/close hours for a weekday config, honouring the base toggle. */
-	protected static function day_hours( $wd, $s ) {
+	protected static function day_hours( $wd, $cfg ) {
 		if ( ! empty( $wd['use_base'] ) ) {
-			return array( (int) $s['base_start'], (int) $s['base_end'] );
+			return array( (int) $cfg['base_start'], (int) $cfg['base_end'] );
 		}
 		return array( (int) $wd['start'], (int) $wd['end'] );
 	}
 
+	/** Minutes-since-midnight from a 'HH:MM[:SS]' string. */
+	protected static function hms_to_min( $hms ) {
+		$p = explode( ':', (string) $hms );
+		return (int) ( $p[0] ?? 0 ) * 60 + (int) ( $p[1] ?? 0 );
+	}
+
+	/** Turn booked-interval rows into [start_min, end_min] pairs. */
+	protected static function busy_minutes( $rows ) {
+		$out = array();
+		foreach ( $rows as $r ) {
+			$s = self::hms_to_min( $r->slot_time );
+			$e = $r->slot_end ? self::hms_to_min( $r->slot_end ) : $s;
+			if ( $e <= $s ) {
+				$e = $s + 1; // legacy/zero-length row → treat as a 1-minute point
+			}
+			$out[] = array( $s, $e );
+		}
+		return $out;
+	}
+
+	/** Does candidate [cs, ce) overlap any busy interval? Half-open ranges. */
+	protected static function overlaps( $busy, $cs, $ce ) {
+		foreach ( $busy as $b ) {
+			if ( $b[0] < $ce && $b[1] > $cs ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
-	 * Build bookable days + slots from global settings.
+	 * Is the range [time, time+len) on $date free of any active booking (any type)?
+	 * Used by the admin reschedule to block moves that would overbook. Excludes the
+	 * booking being moved so it doesn't collide with itself.
+	 */
+	public static function range_free( $date, $time, $len, $exclude_id = 0 ) {
+		$busy = self::busy_minutes( TSB_DB::booked_intervals( $date, (int) $exclude_id ) );
+		$cs   = self::hms_to_min( $time );
+		return ! self::overlaps( $busy, $cs, $cs + max( 5, (int) $len ) );
+	}
+
+	/**
+	 * Build bookable days + slots for one session type.
+	 *
+	 * Overbooking guard: a candidate slot is dropped if its time range overlaps any
+	 * existing active booking of *any* type (variable-length slots compared as
+	 * ranges, not exact start times), so a 60-min booking hides the 30-min slots
+	 * that fall inside it.
+	 *
+	 * @param string $type_id Session type id.
 	 * @return array[] each: ['date'=>'Y-m-d','label'=>'Mandag 9. jun','count'=>3,'slots'=>['09:00',...]]
 	 */
-	public static function build() {
-		$s   = self::settings();
+	public static function build( $type_id = 'default' ) {
+		$cfg = TSB_Types::get( $type_id );
 		$tz  = wp_timezone();
 		$now = new DateTime( 'now', $tz );
 		$out = array();
 
-		$len    = max( 5, (int) $s['slot_minutes'] );
-		$offset = max( 0, (int) $s['slot_offset'] );
-		$gap    = max( 0, (int) $s['slot_gap'] );
+		$len    = max( 5, (int) $cfg['slot_minutes'] );
+		$offset = max( 0, (int) $cfg['slot_offset'] );
+		$gap    = max( 0, (int) $cfg['slot_gap'] );
 		$step   = $len + $gap;
 
 		$cursor = new DateTime( 'today', $tz );
-		for ( $i = 0; $i <= (int) $s['days_ahead']; $i++ ) {
+		for ( $i = 0; $i <= (int) $cfg['days_ahead']; $i++ ) {
 			if ( $i > 0 ) {
 				$cursor->modify( '+1 day' );
 			}
 			$ymd = $cursor->format( 'Y-m-d' );
 			$dow = (int) $cursor->format( 'N' ); // 1=Mon .. 7=Sun
 
-			$wd = isset( $s['week'][ $dow ] ) ? $s['week'][ $dow ] : null;
+			$wd = isset( $cfg['week'][ $dow ] ) ? $cfg['week'][ $dow ] : null;
 			if ( ! $wd || empty( $wd['open'] ) ) {
 				continue;
 			}
-			if ( $s['block_holidays'] && TSB_Holidays::is_holiday( $ymd, $s['holiday_countries'] ) ) {
+			if ( $cfg['block_holidays'] && TSB_Holidays::is_holiday( $ymd, $cfg['holiday_countries'] ) ) {
 				continue;
 			}
 
-			// Individually blocked times / whole day.
+			// Individually blocked times / whole day (blocks are global).
 			$blocked_times = array();
 			$whole_day     = false;
 			foreach ( TSB_DB::blocked_for_date( $ymd ) as $b ) {
@@ -189,12 +285,10 @@ class TSB_Availability {
 				continue;
 			}
 
-			$booked = array();
-			foreach ( TSB_DB::booked_times( $ymd ) as $t ) {
-				$booked[ substr( $t, 0, 5 ) ] = true;
-			}
+			// Busy ranges from every type's active bookings.
+			$busy = self::busy_minutes( TSB_DB::booked_intervals( $ymd ) );
 
-			list( $open_h, $close_h ) = self::day_hours( $wd, $s );
+			list( $open_h, $close_h ) = self::day_hours( $wd, $cfg );
 			$start = ( clone $cursor )->setTime( $open_h, 0 )->modify( "+$offset minutes" );
 			$end   = ( clone $cursor )->setTime( $close_h, 0 );
 
@@ -205,12 +299,16 @@ class TSB_Availability {
 					break; // slot would run past close
 				}
 				$hm = $t->format( 'H:i' );
-				if ( isset( $blocked_times[ $hm ] ) || isset( $booked[ $hm ] ) ) {
+				if ( isset( $blocked_times[ $hm ] ) ) {
+					continue;
+				}
+				$cs = self::hms_to_min( $hm );
+				if ( self::overlaps( $busy, $cs, $cs + $len ) ) {
 					continue;
 				}
 				$earliest = clone $now;
-				if ( (int) $s['lead_hours'] > 0 ) {
-					$earliest->modify( '+' . (int) $s['lead_hours'] . ' hours' );
+				if ( (int) $cfg['lead_hours'] > 0 ) {
+					$earliest->modify( '+' . (int) $cfg['lead_hours'] . ' hours' );
 				}
 				if ( $t <= $earliest ) {
 					continue;
@@ -236,13 +334,16 @@ class TSB_Availability {
 	 * blocked. Ignores lead time (admin can book anytime); a booking being moved
 	 * can be excluded so its own current slot reads as free.
 	 *
+	 * @param string $date       Y-m-d.
+	 * @param int    $exclude_id Booking id to ignore (the one being moved).
+	 * @param string $type_id    Session type to lay the grid out for.
 	 * @return array[] each ['time'=>'HH:MM','available'=>bool,'reason'=>'']
 	 */
-	public static function day_grid( $date, $exclude_id = 0 ) {
+	public static function day_grid( $date, $exclude_id = 0, $type_id = 'default' ) {
 		if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', (string) $date ) ) {
 			return array();
 		}
-		$s   = self::settings();
+		$cfg = TSB_Types::get( $type_id );
 		$tz  = wp_timezone();
 		$day = DateTime::createFromFormat( 'Y-m-d', $date, $tz );
 		if ( ! $day ) {
@@ -251,11 +352,11 @@ class TSB_Availability {
 		$day->setTime( 0, 0 );
 		$dow = (int) $day->format( 'N' );
 
-		$wd = isset( $s['week'][ $dow ] ) ? $s['week'][ $dow ] : null;
+		$wd = isset( $cfg['week'][ $dow ] ) ? $cfg['week'][ $dow ] : null;
 		if ( ! $wd || empty( $wd['open'] ) ) {
 			return array();
 		}
-		if ( $s['block_holidays'] && TSB_Holidays::is_holiday( $date, $s['holiday_countries'] ) ) {
+		if ( $cfg['block_holidays'] && TSB_Holidays::is_holiday( $date, $cfg['holiday_countries'] ) ) {
 			return array();
 		}
 
@@ -267,17 +368,15 @@ class TSB_Availability {
 			$blocked[ substr( $b->block_time, 0, 5 ) ] = true;
 		}
 
-		$booked = array();
-		foreach ( self::booked_times_excluding( $date, $exclude_id ) as $tval ) {
-			$booked[ substr( $tval, 0, 5 ) ] = true;
-		}
+		// Busy ranges across all types, excluding the booking being rescheduled.
+		$busy = self::busy_minutes( TSB_DB::booked_intervals( $date, $exclude_id ) );
 
-		$len    = max( 5, (int) $s['slot_minutes'] );
-		$offset = max( 0, (int) $s['slot_offset'] );
-		$gap    = max( 0, (int) $s['slot_gap'] );
+		$len    = max( 5, (int) $cfg['slot_minutes'] );
+		$offset = max( 0, (int) $cfg['slot_offset'] );
+		$gap    = max( 0, (int) $cfg['slot_gap'] );
 		$step   = $len + $gap;
 
-		list( $open_h, $close_h ) = self::day_hours( $wd, $s );
+		list( $open_h, $close_h ) = self::day_hours( $wd, $cfg );
 		$start = ( clone $day )->setTime( $open_h, 0 )->modify( "+$offset minutes" );
 		$end   = ( clone $day )->setTime( $close_h, 0 );
 
@@ -287,28 +386,17 @@ class TSB_Availability {
 			if ( $slot_end > $end ) {
 				break;
 			}
-			$hm   = $t->format( 'H:i' );
-			$free = ! isset( $booked[ $hm ] ) && ! isset( $blocked[ $hm ] );
-			$out[] = array(
+			$hm      = $t->format( 'H:i' );
+			$cs      = self::hms_to_min( $hm );
+			$busy_ov = self::overlaps( $busy, $cs, $cs + $len );
+			$free    = ! $busy_ov && ! isset( $blocked[ $hm ] );
+			$out[]   = array(
 				'time'      => $hm,
 				'available' => $free,
-				'reason'    => $free ? '' : ( isset( $booked[ $hm ] ) ? 'booked' : 'blocked' ),
+				'reason'    => $free ? '' : ( $busy_ov ? 'booked' : 'blocked' ),
 			);
 		}
 		return $out;
-	}
-
-	/** Booked HH:MM:SS for a date, optionally excluding one booking id. */
-	protected static function booked_times_excluding( $date, $exclude_id ) {
-		global $wpdb;
-		$t  = TSB_DB::bookings_table();
-		$id = (int) $exclude_id;
-		if ( $id > 0 ) {
-			return $wpdb->get_col( $wpdb->prepare(
-				"SELECT slot_time FROM $t WHERE slot_date = %s AND status != 'cancelled' AND id != %d", $date, $id
-			) );
-		}
-		return TSB_DB::booked_times( $date );
 	}
 
 	/** Human day label (e.g. "Monday 9 Jun" / "Mandag 9. jun"), locale-aware. */

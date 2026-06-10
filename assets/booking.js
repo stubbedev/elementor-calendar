@@ -39,6 +39,12 @@
 		var elSumMsg    = root.querySelector( '.tsb-summary-msg' );
 		var elSumRef    = root.querySelector( '.tsb-summary-ref' );
 		var elAnother   = root.querySelector( '.tsb-book-another' );
+		var elStepTypes = root.querySelector( '.tsb-step-types' );
+		var elStepCal   = root.querySelector( '.tsb-step-cal' );
+		var elTypeBtns  = root.querySelectorAll( '.tsb-type' );
+		var elChosen2   = root.querySelector( '.tsb-chosen-type' );
+		var elTypeName  = root.querySelector( '.tsb-type-name' );
+		var elTypeChange = root.querySelector( '.tsb-type-change' );
 
 		var avail   = {};
 		var view    = null;
@@ -46,6 +52,8 @@
 		var selDate = null;
 		var stamp   = '';
 		var lastLabel = '', lastTime = '';
+		var selType = 'default', selTypeLabel = '';
+		var multiType = elTypeBtns.length > 1;
 
 		if ( elWeek && ! elWeek.children.length ) {
 			WEEKDAYS.forEach( function ( w ) {
@@ -58,6 +66,7 @@
 		function post( action, body ) {
 			body.action = action;
 			body.nonce  = TSB.nonce;
+			if ( body.type == null ) { body.type = selType; }
 			if ( TSB.lang ) { body.lang = TSB.lang; }
 			var fd = new FormData();
 			Object.keys( body ).forEach( function ( k ) { fd.append( k, body[ k ] ); } );
@@ -106,6 +115,44 @@
 		/* ---------- views ---------- */
 		function showDayView()  { elDaysView.hidden = false; elSlotsView.hidden = true; }
 		function showSlotView() { elDaysView.hidden = true;  elSlotsView.hidden = false; }
+
+		/* ---------- session-type picker ---------- */
+		function showTypePicker() {
+			if ( elStepTypes ) { elStepTypes.hidden = false; }
+			if ( elStepCal ) { elStepCal.hidden = true; }
+		}
+		function chooseType( type, label ) {
+			selType      = type || 'default';
+			selTypeLabel = label || '';
+			if ( elStepTypes ) { elStepTypes.hidden = true; }
+			if ( elStepCal ) { elStepCal.hidden = false; }
+			if ( multiType && elChosen2 && elTypeName ) {
+				elTypeName.textContent = selTypeLabel;
+				elChosen2.hidden = false;
+			}
+			loadDays();
+		}
+		Array.prototype.forEach.call( elTypeBtns, function ( b ) {
+			b.addEventListener( 'click', function () {
+				var lbl = b.querySelector( '.tsb-type-label' );
+				chooseType( b.getAttribute( 'data-type' ), lbl ? lbl.textContent : '' );
+			} );
+		} );
+		if ( elTypeChange ) {
+			elTypeChange.addEventListener( 'click', showTypePicker );
+		}
+
+		// Entry point: pick a type first when there's more than one, else go straight
+		// to the calendar for the single (or default) type.
+		function start() {
+			if ( multiType ) {
+				showTypePicker();
+				return;
+			}
+			selType = elTypeBtns.length ? elTypeBtns[ 0 ].getAttribute( 'data-type' ) : 'default';
+			if ( elStepCal ) { elStepCal.hidden = false; }
+			loadDays();
+		}
 
 		function applyTokens( data ) {
 			stamp = data.stamp || stamp;
@@ -404,10 +451,15 @@
 			elForm.reset();
 			Array.prototype.forEach.call( elForm.querySelectorAll( '.tsb-field' ), clearError );
 			elSummary.hidden = true;
-			loadDays();
+			if ( multiType ) {
+				if ( elChosen2 ) { elChosen2.hidden = true; }
+				showTypePicker();
+			} else {
+				loadDays();
+			}
 		} );
 
-		loadDays();
+		start();
 	}
 
 	document.addEventListener( 'DOMContentLoaded', function () {

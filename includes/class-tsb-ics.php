@@ -47,6 +47,9 @@ class TSB_ICS {
 		if ( ! empty( $d['location'] ) ) {
 			$lines[] = 'LOCATION:' . self::esc( $d['location'] );
 		}
+		if ( ! empty( $d['url'] ) ) {
+			$lines[] = 'URL:' . self::esc( $d['url'] );
+		}
 		if ( ! empty( $d['email'] ) ) {
 			$lines[] = 'ATTENDEE;CN=' . self::esc( $d['name'] ) . ':mailto:' . $d['email'];
 		}

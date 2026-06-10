@@ -4,9 +4,10 @@ use PHPUnit\Framework\TestCase;
 class AvailabilityTest extends TestCase {
 
 	protected function setUp(): void {
-		$GLOBALS['tsb_test_option']  = array();
-		$GLOBALS['tsb_test_blocked'] = array();
-		$GLOBALS['tsb_test_booked']  = array();
+		$GLOBALS['tsb_test_option']    = array();
+		$GLOBALS['tsb_test_blocked']   = array();
+		$GLOBALS['tsb_test_booked']    = array();
+		$GLOBALS['tsb_test_intervals'] = array();
 	}
 
 	protected function setOption( array $opt ) {
@@ -138,6 +139,65 @@ class AvailabilityTest extends TestCase {
 			$this->assertArrayHasKey( 'count', $day );
 			$this->assertSame( count( $day['slots'] ), $day['count'] );
 		}
+	}
+
+	/**
+	 * Overbooking guard across slot lengths: a 60-min booking (e.g. from another
+	 * session type) must hide every 30-min slot whose range overlaps it, not just
+	 * the one starting at the same minute.
+	 */
+	public function test_longer_booking_blocks_overlapping_shorter_slots() {
+		$this->setOption( array( 'slot_minutes' => 30 ) ); // candidate type: 30-min slots, 9–17
+		$target = $this->futureDate(); // a day fully ahead, so lead time removes nothing
+
+		// A 09:00–10:00 booking sitting on the date.
+		$GLOBALS['tsb_test_intervals'][ $target ] = array( array( '09:00:00', '10:00:00' ) );
+
+		$rebuilt = $this->dayByDate( TSB_Availability::build(), $target );
+		$this->assertNotNull( $rebuilt );
+		$this->assertNotContains( '09:00', $rebuilt['slots'], '09:00 overlaps the booking' );
+		$this->assertNotContains( '09:30', $rebuilt['slots'], '09:30 overlaps the booking — the cross-length case' );
+		$this->assertContains( '10:00', $rebuilt['slots'], '10:00 starts exactly when the booking ends — still free' );
+	}
+
+	/** A slot that merely abuts a booking (touches at an edge) stays bookable. */
+	public function test_abutting_slots_are_not_treated_as_overlapping() {
+		$this->setOption( array( 'slot_minutes' => 30 ) );
+		$target = $this->futureDate();
+		$GLOBALS['tsb_test_intervals'][ $target ] = array( array( '10:00:00', '10:30:00' ) );
+
+		$rebuilt = $this->dayByDate( TSB_Availability::build(), $target );
+		$this->assertContains( '09:30', $rebuilt['slots'], '09:30–10:00 abuts the booking start' );
+		$this->assertNotContains( '10:00', $rebuilt['slots'], '10:00 is the booking' );
+		$this->assertContains( '10:30', $rebuilt['slots'], '10:30 abuts the booking end' );
+	}
+
+	/**
+	 * meta is the only field store: phone is read from it and the human-readable
+	 * body is rebuilt on demand, excluding phone and appending the message last.
+	 */
+	public function test_phone_and_summary_derive_from_meta() {
+		$meta = array( 'phone' => '12345678', 'message' => 'See you soon', 'company' => 'Acme' );
+
+		$this->assertSame( '12345678', TSB_Availability::phone_from_meta( $meta ) );
+
+		$summary = TSB_Availability::summary_from_meta( $meta );
+		$this->assertStringNotContainsString( '12345678', $summary, 'phone must not be in the body' );
+		$this->assertStringContainsString( 'Acme', $summary, 'unknown field kept' );
+		$this->assertStringContainsString( 'See you soon', $summary, 'message textarea appended' );
+		// Message comes last, after other fields.
+		$this->assertGreaterThan( strpos( $summary, 'Acme' ), strpos( $summary, 'See you soon' ) );
+	}
+
+	/** First bookable date strictly after today, so all 9–17 slots are future. */
+	protected function futureDate() {
+		$today = ( new DateTime( 'today', new DateTimeZone( 'Europe/Copenhagen' ) ) )->format( 'Y-m-d' );
+		foreach ( TSB_Availability::build() as $d ) {
+			if ( $d['date'] > $today ) {
+				return $d['date'];
+			}
+		}
+		$this->fail( 'No bookable day after today found' );
 	}
 
 	protected function dayByDate( array $days, $date ) {

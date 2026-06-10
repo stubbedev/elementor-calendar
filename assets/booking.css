@@ -16,6 +16,39 @@
 .tsb [hidden] { display: none !important; }
 .tsb-loading { opacity: .7; }
 
+/* ---------- session-type picker ---------- */
+.tsb-types-head { font-weight: 600; text-align: center; margin: 0 0 .75em; }
+.tsb-types {
+	display: grid;
+	gap: var( --tsb-cal-gap );
+	grid-template-columns: repeat( auto-fill, minmax( 14em, 1fr ) );
+}
+.tsb-type {
+	cursor: pointer;
+	text-align: left;
+	display: flex;
+	flex-direction: column;
+	gap: .2em;
+	padding: .9em 1em;
+	border: 1px solid var( --tsb-line );
+	border-radius: var( --tsb-radius );
+	background: transparent;
+	color: inherit;
+}
+.tsb-type:hover { border-color: var( --tsb-accent ); background: var( --tsb-soft ); }
+.tsb-type:active { transform: scale( .98 ); }
+.tsb-type-label { font-weight: 600; }
+.tsb-type-dur { font-size: .85em; opacity: .7; }
+.tsb-type-desc { font-size: .85em; opacity: .8; margin-top: .15em; }
+/* Selected-type bar above the calendar (shown only with >1 type). */
+.tsb-chosen-type {
+	display: grid;
+	grid-template-columns: 2em 1fr 2em;
+	align-items: center;
+	margin: 0 0 .5em;
+}
+.tsb-type-name { text-align: center; font-weight: 600; }
+
 /* ---------- calendar ---------- */
 .tsb-cal-head {
 	display: grid;

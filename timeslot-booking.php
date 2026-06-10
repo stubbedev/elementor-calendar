@@ -18,6 +18,7 @@ define( 'TSB_URL', plugin_dir_url( __FILE__ ) );
 require_once TSB_PATH . 'includes/class-tsb-db.php';
 require_once TSB_PATH . 'includes/class-tsb-holidays.php';
 require_once TSB_PATH . 'includes/class-tsb-availability.php';
+require_once TSB_PATH . 'includes/class-tsb-types.php';
 require_once TSB_PATH . 'includes/class-tsb-i18n.php';
 require_once TSB_PATH . 'includes/class-tsb-ics.php';
 require_once TSB_PATH . 'includes/class-tsb-emails.php';

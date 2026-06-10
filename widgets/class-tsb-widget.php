@@ -261,15 +261,56 @@ class TSB_Widget extends Widget_Base {
 		<?php
 	}
 
+	/** Localized "N min" / "N h M min" duration label for a slot length. */
+	private function duration_label( $minutes ) {
+		$minutes = max( 1, (int) $minutes );
+		$h       = intdiv( $minutes, 60 );
+		$m       = $minutes % 60;
+		if ( $h && $m ) {
+			/* translators: 1: hours, 2: minutes */
+			return sprintf( __( '%1$d h %2$d min', 'tsb' ), $h, $m );
+		}
+		if ( $h ) {
+			/* translators: %d: hours */
+			return sprintf( _n( '%d hour', '%d hours', $h, 'tsb' ), $h );
+		}
+		/* translators: %d: minutes */
+		return sprintf( __( '%d min', 'tsb' ), $m );
+	}
+
 	protected function render() {
 		$set    = TSB_Availability::settings();
 		$mode   = $set['captcha_mode'];
 		$site   = $set['captcha_site'];
 		$id     = 'tsb-' . $this->get_id();
+		$types  = TSB_Types::enabled();
+		$multi  = count( $types ) > 1; // show the picker first only when there's a real choice
 		?>
 		<div class="tsb" id="<?php echo esc_attr( $id ); ?>">
+			<?php // STEP 0: session-type picker (shown first when more than one type is enabled). ?>
+			<div class="tsb-step tsb-step-types"<?php echo $multi ? '' : ' hidden'; ?>>
+				<div class="tsb-types-head"><?php esc_html_e( 'Choose a session', 'tsb' ); ?></div>
+				<div class="tsb-types">
+					<?php foreach ( $types as $t ) : ?>
+						<button type="button" class="tsb-type" data-type="<?php echo esc_attr( $t['id'] ); ?>">
+							<span class="tsb-type-label"><?php echo esc_html( $t['label'] ); ?></span>
+							<span class="tsb-type-dur"><?php echo esc_html( $this->duration_label( $t['slot_minutes'] ) ); ?></span>
+							<?php if ( ! empty( $t['description'] ) ) : ?>
+								<span class="tsb-type-desc"><?php echo esc_html( $t['description'] ); ?></span>
+							<?php endif; ?>
+						</button>
+					<?php endforeach; ?>
+				</div>
+			</div>
+
 			<?php // STEP 1: calendar (day view + slot view) ?>
-			<div class="tsb-step tsb-step-cal">
+			<div class="tsb-step tsb-step-cal"<?php echo $multi ? ' hidden' : ''; ?>>
+				<?php // Selected-type bar — JS fills + shows it when more than one type exists. ?>
+				<div class="tsb-chosen-type" hidden>
+					<button type="button" class="tsb-cal-nav tsb-type-change" aria-label="<?php esc_attr_e( 'Change session type', 'tsb' ); ?>">&lsaquo;</button>
+					<span class="tsb-type-name"></span>
+					<span class="tsb-cal-spacer" aria-hidden="true"></span>
+				</div>
 				<div class="tsb-loading"><?php esc_html_e( 'Loading available times…', 'tsb' ); ?></div>
 
 				<div class="tsb-cal" hidden>

@@ -61,7 +61,9 @@ class TSB_Admin {
 			wp_die();
 		}
 		global $wpdb;
-		$rows = $wpdb->get_results( 'SELECT slot_date, slot_time, name, email, phone, message, status, created_at FROM ' . TSB_DB::bookings_table() . ' ORDER BY slot_date DESC, slot_time DESC', ARRAY_A );
+		$rows = $wpdb->get_results( 'SELECT type_id, slot_date, slot_time, name, email, status, meta, created_at FROM ' . TSB_DB::bookings_table() . ' ORDER BY slot_date DESC, slot_time DESC', ARRAY_A );
+
+		$types = class_exists( 'TSB_Types' ) ? TSB_Types::all() : array();
 
 		nocache_headers();
 		header( 'Content-Type: text/csv; charset=utf-8' );
@@ -70,12 +72,24 @@ class TSB_Admin {
 		$out = fopen( 'php://output', 'w' );
 		fprintf( $out, "\xEF\xBB\xBF" ); // UTF-8 BOM so Excel reads non-ASCII
 		fputcsv( $out, array(
-			__( 'Date', 'tsb' ), __( 'Time', 'tsb' ), __( 'Name', 'tsb' ), __( 'Email', 'tsb' ),
+			__( 'Type', 'tsb' ), __( 'Date', 'tsb' ), __( 'Time', 'tsb' ), __( 'Name', 'tsb' ), __( 'Email', 'tsb' ),
 			__( 'Phone', 'tsb' ), __( 'Message', 'tsb' ), __( 'Status', 'tsb' ), __( 'Created', 'tsb' ),
 		) );
 		foreach ( $rows as $r ) {
-			$r['slot_time'] = substr( $r['slot_time'], 0, 5 );
-			fputcsv( $out, $r );
+			$meta       = $r['meta'] ? (array) json_decode( $r['meta'], true ) : array();
+			$type_id    = $r['type_id'] ?: 'default';
+			$type_label = isset( $types[ $type_id ] ) ? $types[ $type_id ]['label'] : $type_id;
+			fputcsv( $out, array(
+				$type_label,
+				$r['slot_date'],
+				substr( $r['slot_time'], 0, 5 ),
+				$r['name'],
+				$r['email'],
+				TSB_Availability::phone_from_meta( $meta ),
+				TSB_Availability::summary_from_meta( $meta ),
+				$r['status'],
+				$r['created_at'],
+			) );
 		}
 		fclose( $out );
 		exit;

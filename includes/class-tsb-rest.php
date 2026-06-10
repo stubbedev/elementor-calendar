@@ -37,6 +37,11 @@ class TSB_REST {
 			array( 'methods' => 'DELETE', 'callback' => array( __CLASS__, 'delete_booking' ), 'permission_callback' => $perm ),
 		) );
 
+		register_rest_route( self::NS, '/types', array(
+			array( 'methods' => 'GET',  'callback' => array( __CLASS__, 'get_types' ),  'permission_callback' => $perm ),
+			array( 'methods' => 'POST', 'callback' => array( __CLASS__, 'save_types' ), 'permission_callback' => $perm ),
+		) );
+
 		register_rest_route( self::NS, '/availability', array(
 			'methods'             => 'GET',
 			'callback'            => array( __CLASS__, 'availability' ),
@@ -116,6 +121,46 @@ class TSB_REST {
 		$s  = self::sanitize_settings( $in, TSB_Availability::settings() );
 		update_option( 'tsb_settings', $s );
 		return rest_ensure_response( array( 'settings' => TSB_Availability::settings() ) );
+	}
+
+	/* ---------------- session types ---------------- */
+
+	public static function get_types() {
+		return rest_ensure_response( array(
+			'types' => array_values( TSB_Types::all() ),
+			'meta'  => self::types_meta(),
+		) );
+	}
+
+	public static function save_types( $req ) {
+		$in   = (array) $req->get_json_params();
+		$list = ( isset( $in['types'] ) && is_array( $in['types'] ) ) ? $in['types'] : array();
+		$stored = TSB_Types::save( $list );
+		return rest_ensure_response( array( 'types' => array_values( $stored ) ) );
+	}
+
+	/** Editor metadata shared by every per-type form (client email events only). */
+	protected static function types_meta() {
+		$client_events = array(
+			'confirm'  => __( 'Customer confirmation', 'tsb' ),
+			'move'     => __( 'Booking moved', 'tsb' ),
+			'cancel'   => __( 'Booking cancelled', 'tsb' ),
+			'reminder' => __( 'Reminder', 'tsb' ),
+		);
+		$tokens_by_event = array();
+		foreach ( array_keys( $client_events ) as $ev ) {
+			$tokens_by_event[ $ev ] = TSB_Emails::tokens_for( $ev );
+		}
+		return array(
+			'weekdays'      => TSB_Availability::weekday_names(),
+			'countries'     => TSB_Holidays::countries(),
+			'emailEvents'   => $client_events,
+			'tokensByEvent' => $tokens_by_event,
+			'tokenLabels'   => TSB_Emails::token_labels(),
+			'sampleVars'    => TSB_Emails::sample_vars(),
+			'emailDefaults' => TSB_Emails::default_templates(),
+			'googleReady'   => class_exists( 'TSB_Google' ) ? TSB_Google::is_connected() : false,
+		);
 	}
 
 	/** Validate any subset of settings keys over the current values. */
@@ -218,8 +263,10 @@ class TSB_REST {
 		$where = '1=1';
 		$args  = array();
 		if ( '' !== $search ) {
+			// meta is the JSON field store, so a LIKE over it catches phone and any
+			// custom field value now that there are no per-field columns.
 			$like   = '%' . $wpdb->esc_like( $search ) . '%';
-			$where .= ' AND (name LIKE %s OR email LIKE %s OR phone LIKE %s)';
+			$where .= ' AND (name LIKE %s OR email LIKE %s OR meta LIKE %s)';
 			$args   = array( $like, $like, $like );
 		}
 		$today = current_time( 'Y-m-d' );
@@ -237,6 +284,11 @@ class TSB_REST {
 		foreach ( $items as $it ) {
 			$it->slot_time = substr( $it->slot_time, 0, 5 );
 			$it->id        = (int) $it->id;
+			$it->type_id   = $it->type_id ?: 'default';
+			// Derive the display fields the UI expects from meta (no stored columns).
+			$meta          = $it->meta ? (array) json_decode( $it->meta, true ) : array();
+			$it->phone     = TSB_Availability::phone_from_meta( $meta );
+			$it->message   = TSB_Availability::summary_from_meta( $meta );
 		}
 
 		return rest_ensure_response( array( 'items' => $items, 'total' => $total ) );
@@ -252,15 +304,18 @@ class TSB_REST {
 			return new WP_Error( 'tsb_notfound', __( 'Booking not found.', 'tsb' ), array( 'status' => 404 ) );
 		}
 		$as_email = function ( $r, $date = null, $time = null ) {
+			$meta = $r->meta ? (array) json_decode( $r->meta, true ) : array();
 			return array(
-				'name'    => $r->name,
-				'email'   => $r->email,
-				'phone'   => $r->phone,
-				'message' => $r->message,
-				'date'    => $date ?? $r->slot_date,
-				'time'    => $time ?? substr( $r->slot_time, 0, 5 ),
-				'ref'     => (int) $r->id,
-				'fields'  => $r->meta ? (array) json_decode( $r->meta, true ) : array(),
+				'name'     => $r->name,
+				'email'    => $r->email,
+				'phone'    => TSB_Availability::phone_from_meta( $meta ),
+				'message'  => TSB_Availability::summary_from_meta( $meta ),
+				'date'     => $date ?? $r->slot_date,
+				'time'     => $time ?? substr( $r->slot_time, 0, 5 ),
+				'ref'      => (int) $r->id,
+				'type'     => $r->type_id ?: 'default',
+				'meet_url' => $r->meet_url ?? '',
+				'fields'   => $meta,
 			);
 		};
 
@@ -279,14 +334,17 @@ class TSB_REST {
 			if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date ) || ! preg_match( '/^\d{2}:\d{2}$/', $time ) ) {
 				return new WP_Error( 'tsb_badtime', __( 'Invalid date/time.', 'tsb' ), array( 'status' => 400 ) );
 			}
-			$taken = (int) $wpdb->get_var( $wpdb->prepare(
-				"SELECT COUNT(*) FROM $t WHERE slot_date = %s AND slot_time = %s AND status != 'cancelled' AND id != %d",
-				$date, $time . ':00', $id
-			) );
-			if ( $taken ) {
+			// Overlap-aware: block the move if the new range collides with any active
+			// booking of any type (variable-length slots compared as ranges).
+			$type = $row->type_id ?: 'default';
+			$len  = max( 5, (int) TSB_Types::get( $type )['slot_minutes'] );
+			if ( ! TSB_Availability::range_free( $date, $time, $len, $id ) ) {
 				return new WP_Error( 'tsb_taken', __( 'That time is already taken. Choose another.', 'tsb' ), array( 'status' => 409 ) );
 			}
-			$res = $wpdb->update( $t, array( 'slot_date' => $date, 'slot_time' => $time . ':00', 'reminded' => 0 ), array( 'id' => $id ), array( '%s', '%s', '%d' ), array( '%d' ) );
+			$parts    = array_map( 'intval', explode( ':', $time ) );
+			$end_min  = $parts[0] * 60 + ( $parts[1] ?? 0 ) + $len;
+			$slot_end = sprintf( '%02d:%02d:00', intdiv( $end_min, 60 ), $end_min % 60 );
+			$res = $wpdb->update( $t, array( 'slot_date' => $date, 'slot_time' => $time . ':00', 'slot_end' => $slot_end, 'reminded' => 0 ), array( 'id' => $id ), array( '%s', '%s', '%s', '%d' ), array( '%d' ) );
 			if ( false === $res ) {
 				return new WP_Error( 'tsb_taken', __( 'That time is already taken. Choose another.', 'tsb' ), array( 'status' => 409 ) );
 			}
@@ -305,16 +363,18 @@ class TSB_REST {
 	public static function availability( $req ) {
 		$date    = sanitize_text_field( (string) $req->get_param( 'date' ) );
 		$exclude = (int) $req->get_param( 'exclude' );
-		return rest_ensure_response( array( 'slots' => TSB_Availability::day_grid( $date, $exclude ) ) );
+		$type    = sanitize_key( (string) $req->get_param( 'type' ) ) ?: 'default';
+		return rest_ensure_response( array( 'slots' => TSB_Availability::day_grid( $date, $exclude, $type ) ) );
 	}
 
 	public static function test_email( $req ) {
 		$event = sanitize_key( (string) $req->get_param( 'event' ) );
 		$to    = sanitize_email( (string) $req->get_param( 'to' ) );
+		$type  = sanitize_key( (string) $req->get_param( 'type' ) ) ?: 'default';
 		if ( ! is_email( $to ) ) {
 			return new WP_Error( 'tsb_bademail', __( 'Enter a valid email.', 'tsb' ), array( 'status' => 400 ) );
 		}
-		if ( ! TSB_Emails::send_test( $event, $to ) ) {
+		if ( ! TSB_Emails::send_test( $event, $to, $type ) ) {
 			return new WP_Error( 'tsb_failed', __( 'Could not send the test email.', 'tsb' ), array( 'status' => 400 ) );
 		}
 		return rest_ensure_response( array( 'ok' => true ) );
@@ -322,10 +382,11 @@ class TSB_REST {
 
 	/** Per-day status for one month, for the calendar overview. */
 	public static function month( $req ) {
-		$y   = max( 1970, (int) $req->get_param( 'year' ) );
-		$mo  = min( 12, max( 1, (int) $req->get_param( 'month' ) ) );
-		$dim = (int) gmdate( 't', gmmktime( 0, 0, 0, $mo, 1, $y ) );
-		$out = array();
+		$y    = max( 1970, (int) $req->get_param( 'year' ) );
+		$mo   = min( 12, max( 1, (int) $req->get_param( 'month' ) ) );
+		$type = sanitize_key( (string) $req->get_param( 'type' ) ) ?: 'default';
+		$dim  = (int) gmdate( 't', gmmktime( 0, 0, 0, $mo, 1, $y ) );
+		$out  = array();
 
 		for ( $d = 1; $d <= $dim; $d++ ) {
 			$date  = sprintf( '%04d-%02d-%02d', $y, $mo, $d );
@@ -340,7 +401,7 @@ class TSB_REST {
 				$out[ $date ] = array( 'status' => 'wholeday' );
 				continue;
 			}
-			$grid = TSB_Availability::day_grid( $date );
+			$grid = TSB_Availability::day_grid( $date, 0, $type );
 			if ( empty( $grid ) ) {
 				$out[ $date ] = array( 'status' => 'closed' );
 				continue;

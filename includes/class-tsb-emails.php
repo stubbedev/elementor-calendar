@@ -127,7 +127,7 @@ class TSB_Emails {
 
 	/** Tokens valid for one event: base + custom fields ( + old_* on move ). */
 	public static function tokens_for( $event ) {
-		$base = array( 'name', 'email', 'phone', 'message', 'date', 'time', 'ref', 'site' );
+		$base = array( 'name', 'email', 'phone', 'message', 'date', 'time', 'ref', 'site', 'type', 'meet_url' );
 		if ( 'move' === $event ) {
 			$base[] = 'old_date';
 			$base[] = 'old_time';
@@ -151,6 +151,8 @@ class TSB_Emails {
 			'time'     => __( 'Booking time', 'tsb' ),
 			'ref'      => __( 'Reference number', 'tsb' ),
 			'site'     => __( 'Site name', 'tsb' ),
+			'type'     => __( 'Session type name', 'tsb' ),
+			'meet_url' => __( 'Video meeting link', 'tsb' ),
 			'old_date' => __( 'Previous date (move)', 'tsb' ),
 			'old_time' => __( 'Previous time (move)', 'tsb' ),
 		);
@@ -167,6 +169,8 @@ class TSB_Emails {
 			'time'     => '09:00',
 			'ref'      => '42',
 			'site'     => get_bloginfo( 'name' ),
+			'type'     => __( 'Consultation', 'tsb' ),
+			'meet_url' => 'https://meet.google.com/abc-defg-hij',
 			'old_date' => '2026-06-18',
 			'old_time' => '14:00',
 		);
@@ -192,15 +196,22 @@ class TSB_Emails {
 
 	/** Build the variable map for a booking row/array. */
 	protected static function vars( $b, $extra = array() ) {
+		$type_label = '';
+		if ( ! empty( $b['type'] ) && class_exists( 'TSB_Types' ) ) {
+			$t          = TSB_Types::get( $b['type'] );
+			$type_label = $t['label'] ?? '';
+		}
 		$vars = array(
-			'name'    => $b['name'] ?? '',
-			'email'   => $b['email'] ?? '',
-			'phone'   => $b['phone'] ?? '',
-			'message' => $b['message'] ?? '',
-			'date'    => $b['date'] ?? '',
-			'time'    => $b['time'] ?? '',
-			'ref'     => $b['ref'] ?? '',
-			'site'    => get_bloginfo( 'name' ),
+			'name'     => $b['name'] ?? '',
+			'email'    => $b['email'] ?? '',
+			'phone'    => $b['phone'] ?? '',
+			'message'  => $b['message'] ?? '',
+			'date'     => $b['date'] ?? '',
+			'time'     => $b['time'] ?? '',
+			'ref'      => $b['ref'] ?? '',
+			'site'     => get_bloginfo( 'name' ),
+			'type'     => $type_label,
+			'meet_url' => $b['meet_url'] ?? '',
 		);
 		// Every collected form field, by its name (custom fields included).
 		if ( ! empty( $b['fields'] ) && is_array( $b['fields'] ) ) {
@@ -209,30 +220,44 @@ class TSB_Emails {
 		return array_merge( $vars, $extra );
 	}
 
+	/**
+	 * Resolve a template for one event + session type. Client-facing events
+	 * (confirm/move/cancel/reminder) come from the type; the admin notification is
+	 * global (it's internal, not client-facing).
+	 */
+	protected static function template( $event, $type_id ) {
+		if ( 'admin' === $event ) {
+			return TSB_Availability::settings()['emails']['admin'] ?? null;
+		}
+		$cfg = TSB_Types::get( $type_id );
+		return $cfg['emails'][ $event ] ?? null;
+	}
+
 	/** Send one template to one recipient (only if enabled). $ics_args → attach .ics. */
-	protected static function send( $event, $to, $vars, $ics_args = null ) {
-		$tpl = TSB_Availability::settings()['emails'][ $event ] ?? null;
+	protected static function send( $event, $to, $vars, $type_id = 'default', $ics_args = null ) {
+		$tpl = self::template( $event, $type_id );
 		if ( ! $tpl || empty( $tpl['enabled'] ) || ! is_email( $to ) ) {
 			return;
 		}
-		self::deliver( $event, $to, $tpl, $vars, $ics_args );
+		self::deliver( $event, $to, $tpl, $vars, $type_id, $ics_args );
 	}
 
 	/** Render + send a template (enabled check already done by caller). */
-	protected static function deliver( $event, $to, $tpl, $vars, $ics_args = null ) {
-		$s       = TSB_Availability::settings();
-		$subject = self::interpolate( TSB_I18N::translate( $event . '_subject', $tpl['subject'] ), $vars );
+	protected static function deliver( $event, $to, $tpl, $vars, $type_id = 'default', $ics_args = null ) {
+		$cfg     = TSB_Types::get( $type_id );
+		$subject = self::interpolate( TSB_I18N::translate( $type_id . '_' . $event . '_subject', $tpl['subject'] ), $vars );
 		$html    = self::interpolate( $tpl['html'], $vars );
 
 		// No From header — the site's mail provider (SMTP plugin, etc.) owns the
 		// sender identity so it stays aligned with the verified/authenticated domain.
 		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 
-		// Plain-text fallback + optional .ics, via a one-shot PHPMailer hook.
-		$cb = function ( $phpmailer ) use ( $html, $ics_args, $s ) {
+		// Plain-text fallback + optional .ics, via a one-shot PHPMailer hook. The
+		// .ics length + attach toggle come from the booking's session type.
+		$cb = function ( $phpmailer ) use ( $html, $ics_args, $cfg ) {
 			$phpmailer->AltBody = wp_strip_all_tags( $html );
-			if ( $ics_args && ! empty( $s['ics_attach'] ) ) {
-				$ics = TSB_ICS::generate( $ics_args, $s['slot_minutes'] );
+			if ( $ics_args && ! empty( $cfg['ics_attach'] ) ) {
+				$ics = TSB_ICS::generate( $ics_args, $cfg['slot_minutes'] );
 				$phpmailer->addStringAttachment( $ics, 'booking.ics', 'base64', 'text/calendar; charset=utf-8; method=PUBLISH' );
 			}
 		};
@@ -242,19 +267,21 @@ class TSB_Emails {
 	}
 
 	/** Send a test of one template to an address, using sample data, ignoring enabled. */
-	public static function send_test( $event, $to ) {
-		$tpl = TSB_Availability::settings()['emails'][ $event ] ?? null;
+	public static function send_test( $event, $to, $type_id = 'default' ) {
+		$tpl = self::template( $event, $type_id );
 		if ( ! $tpl || ! is_email( $to ) ) {
 			return false;
 		}
-		self::deliver( $event, $to, $tpl, self::sample_vars( $event ) );
+		self::deliver( $event, $to, $tpl, self::sample_vars( $event ), $type_id );
 		return true;
 	}
 
 	/* ---------------- events ---------------- */
 
-	/** $b: name,email,phone,message,date,time,ref. */
+	/** $b: name,email,phone,message,date,time,ref,type,meet_url,fields. */
 	public static function on_book( $b ) {
+		$type = $b['type'] ?? 'default';
+		$cfg  = TSB_Types::get( $type );
 		$s    = TSB_Availability::settings();
 		$vars = self::vars( $b );
 		$ics  = array(
@@ -263,23 +290,26 @@ class TSB_Emails {
 			'time'        => $b['time'],
 			'name'        => $b['name'],
 			'email'       => $b['email'],
-			'summary'     => self::interpolate( str_replace( '{', '{{', str_replace( '}', '}}', $s['ics_summary'] ) ), $vars ),
-			'location'    => $s['ics_location'],
-			'description' => $b['message'],
+			'summary'     => self::interpolate( str_replace( array( '{', '}' ), array( '{{', '}}' ), $cfg['ics_summary'] ), $vars ),
+			'location'    => $cfg['ics_location'],
+			'description' => trim( $b['message'] . ( ! empty( $b['meet_url'] ) ? "\n\n" . $b['meet_url'] : '' ) ),
+			'url'         => $b['meet_url'] ?? '',
 		);
-		self::send( 'confirm', $b['email'], $vars, $ics );
+		self::send( 'confirm', $b['email'], $vars, $type, $ics );
 
 		$admin_to = ! empty( $s['emails']['admin']['to'] ) ? $s['emails']['admin']['to'] : get_option( 'admin_email' );
-		self::send( 'admin', $admin_to, $vars );
+		self::send( 'admin', $admin_to, $vars, $type );
 	}
 
 	public static function on_move( $b, $old_date, $old_time ) {
+		$type = $b['type'] ?? 'default';
 		$vars = self::vars( $b, array( 'old_date' => $old_date, 'old_time' => $old_time ) );
-		self::send( 'move', $b['email'], $vars );
+		self::send( 'move', $b['email'], $vars, $type );
 	}
 
 	public static function on_cancel( $b ) {
-		self::send( 'cancel', $b['email'], self::vars( $b ) );
+		$type = $b['type'] ?? 'default';
+		self::send( 'cancel', $b['email'], self::vars( $b ), $type );
 	}
 
 	/* ---------------- reminder cron ---------------- */
@@ -294,19 +324,31 @@ class TSB_Emails {
 		wp_clear_scheduled_hook( self::CRON_HOOK );
 	}
 
-	/** Hourly: send reminders for active bookings inside the window, once each. */
+	/**
+	 * Hourly: send reminders for active bookings, once each. Each session type has
+	 * its own reminder window + on/off, so we widen the query to the largest enabled
+	 * window, then decide per booking using its own type's settings.
+	 */
 	public static function run_reminders() {
-		$s = TSB_Availability::settings();
-		if ( empty( $s['emails']['reminder']['enabled'] ) ) {
-			return;
+		$types   = TSB_Types::all();
+		$windows = array(); // type_id => hours, only for types with reminders on
+		$max     = 0;
+		foreach ( $types as $id => $cfg ) {
+			if ( ! empty( $cfg['emails']['reminder']['enabled'] ) ) {
+				$h             = max( 1, (int) $cfg['reminder_hours'] );
+				$windows[ $id ] = $h;
+				$max           = max( $max, $h );
+			}
 		}
-		$hours = max( 1, (int) $s['reminder_hours'] );
+		if ( ! $windows ) {
+			return; // no type has reminders enabled
+		}
 
 		global $wpdb;
 		$t   = TSB_DB::bookings_table();
 		$tz  = wp_timezone();
 		$now = new DateTime( 'now', $tz );
-		$to  = ( clone $now )->modify( "+$hours hours" );
+		$to  = ( clone $now )->modify( "+$max hours" );
 
 		$rows = $wpdb->get_results( $wpdb->prepare(
 			"SELECT * FROM $t
@@ -317,17 +359,30 @@ class TSB_Emails {
 		) );
 
 		foreach ( $rows as $r ) {
-			$b = array(
-				'name'    => $r->name,
-				'email'   => $r->email,
-				'phone'   => $r->phone,
-				'message' => $r->message,
-				'date'    => $r->slot_date,
-				'time'    => substr( $r->slot_time, 0, 5 ),
-				'ref'     => (int) $r->id,
-				'fields'  => $r->meta ? (array) json_decode( $r->meta, true ) : array(),
+			$type = $r->type_id ?: 'default';
+			if ( ! isset( $windows[ $type ] ) ) {
+				continue; // this booking's type has reminders off
+			}
+			// Only fire once the booking is inside that type's own window.
+			$cutoff = ( clone $now )->modify( '+' . $windows[ $type ] . ' hours' );
+			$slot   = new DateTime( $r->slot_date . ' ' . substr( $r->slot_time, 0, 5 ), $tz );
+			if ( $slot > $cutoff ) {
+				continue;
+			}
+			$meta = $r->meta ? (array) json_decode( $r->meta, true ) : array();
+			$b    = array(
+				'name'     => $r->name,
+				'email'    => $r->email,
+				'phone'    => TSB_Availability::phone_from_meta( $meta ),
+				'message'  => TSB_Availability::summary_from_meta( $meta ),
+				'date'     => $r->slot_date,
+				'time'     => substr( $r->slot_time, 0, 5 ),
+				'ref'      => (int) $r->id,
+				'type'     => $type,
+				'meet_url' => $r->meet_url ?? '',
+				'fields'   => $meta,
 			);
-			self::send( 'reminder', $r->email, self::vars( $b ) );
+			self::send( 'reminder', $r->email, self::vars( $b ), $type );
 			$wpdb->update( $t, array( 'reminded' => 1 ), array( 'id' => (int) $r->id ), array( '%d' ), array( '%d' ) );
 		}
 	}
