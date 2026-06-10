@@ -25,6 +25,10 @@ class TSB_Availability {
 			'ics_location'     => '',
 			'emails'           => class_exists( 'TSB_Emails' ) ? TSB_Emails::default_templates() : array(),
 			'reminder_hours'   => 24,
+			// google calendar / meet (global OAuth client; per-type meet toggle lives on the type)
+			'google_client_id'     => '',
+			'google_client_secret' => '',
+			'google_calendar_id'   => 'primary',
 			// spam
 			'captcha_mode'      => 'honeypot', // none | honeypot | recaptcha | recaptcha_v3 | hcaptcha
 			'captcha_site'      => '',

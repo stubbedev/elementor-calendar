@@ -69,13 +69,15 @@ interface Props {
 	sampleVars: Record< string, string >;
 	defaults: Record< string, EmailTemplate >;
 	adminEmail: string;
+	/** Session type the test send + tokens belong to (default for global editors). */
+	testType?: string;
 	onChange: ( emails: Record< string, EmailTemplate > ) => void;
 }
 
 export default function EmailEditor( props: Props ) {
-	const { emails, events, tokensByEvent, tokenLabels, sampleVars, defaults, adminEmail, onChange } = props;
+	const { emails, events, tokensByEvent, tokenLabels, sampleVars, defaults, adminEmail, testType = 'default', onChange } = props;
 
-	const [ event, setEvent ] = useState( 'confirm' );
+	const [ event, setEvent ] = useState( () => Object.keys( events )[ 0 ] || 'confirm' );
 	const [ preview, setPreview ] = useState( '' );
 	const [ errors, setErrors ] = useState< MjmlError[] >( [] );
 	const [ compiling, setCompiling ] = useState( false );
@@ -219,7 +221,7 @@ export default function EmailEditor( props: Props ) {
 
 	function sendTest() {
 		setTestMsg( null );
-		api( 'test-email', { method: 'POST', data: { event, to: testTo } } )
+		api( 'test-email', { method: 'POST', data: { event, to: testTo, type: testType } } )
 			.then( () => setTestMsg( { type: 'success', msg: __( 'Test email sent.', 'tsb' ) } ) )
 			.catch( ( e: { message?: string } ) => setTestMsg( { type: 'error', msg: e?.message || __( 'Could not send.', 'tsb' ) } ) );
 	}

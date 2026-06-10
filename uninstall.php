@@ -18,4 +18,6 @@ foreach ( $tables as $t ) {
 }
 
 delete_option( 'tsb_settings' );
-delete_option( 'tsb_db_ver' ); // legacy, pre-squash installs
+delete_option( 'tsb_types' );        // session types
+delete_option( 'tsb_google_token' ); // Google OAuth refresh/access token
+delete_option( 'tsb_db_ver' );       // legacy, pre-squash installs

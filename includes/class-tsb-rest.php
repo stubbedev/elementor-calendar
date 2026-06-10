@@ -42,6 +42,17 @@ class TSB_REST {
 			array( 'methods' => 'POST', 'callback' => array( __CLASS__, 'save_types' ), 'permission_callback' => $perm ),
 		) );
 
+		register_rest_route( self::NS, '/google', array(
+			'methods'             => 'GET',
+			'callback'            => array( __CLASS__, 'google_status' ),
+			'permission_callback' => $perm,
+		) );
+		register_rest_route( self::NS, '/google/disconnect', array(
+			'methods'             => 'POST',
+			'callback'            => array( __CLASS__, 'google_disconnect' ),
+			'permission_callback' => $perm,
+		) );
+
 		register_rest_route( self::NS, '/availability', array(
 			'methods'             => 'GET',
 			'callback'            => array( __CLASS__, 'availability' ),
@@ -159,8 +170,26 @@ class TSB_REST {
 			'tokenLabels'   => TSB_Emails::token_labels(),
 			'sampleVars'    => TSB_Emails::sample_vars(),
 			'emailDefaults' => TSB_Emails::default_templates(),
+			'adminEmail'    => get_option( 'admin_email' ),
 			'googleReady'   => class_exists( 'TSB_Google' ) ? TSB_Google::is_connected() : false,
 		);
+	}
+
+	/* ---------------- google ---------------- */
+
+	public static function google_status() {
+		return rest_ensure_response( array(
+			'configured'  => TSB_Google::configured(),
+			'connected'   => TSB_Google::is_connected(),
+			'email'       => TSB_Google::account_email(),
+			'authUrl'     => TSB_Google::auth_url(),
+			'redirectUri' => TSB_Google::redirect_uri(),
+		) );
+	}
+
+	public static function google_disconnect() {
+		TSB_Google::disconnect();
+		return rest_ensure_response( array( 'ok' => true ) );
 	}
 
 	/** Validate any subset of settings keys over the current values. */
@@ -220,6 +249,15 @@ class TSB_REST {
 				if ( isset( $e['html'] ) )    { $s['emails'][ $ev ]['html']    = (string) $e['html']; }
 				if ( 'admin' === $ev && isset( $e['to'] ) ) { $s['emails'][ $ev ]['to'] = sanitize_email( $e['to'] ); }
 			}
+		}
+
+		// google calendar / meet
+		foreach ( array( 'google_client_id', 'google_client_secret' ) as $k ) {
+			if ( array_key_exists( $k, $in ) ) { $s[ $k ] = sanitize_text_field( $in[ $k ] ); }
+		}
+		if ( array_key_exists( 'google_calendar_id', $in ) ) {
+			$cal = sanitize_text_field( $in['google_calendar_id'] );
+			$s['google_calendar_id'] = '' !== $cal ? $cal : 'primary';
 		}
 
 		// spam
@@ -321,6 +359,9 @@ class TSB_REST {
 
 		if ( 'cancel' === $op ) {
 			$wpdb->update( $t, array( 'status' => 'cancelled', 'active' => null ), array( 'id' => $id ), array( '%s', '%s' ), array( '%d' ) );
+			if ( ! empty( $row->gcal_event_id ) && class_exists( 'TSB_Google' ) ) {
+				TSB_Google::delete_event( $row->gcal_event_id );
+			}
 			TSB_Emails::on_cancel( $as_email( $row ) );
 			return rest_ensure_response( array( 'ok' => true ) );
 		}
@@ -347,6 +388,9 @@ class TSB_REST {
 			$res = $wpdb->update( $t, array( 'slot_date' => $date, 'slot_time' => $time . ':00', 'slot_end' => $slot_end, 'reminded' => 0 ), array( 'id' => $id ), array( '%s', '%s', '%s', '%d' ), array( '%d' ) );
 			if ( false === $res ) {
 				return new WP_Error( 'tsb_taken', __( 'That time is already taken. Choose another.', 'tsb' ), array( 'status' => 409 ) );
+			}
+			if ( ! empty( $row->gcal_event_id ) && class_exists( 'TSB_Google' ) ) {
+				TSB_Google::update_event( $row->gcal_event_id, $date, $time, $len );
 			}
 			TSB_Emails::on_move( $as_email( $row, $date, $time ), $row->slot_date, substr( $row->slot_time, 0, 5 ) );
 			return rest_ensure_response( array( 'ok' => true ) );

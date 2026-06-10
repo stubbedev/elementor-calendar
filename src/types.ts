@@ -23,6 +23,10 @@ export interface Settings {
 	emails: Record<string, EmailTemplate>;
 	reminder_hours: number;
 
+	google_client_id: string;
+	google_client_secret: string;
+	google_calendar_id: string;
+
 	captcha_mode: string;
 	captcha_site: string;
 	captcha_secret: string;
@@ -49,6 +53,42 @@ export interface EmailTemplate {
 	mjml: string;
 	html: string;
 	to?: string;
+}
+
+export interface SessionType {
+	id: string;
+	label: string;
+	enabled: number;
+	order: number;
+	description: string;
+	slot_minutes: number;
+	slot_offset: number;
+	slot_gap: number;
+	base_start: number;
+	base_end: number;
+	days_ahead: number;
+	lead_hours: number;
+	block_holidays: number;
+	holiday_countries: string[];
+	week: Record< string, WeekDay >;
+	emails: Record< string, EmailTemplate >;
+	reminder_hours: number;
+	ics_attach: number;
+	ics_summary: string;
+	ics_location: string;
+	meet_enabled: number;
+}
+
+export interface TypesMeta {
+	weekdays: Record< string, string >;
+	countries: Record< string, string >;
+	emailEvents: Record< string, string >;
+	tokensByEvent: Record< string, string[] >;
+	tokenLabels: Record< string, string >;
+	sampleVars: Record< string, string >;
+	emailDefaults: Record< string, EmailTemplate >;
+	adminEmail: string;
+	googleReady: boolean;
 }
 
 export interface Meta {

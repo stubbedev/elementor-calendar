@@ -22,6 +22,7 @@ require_once TSB_PATH . 'includes/class-tsb-types.php';
 require_once TSB_PATH . 'includes/class-tsb-i18n.php';
 require_once TSB_PATH . 'includes/class-tsb-ics.php';
 require_once TSB_PATH . 'includes/class-tsb-emails.php';
+require_once TSB_PATH . 'includes/class-tsb-google.php';
 require_once TSB_PATH . 'includes/class-tsb-ajax.php';
 require_once TSB_PATH . 'includes/class-tsb-rest.php';
 require_once TSB_PATH . 'admin/class-tsb-admin.php';
@@ -149,6 +150,9 @@ add_action( 'elementor/editor/after_enqueue_scripts', function () {
 	wp_enqueue_script( 'tsb' );
 	wp_enqueue_style( 'tsb' );
 }, 20 );
+
+// Google OAuth redirect target (admin only; verified inside the handler).
+add_action( 'admin_post_tsb_google_callback', array( 'TSB_Google', 'handle_callback' ) );
 
 // AJAX endpoints (logged-in + public).
 add_action( 'wp_ajax_tsb_slots', array( 'TSB_Ajax', 'get_slots' ) );

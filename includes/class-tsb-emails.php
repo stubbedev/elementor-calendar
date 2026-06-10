@@ -284,6 +284,35 @@ class TSB_Emails {
 		$cfg  = TSB_Types::get( $type );
 		$s    = TSB_Availability::settings();
 		$vars = self::vars( $b );
+
+		// Google Meet: create the Calendar event before sending, so the confirmation
+		// email + .ics carry the {{meet_url}} link. Persist it on the booking row.
+		if ( ! empty( $cfg['meet_enabled'] ) && class_exists( 'TSB_Google' ) && TSB_Google::is_connected() ) {
+			$summary = self::interpolate( str_replace( array( '{', '}' ), array( '{{', '}}' ), $cfg['ics_summary'] ), $vars );
+			$ev = TSB_Google::create_event( array(
+				'ref'         => $b['ref'],
+				'date'        => $b['date'],
+				'time'        => $b['time'],
+				'name'        => $b['name'],
+				'email'       => $b['email'],
+				'summary'     => $summary,
+				'location'    => $cfg['ics_location'],
+				'description' => $b['message'],
+			), $cfg['slot_minutes'] );
+			if ( $ev && ! empty( $ev['meet_url'] ) ) {
+				global $wpdb;
+				$wpdb->update(
+					TSB_DB::bookings_table(),
+					array( 'meet_url' => $ev['meet_url'], 'gcal_event_id' => $ev['event_id'] ),
+					array( 'id' => (int) $b['ref'] ),
+					array( '%s', '%s' ),
+					array( '%d' )
+				);
+				$b['meet_url'] = $ev['meet_url'];
+				$vars          = self::vars( $b ); // refresh so {{meet_url}} resolves
+			}
+		}
+
 		$ics  = array(
 			'id'          => $b['ref'],
 			'date'        => $b['date'],
