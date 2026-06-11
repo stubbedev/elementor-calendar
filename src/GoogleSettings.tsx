@@ -72,6 +72,11 @@ export default function GoogleSettings( { clientId, clientSecret, calendarId, di
 								{ __( 'Add this exact Authorized redirect URI:', 'tsb' ) }
 								<code className="tsb-redirect-uri">{ status?.redirectUri || '…' }</code>
 							</li>
+							<li>
+								<strong>{ __( 'On the OAuth consent screen, click “Publish app” (set it to Production).', 'tsb' ) }</strong>
+								{ ' ' }
+								{ __( 'Left in “Testing”, the connection expires every 7 days and you have to reconnect. A free Gmail account is fine — no Workspace or payment needed. You may see an “unverified app” warning at connect; click through it once.', 'tsb' ) }
+							</li>
 							<li>{ __( 'Paste the client ID and secret below, save, then click Connect.', 'tsb' ) }</li>
 						</ol>
 
