@@ -78,33 +78,15 @@ function tsb_register_assets() {
 	if ( wp_script_is( 'tsb', 'registered' ) ) {
 		return;
 	}
-	$s    = TSB_Availability::settings();
-	$mode = $s['captcha_mode'];
-
 	wp_register_style( 'tsb', TSB_URL . 'assets/booking.css', array(), TSB_VER );
 
-	$deps = array();
-	if ( 'recaptcha' === $mode ) {
-		wp_register_script( 'tsb-recaptcha', 'https://www.google.com/recaptcha/api.js', array(), null, true );
-		$deps[] = 'tsb-recaptcha';
-	} elseif ( 'recaptcha_v3' === $mode && $s['captcha_site'] ) {
-		wp_register_script( 'tsb-recaptcha', 'https://www.google.com/recaptcha/api.js?render=' . rawurlencode( $s['captcha_site'] ), array(), null, true );
-		$deps[] = 'tsb-recaptcha';
-	} elseif ( 'hcaptcha' === $mode ) {
-		wp_register_script( 'tsb-hcaptcha', 'https://js.hcaptcha.com/1/api.js', array(), null, true );
-		$deps[] = 'tsb-hcaptcha';
-	}
-
-	wp_register_script( 'tsb', TSB_URL . 'assets/booking.js', $deps, TSB_VER, true );
+	// Spam protection is a built-in honeypot only — no third-party captcha scripts.
+	wp_register_script( 'tsb', TSB_URL . 'assets/booking.js', array(), TSB_VER, true );
 	wp_localize_script( 'tsb', 'TSB', array(
-		'ajax'    => admin_url( 'admin-ajax.php' ),
-		'nonce'   => wp_create_nonce( 'tsb_nonce' ),
-		'captcha' => array(
-			'mode' => $mode,
-			'site' => $s['captcha_site'],
-		),
-		'lang'    => TSB_I18N::current_language(),
-		'i18n'    => tsb_js_i18n(),
+		'ajax'  => admin_url( 'admin-ajax.php' ),
+		'nonce' => wp_create_nonce( 'tsb_nonce' ),
+		'lang'  => TSB_I18N::current_language(),
+		'i18n'  => tsb_js_i18n(),
 	) );
 }
 
@@ -138,7 +120,6 @@ function tsb_js_i18n() {
 		'error'     => __( 'Error', 'tsb' ),
 		'required'  => __( 'This field is required.', 'tsb' ),
 		'email'     => __( 'Please enter a valid email.', 'tsb' ),
-		'consent'   => __( 'Please accept to continue.', 'tsb' ),
 		'sending'   => __( 'Sending…', 'tsb' ),
 		'another'   => __( 'Book another', 'tsb' ),
 		'ref'       => __( 'Reference', 'tsb' ),

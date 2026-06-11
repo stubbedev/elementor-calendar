@@ -33,7 +33,6 @@
 		var elResult    = root.querySelector( '.tsb-result' );
 		var elChosen    = root.querySelector( '.tsb-chosen' );
 		var elBack      = root.querySelector( '.tsb-back' );
-		var elCap       = root.querySelector( '.g-recaptcha, .h-captcha' );
 		var elSummary   = root.querySelector( '.tsb-summary' );
 		var elSumWhen   = root.querySelector( '.tsb-summary-when' );
 		var elSumMsg    = root.querySelector( '.tsb-summary-msg' );
@@ -72,44 +71,6 @@
 			Object.keys( body ).forEach( function ( k ) { fd.append( k, body[ k ] ); } );
 			return fetch( TSB.ajax, { method: 'POST', body: fd, credentials: 'same-origin' } )
 				.then( function ( r ) { return r.json(); } );
-		}
-
-		/* ---------- captcha ---------- */
-		function captchaToken() {
-			var cap  = TSB.captcha || {};
-			var mode = cap.mode;
-			try {
-				if ( mode === 'recaptcha_v3' && window.grecaptcha && cap.site ) {
-					return new Promise( function ( resolve ) {
-						grecaptcha.ready( function () {
-							grecaptcha.execute( cap.site, { action: 'book' } )
-								.then( resolve ).catch( function () { resolve( '' ); } );
-						} );
-					} );
-				}
-				if ( mode === 'recaptcha' && window.grecaptcha ) {
-					var rs = document.querySelectorAll( '.g-recaptcha' );
-					var ri = Array.prototype.indexOf.call( rs, elCap );
-					return Promise.resolve( grecaptcha.getResponse( ri < 0 ? 0 : ri ) );
-				}
-				if ( mode === 'hcaptcha' && window.hcaptcha ) {
-					var hs = document.querySelectorAll( '.h-captcha' );
-					var hi = Array.prototype.indexOf.call( hs, elCap );
-					return Promise.resolve( hcaptcha.getResponse( hi < 0 ? 0 : hi ) );
-				}
-			} catch ( e ) {}
-			return Promise.resolve( '' );
-		}
-
-		function captchaReset() {
-			var mode = TSB.captcha && TSB.captcha.mode;
-			try {
-				if ( mode === 'recaptcha' && window.grecaptcha ) {
-					grecaptcha.reset();
-				} else if ( mode === 'hcaptcha' && window.hcaptcha ) {
-					hcaptcha.reset();
-				}
-			} catch ( e ) {}
 		}
 
 		/* ---------- views ---------- */
@@ -336,14 +297,6 @@
 			var firstBad = null;
 			Array.prototype.forEach.call( elForm.querySelectorAll( '.tsb-field' ), function ( f ) {
 				clearError( f );
-				var cb = f.querySelector( 'input[type="checkbox"]' );
-				if ( cb ) {
-					if ( cb.getAttribute( 'aria-required' ) === 'true' && ! cb.checked ) {
-						fieldError( f, t( 'consent', 'Please accept to continue.' ) );
-						firstBad = firstBad || cb;
-					}
-					return;
-				}
 				var inp = f.querySelector( 'input, textarea' );
 				if ( ! inp ) { return; }
 				var val = inp.value.trim();
@@ -418,11 +371,9 @@
 		function doBook( retried ) {
 			var btn = elForm.querySelector( '.tsb-submit' );
 			setLoading( btn, true );
-			return captchaToken().then( function ( token ) {
-				var body = { stamp: stamp, captcha_token: token };
-				collectFields( body );
-				return post( 'tsb_book', body );
-			} ).then( function ( res ) {
+			var body = { stamp: stamp };
+			collectFields( body );
+			return post( 'tsb_book', body ).then( function ( res ) {
 				if ( ! res.success && res.data && ( res.data.code === 'nonce' || res.data.code === 'stamp' ) && ! retried ) {
 					return refreshTokens().then( function () { return doBook( true ); } );
 				}
@@ -430,12 +381,10 @@
 				if ( res.success ) {
 					showSummary( res );
 				} else {
-					captchaReset();
 					showError( ( res.data && res.data.message ) || t( 'error', 'Error' ) );
 				}
 			} ).catch( function () {
 				setLoading( btn, false );
-				captchaReset();
 				showError( t( 'netError', 'Network error. Please try again.' ) );
 			} );
 		}

@@ -116,13 +116,6 @@ class TSB_REST {
 				'tokenLabels'   => TSB_Emails::token_labels(),
 				'sampleVars'    => TSB_Emails::sample_vars(),
 				'emailDefaults' => TSB_Emails::default_templates(),
-				'captchaModes' => array(
-					'none'         => __( 'None', 'tsb' ),
-					'honeypot'     => __( 'Honeypot (hidden field, no keys)', 'tsb' ),
-					'recaptcha'    => __( 'Google reCAPTCHA v2 (checkbox)', 'tsb' ),
-					'recaptcha_v3' => __( 'Google reCAPTCHA v3 (invisible, score)', 'tsb' ),
-					'hcaptcha'     => __( 'hCaptcha', 'tsb' ),
-				),
 			),
 		) );
 	}
@@ -201,11 +194,8 @@ class TSB_REST {
 		};
 		$bool = function ( $k ) use ( $in ) { return empty( $in[ $k ] ) ? 0 : 1; };
 
-		if ( array_key_exists( 'slot_minutes', $in ) ) { $s['slot_minutes'] = $int( 'slot_minutes', 30, 5 ); }
-		if ( array_key_exists( 'slot_offset', $in ) )  { $s['slot_offset']  = $int( 'slot_offset', 0, 0 ); }
-		if ( array_key_exists( 'slot_gap', $in ) )     { $s['slot_gap']     = $int( 'slot_gap', 0, 0 ); }
-		if ( array_key_exists( 'base_start', $in ) )   { $s['base_start']   = $int( 'base_start', 9, 0, 23 ); }
-		if ( array_key_exists( 'base_end', $in ) )     { $s['base_end']     = $int( 'base_end', 17, 1, 24 ); }
+		// Global scheduling rules (booking window, lead time, holidays). Slot geometry
+		// and weekly hours are per session type and saved via the /types endpoint.
 		if ( array_key_exists( 'days_ahead', $in ) )   { $s['days_ahead']   = $int( 'days_ahead', 30, 1 ); }
 		if ( array_key_exists( 'lead_hours', $in ) )   { $s['lead_hours']   = $int( 'lead_hours', 0, 0 ); }
 		if ( array_key_exists( 'block_holidays', $in ) ) { $s['block_holidays'] = $bool( 'block_holidays' ); }
@@ -215,26 +205,6 @@ class TSB_REST {
 			$cc    = array_values( array_intersect( array_map( 'strtoupper', array_map( 'sanitize_text_field', (array) $in['holiday_countries'] ) ), $valid ) );
 			$s['holiday_countries'] = $cc ? $cc : array( 'DK' );
 		}
-		if ( array_key_exists( 'week', $in ) && is_array( $in['week'] ) ) {
-			$week = array();
-			for ( $d = 1; $d <= 7; $d++ ) {
-				$wd         = isset( $in['week'][ $d ] ) ? $in['week'][ $d ] : array();
-				$week[ $d ] = array(
-					'open'     => empty( $wd['open'] ) ? 0 : 1,
-					'use_base' => empty( $wd['use_base'] ) ? 0 : 1,
-					'start'    => max( 0, min( 23, (int) ( $wd['start'] ?? 9 ) ) ),
-					'end'      => max( 1, min( 24, (int) ( $wd['end'] ?? 17 ) ) ),
-				);
-			}
-			$s['week'] = $week;
-		}
-
-		// emails: .ics (sender identity is left to the site's mail provider)
-		foreach ( array( 'ics_summary', 'ics_location' ) as $k ) {
-			if ( array_key_exists( $k, $in ) ) { $s[ $k ] = sanitize_text_field( $in[ $k ] ); }
-		}
-		if ( array_key_exists( 'ics_attach', $in ) ) { $s['ics_attach'] = $bool( 'ics_attach' ); }
-		if ( array_key_exists( 'reminder_hours', $in ) ) { $s['reminder_hours'] = max( 1, (int) $in['reminder_hours'] ); }
 
 		// emails: per-event templates (admin is trusted → MJML/HTML stored raw).
 		if ( array_key_exists( 'emails', $in ) && is_array( $in['emails'] ) ) {
@@ -260,27 +230,10 @@ class TSB_REST {
 			$s['google_calendar_id'] = '' !== $cal ? $cal : 'primary';
 		}
 
-		// spam
-		if ( array_key_exists( 'captcha_mode', $in ) ) {
-			$m = $in['captcha_mode'];
-			$s['captcha_mode'] = in_array( $m, array( 'none', 'honeypot', 'recaptcha', 'recaptcha_v3', 'hcaptcha' ), true ) ? $m : 'honeypot';
-		}
-		foreach ( array( 'captcha_site', 'captcha_secret' ) as $k ) {
-			if ( array_key_exists( $k, $in ) ) { $s[ $k ] = sanitize_text_field( $in[ $k ] ); }
-		}
-		if ( array_key_exists( 'captcha_min_score', $in ) ) {
-			$s['captcha_min_score'] = max( 0, min( 1, (float) $in['captcha_min_score'] ) );
-		}
-
 		// form fields (ordered, user-defined)
 		if ( array_key_exists( 'fields', $in ) ) {
 			$s['fields'] = TSB_Availability::normalize_fields( $in['fields'] );
 		}
-		if ( array_key_exists( 'consent_enable', $in ) ) { $s['consent_enable'] = $bool( 'consent_enable' ); }
-		foreach ( array( 'consent_text', 'consent_link_text' ) as $k ) {
-			if ( array_key_exists( $k, $in ) ) { $s[ $k ] = sanitize_text_field( $in[ $k ] ); }
-		}
-		if ( array_key_exists( 'consent_url', $in ) ) { $s['consent_url'] = esc_url_raw( $in['consent_url'] ); }
 
 		return $s;
 	}
@@ -294,9 +247,11 @@ class TSB_REST {
 		$scope   = $req->get_param( 'scope' );
 		$per     = min( 100, max( 1, (int) ( $req->get_param( 'per_page' ) ?: 20 ) ) );
 		$page    = max( 1, (int) ( $req->get_param( 'page' ) ?: 1 ) );
-		$allowed = array( 'slot_date', 'slot_time', 'name', 'status', 'created_at' );
+		$allowed = array( 'slot_date', 'slot_time', 'type_id', 'name', 'email', 'phone', 'status', 'created_at' );
 		$orderby = in_array( $req->get_param( 'orderby' ), $allowed, true ) ? $req->get_param( 'orderby' ) : 'slot_date';
 		$order   = strtolower( (string) $req->get_param( 'order' ) ) === 'asc' ? 'ASC' : 'DESC';
+		// Phone has no column — it lives in the meta JSON, so sort by the extracted key.
+		$order_expr = 'phone' === $orderby ? "JSON_UNQUOTE(JSON_EXTRACT(meta, '$.phone'))" : $orderby;
 
 		$where = '1=1';
 		$args  = array();
@@ -317,12 +272,14 @@ class TSB_REST {
 		$count = "SELECT COUNT(*) FROM $t WHERE $where";
 		$total = (int) ( $args ? $wpdb->get_var( $wpdb->prepare( $count, $args ) ) : $wpdb->get_var( $count ) );
 
-		$sql   = "SELECT * FROM $t WHERE $where ORDER BY $orderby $order, slot_time $order LIMIT %d OFFSET %d";
+		$sql   = "SELECT * FROM $t WHERE $where ORDER BY $order_expr $order, slot_time $order LIMIT %d OFFSET %d";
 		$items = $wpdb->get_results( $wpdb->prepare( $sql, array_merge( $args, array( $per, ( $page - 1 ) * $per ) ) ) );
+		$types = class_exists( 'TSB_Types' ) ? TSB_Types::all() : array();
 		foreach ( $items as $it ) {
-			$it->slot_time = substr( $it->slot_time, 0, 5 );
-			$it->id        = (int) $it->id;
-			$it->type_id   = $it->type_id ?: 'default';
+			$it->slot_time  = substr( $it->slot_time, 0, 5 );
+			$it->id         = (int) $it->id;
+			$it->type_id    = $it->type_id ?: 'default';
+			$it->type_label = isset( $types[ $it->type_id ] ) ? $types[ $it->type_id ]['label'] : $it->type_id;
 			// Derive the display fields the UI expects from meta (no stored columns).
 			$meta          = $it->meta ? (array) json_decode( $it->meta, true ) : array();
 			$it->phone     = TSB_Availability::phone_from_meta( $meta );
@@ -473,6 +430,7 @@ class TSB_REST {
 		foreach ( $rows as $r ) {
 			$r->id         = (int) $r->id;
 			$r->block_time = $r->block_time ? substr( $r->block_time, 0, 5 ) : '';
+			$r->block_end  = $r->block_end ? substr( $r->block_end, 0, 5 ) : '';
 		}
 		return rest_ensure_response( array( 'items' => $rows ) );
 	}
@@ -481,17 +439,37 @@ class TSB_REST {
 		global $wpdb;
 		$date = sanitize_text_field( (string) $req->get_param( 'block_date' ) );
 		$time = sanitize_text_field( (string) $req->get_param( 'block_time' ) );
+		$end  = sanitize_text_field( (string) $req->get_param( 'block_end' ) );
 		if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date ) ) {
-			return new WP_Error( 'tsb_baddate', __( 'Invalid date/time.', 'tsb' ), array( 'status' => 400 ) );
+			return new WP_Error( 'tsb_baddate', __( 'Invalid date.', 'tsb' ), array( 'status' => 400 ) );
+		}
+		// No start time → whole day. Otherwise require start < end (a [start,end) range).
+		if ( '' === $time ) {
+			$start_sql = null;
+			$end_sql   = null;
+		} else {
+			if ( ! preg_match( '/^\d{2}:\d{2}$/', $time ) || ! preg_match( '/^\d{2}:\d{2}$/', $end ) ) {
+				return new WP_Error( 'tsb_badtime', __( 'Invalid time range.', 'tsb' ), array( 'status' => 400 ) );
+			}
+			$to_min = function ( $hm ) {
+				$p = explode( ':', $hm );
+				return (int) $p[0] * 60 + (int) ( $p[1] ?? 0 );
+			};
+			if ( $to_min( $end ) <= $to_min( $time ) ) {
+				return new WP_Error( 'tsb_badtime', __( 'End time must be after the start time.', 'tsb' ), array( 'status' => 400 ) );
+			}
+			$start_sql = $time . ':00';
+			$end_sql   = $end . ':00';
 		}
 		$wpdb->insert(
 			TSB_DB::blocked_table(),
 			array(
 				'block_date' => $date,
-				'block_time' => $time ? $time . ':00' : null,
+				'block_time' => $start_sql,
+				'block_end'  => $end_sql,
 				'reason'     => sanitize_text_field( (string) $req->get_param( 'reason' ) ),
 			),
-			array( '%s', '%s', '%s' )
+			array( '%s', '%s', '%s', '%s' )
 		);
 		return rest_ensure_response( array( 'ok' => true, 'id' => (int) $wpdb->insert_id ) );
 	}

@@ -4,7 +4,6 @@ import {
 	CardHeader,
 	ToggleControl,
 	SelectControl,
-	FormTokenField,
 	__experimentalNumberControl as NumberControl,
 	__experimentalVStack as VStack,
 	__experimentalGrid as Grid,
@@ -15,21 +14,15 @@ import type { WeekDay } from './types';
 /** The availability-owning subset of a session type. */
 export interface AvailabilityValue {
 	slot_minutes: number;
-	slot_offset: number;
 	slot_gap: number;
 	base_start: number;
 	base_end: number;
-	days_ahead: number;
-	lead_hours: number;
-	block_holidays: number;
-	holiday_countries: string[];
 	week: Record< string, WeekDay >;
 }
 
 interface Props {
 	value: AvailabilityValue;
 	weekdays: Record< string, string >;
-	countries: Record< string, string >;
 	onChange: ( patch: Partial< AvailabilityValue > ) => void;
 }
 
@@ -41,7 +34,7 @@ function hourOptions( from: number, to: number ) {
 	return out;
 }
 
-export default function AvailabilityForm( { value: d, weekdays, countries, onChange }: Props ) {
+export default function AvailabilityForm( { value: d, weekdays, onChange }: Props ) {
 	function setWeek( day: string, k: keyof WeekDay, v: number ) {
 		onChange( { week: { ...d.week, [ day ]: { ...d.week[ day ], [ k ]: v } } } );
 	}
@@ -55,9 +48,6 @@ export default function AvailabilityForm( { value: d, weekdays, countries, onCha
 			onChange={ ( v?: string ) => onChange( { [ k ]: v === '' || v == null ? 0 : parseInt( v, 10 ) } as Partial< AvailabilityValue > ) }
 			__next40pxDefaultSize
 		/>
-	);
-	const tog = ( k: keyof AvailabilityValue, label: string ) => (
-		<ToggleControl label={ label } checked={ !! d[ k ] } onChange={ ( v ) => onChange( { [ k ]: v ? 1 : 0 } as Partial< AvailabilityValue > ) } __nextHasNoMarginBottom />
 	);
 	const hour = ( val: number, on: ( n: number ) => void, from: number, to: number, label?: string, disabled?: boolean ) => (
 		<SelectControl label={ label } value={ String( val ) } options={ hourOptions( from, to ) } disabled={ disabled } onChange={ ( v ) => on( parseInt( v, 10 ) ) } __nextHasNoMarginBottom __next40pxDefaultSize />
@@ -116,46 +106,15 @@ export default function AvailabilityForm( { value: d, weekdays, countries, onCha
 				</CardBody>
 			</Card>
 
-			<Grid columns={ 2 } gap={ 5 } className="tsb-cards-2">
-				<Card className="tsb-card">
-					<CardHeader>{ __( 'Slots', 'tsb' ) }</CardHeader>
-					<CardBody>
-						<VStack spacing={ 4 }>
-							{ num( 'slot_minutes', __( 'Slot length (min)', 'tsb' ), 5, __( 'How long each time slot is.', 'tsb' ) ) }
-							{ num( 'slot_offset', __( 'Start offset (min)', 'tsb' ), 0, __( 'Minutes after opening before the first slot.', 'tsb' ) ) }
-							{ num( 'slot_gap', __( 'Gap between slots (min)', 'tsb' ), 0, __( 'Buffer between two slots.', 'tsb' ) ) }
-							{ num( 'days_ahead', __( 'Days ahead', 'tsb' ), 1 ) }
-							{ num( 'lead_hours', __( 'Minimum lead time (hours)', 'tsb' ), 0, __( '0 = bookable right now.', 'tsb' ) ) }
-						</VStack>
-					</CardBody>
-				</Card>
-
-				<Card className="tsb-card">
-					<CardHeader>{ __( 'Public holidays', 'tsb' ) }</CardHeader>
-					<CardBody>
-						<VStack spacing={ 4 }>
-							{ tog( 'block_holidays', __( 'Block holidays', 'tsb' ) ) }
-							<FormTokenField
-								label={ __( 'Countries', 'tsb' ) }
-								value={ d.holiday_countries.map( ( c ) => countries[ c ] || c ) }
-								suggestions={ Object.values( countries ) }
-								onChange={ ( tokens ) => {
-									const nameToCode: Record< string, string > = {};
-									Object.keys( countries ).forEach( ( code ) => { nameToCode[ countries[ code ] ] = code; } );
-									const codes = tokens
-										.map( ( t ) => ( typeof t === 'string' ? t : t.value ) )
-										.map( ( name ) => nameToCode[ name ] || name )
-										.filter( Boolean ) as string[];
-									onChange( { holiday_countries: codes.length ? codes : [ 'DK' ] } );
-								} }
-								__experimentalExpandOnFocus
-								__nextHasNoMarginBottom
-							/>
-							<p className="tsb-help">{ __( 'Holidays are fetched from date.nager.at (cached).', 'tsb' ) }</p>
-						</VStack>
-					</CardBody>
-				</Card>
-			</Grid>
+			<Card className="tsb-card">
+				<CardHeader>{ __( 'Slots', 'tsb' ) }</CardHeader>
+				<CardBody>
+					<VStack spacing={ 4 }>
+						{ num( 'slot_minutes', __( 'Slot length (min)', 'tsb' ), 5, __( 'How long each time slot is.', 'tsb' ) ) }
+						{ num( 'slot_gap', __( 'Gap between slots (min)', 'tsb' ), 0, __( 'Buffer/cleanup time between two bookings.', 'tsb' ) ) }
+					</VStack>
+				</CardBody>
+			</Card>
 		</VStack>
 	);
 }

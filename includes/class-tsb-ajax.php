@@ -21,10 +21,10 @@ class TSB_Ajax {
 		if ( ! TSB_Types::exists( $type ) ) {
 			$type = 'default';
 		}
-		$cfg = TSB_Types::get( $type );
+		$days_ahead = max( 1, (int) TSB_Availability::settings()['days_ahead'] ); // global booking window
 		$tz  = wp_timezone();
 		$min = ( new DateTime( 'today', $tz ) )->format( 'Y-m-d' );
-		$max = ( new DateTime( 'today', $tz ) )->modify( '+' . max( 1, (int) $cfg['days_ahead'] ) . ' days' )->format( 'Y-m-d' );
+		$max = ( new DateTime( 'today', $tz ) )->modify( '+' . $days_ahead . ' days' )->format( 'Y-m-d' );
 		wp_send_json_success( array(
 			'days'  => TSB_Availability::build( $type ),
 			'range' => array( 'min' => $min, 'max' => $max ),
@@ -55,7 +55,6 @@ class TSB_Ajax {
 
 	public static function book() {
 		self::verify();
-		$s = TSB_Availability::settings();
 
 		// Session type (defaults to 'default' for legacy/single-type setups).
 		$type = isset( $_POST['type'] ) ? sanitize_key( wp_unslash( $_POST['type'] ) ) : 'default';
@@ -101,13 +100,6 @@ class TSB_Ajax {
 		}
 		$phone = TSB_Availability::phone_from_meta( $fieldvals );
 		$msg   = TSB_Availability::summary_from_meta( $fieldvals );
-
-		if ( ! empty( $s['consent_enable'] ) && empty( $_POST['consent'] ) ) {
-			wp_send_json_error( array( 'message' => __( 'Please accept the consent to continue.', 'tsb' ) ) );
-		}
-		if ( ! self::captcha_ok( $s ) ) {
-			wp_send_json_error( array( 'message' => __( 'Please confirm that you are not a robot.', 'tsb' ) ) );
-		}
 
 		global $wpdb;
 
@@ -180,42 +172,6 @@ class TSB_Ajax {
 				'ref'  => $booking_id,
 			),
 		) );
-	}
-
-	/** Verify reCAPTCHA v2/v3 + hCaptcha. honeypot + none always pass here. */
-	protected static function captcha_ok( $s ) {
-		$mode = $s['captcha_mode'];
-		if ( 'none' === $mode || 'honeypot' === $mode ) {
-			return true;
-		}
-		$token = isset( $_POST['captcha_token'] ) ? sanitize_text_field( wp_unslash( $_POST['captcha_token'] ) ) : '';
-		if ( '' === $token || empty( $s['captcha_secret'] ) ) {
-			return false;
-		}
-		$url = ( 'hcaptcha' === $mode )
-			? 'https://hcaptcha.com/siteverify'
-			: 'https://www.google.com/recaptcha/api/siteverify';
-
-		$resp = wp_remote_post( $url, array(
-			'timeout' => 8,
-			'body'    => array(
-				'secret'   => $s['captcha_secret'],
-				'response' => $token,
-				'remoteip' => isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '',
-			),
-		) );
-		if ( is_wp_error( $resp ) ) {
-			return false;
-		}
-		$body = json_decode( wp_remote_retrieve_body( $resp ), true );
-		if ( empty( $body['success'] ) ) {
-			return false;
-		}
-		// v3 returns a score; enforce the configured threshold.
-		if ( 'recaptcha_v3' === $mode && isset( $body['score'] ) ) {
-			return (float) $body['score'] >= (float) $s['captcha_min_score'];
-		}
-		return true;
 	}
 
 	protected static function slot_available( $date, $time, $type = 'default' ) {

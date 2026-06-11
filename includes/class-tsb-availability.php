@@ -8,17 +8,11 @@ class TSB_Availability {
 	/** Full settings = stored option merged over defaults. */
 	public static function settings() {
 		$def = array(
-			// availability
-			'slot_minutes'      => 30,  // slot length
-			'slot_offset'       => 0,   // minutes after open before the first slot
-			'slot_gap'          => 0,   // minutes between consecutive slots
-			'base_start'        => 9,   // base business hours, applied to days set to "use base"
-			'base_end'          => 17,
-			'days_ahead'        => 30,
-			'lead_hours'        => 0,    // min hours from now before a slot is bookable
+			// Global scheduling rules (apply to every session type).
+			'days_ahead'        => 30,  // booking window
+			'lead_hours'        => 0,   // min hours from now before a slot is bookable
 			'block_holidays'    => 1,
 			'holiday_countries' => array( 'DK' ),
-			'week'              => self::default_week(),
 			// emails
 			'ics_attach'       => 1,
 			'ics_summary'      => 'Booking: {{name}}',
@@ -29,25 +23,23 @@ class TSB_Availability {
 			'google_client_id'     => '',
 			'google_client_secret' => '',
 			'google_calendar_id'   => 'primary',
-			// spam
-			'captcha_mode'      => 'honeypot', // none | honeypot | recaptcha | recaptcha_v3 | hcaptcha
-			'captcha_site'      => '',
-			'captcha_secret'    => '',
-			'captcha_min_score' => 0.5, // reCAPTCHA v3 only
-			// form fields — ordered, user-defined (name + email are core, always shown)
+			// form fields — ordered, user-defined (name + email are core, always shown).
+			// Spam is a built-in honeypot (always on); there is nothing to configure.
 			'fields'              => array(
 				array( 'name' => 'phone', 'label' => __( 'Phone', 'tsb' ), 'type' => 'tel', 'enabled' => 1, 'required' => 0 ),
 				array( 'name' => 'message', 'label' => __( 'Message', 'tsb' ), 'type' => 'textarea', 'enabled' => 1, 'required' => 0 ),
 			),
-			'consent_enable'      => 0,
-			'consent_text'        => __( 'I accept that my information is processed in order to handle my booking.', 'tsb' ),
-			'consent_link_text'   => __( 'Privacy policy', 'tsb' ),
-			'consent_url'         => '',
 		);
 		$s = wp_parse_args( get_option( 'tsb_settings', array() ), $def );
-		if ( empty( $s['week'] ) || ! is_array( $s['week'] ) ) {
-			$s['week'] = self::default_week();
-		}
+		// Drop retired/relocated globals so they don't linger or leak to the client:
+		//  - v0.2: captcha config, GDPR consent (removed)
+		//  - v0.3: per-type schedule fields that used to be global (now live on the type)
+		unset(
+			$s['captcha_mode'], $s['captcha_site'], $s['captcha_secret'], $s['captcha_min_score'],
+			$s['consent_enable'], $s['consent_text'], $s['consent_link_text'], $s['consent_url'],
+			$s['slot_minutes'], $s['slot_offset'], $s['slot_gap'], $s['base_start'], $s['base_end'],
+			$s['week'], $s['ics_attach'], $s['ics_summary'], $s['ics_location'], $s['reminder_hours']
+		);
 		if ( empty( $s['holiday_countries'] ) || ! is_array( $s['holiday_countries'] ) ) {
 			$s['holiday_countries'] = array( 'DK' );
 		}
@@ -216,6 +208,31 @@ class TSB_Availability {
 		return $out;
 	}
 
+	/**
+	 * Time-off for a date: whether the whole day is blocked, and the blocked
+	 * [start_min, end_min) ranges otherwise. A whole-day block (block_time NULL)
+	 * short-circuits — the day is closed regardless of any ranges.
+	 *
+	 * @return array{whole:bool,intervals:array<int,array{0:int,1:int}>}
+	 */
+	protected static function blocked_ranges( $date ) {
+		$whole     = false;
+		$intervals = array();
+		foreach ( TSB_DB::blocked_for_date( $date ) as $b ) {
+			if ( null === $b->block_time ) {
+				$whole = true;
+				break;
+			}
+			$s = self::hms_to_min( $b->block_time );
+			$e = $b->block_end ? self::hms_to_min( $b->block_end ) : $s + 1;
+			if ( $e <= $s ) {
+				$e = $s + 1; // guard against a zero/negative range
+			}
+			$intervals[] = array( $s, $e );
+		}
+		return array( 'whole' => $whole, 'intervals' => $intervals );
+	}
+
 	/** Does candidate [cs, ce) overlap any busy interval? Half-open ranges. */
 	protected static function overlaps( $busy, $cs, $ce ) {
 		foreach ( $busy as $b ) {
@@ -250,17 +267,17 @@ class TSB_Availability {
 	 */
 	public static function build( $type_id = 'default' ) {
 		$cfg = TSB_Types::get( $type_id );
+		$s   = self::settings(); // holiday blocking is a global, site-wide rule
 		$tz  = wp_timezone();
 		$now = new DateTime( 'now', $tz );
 		$out = array();
 
 		$len    = max( 5, (int) $cfg['slot_minutes'] );
-		$offset = max( 0, (int) $cfg['slot_offset'] );
 		$gap    = max( 0, (int) $cfg['slot_gap'] );
 		$step   = $len + $gap;
 
 		$cursor = new DateTime( 'today', $tz );
-		for ( $i = 0; $i <= (int) $cfg['days_ahead']; $i++ ) {
+		for ( $i = 0; $i <= (int) $s['days_ahead']; $i++ ) {
 			if ( $i > 0 ) {
 				$cursor->modify( '+1 day' );
 			}
@@ -271,29 +288,21 @@ class TSB_Availability {
 			if ( ! $wd || empty( $wd['open'] ) ) {
 				continue;
 			}
-			if ( $cfg['block_holidays'] && TSB_Holidays::is_holiday( $ymd, $cfg['holiday_countries'] ) ) {
+			if ( $s['block_holidays'] && TSB_Holidays::is_holiday( $ymd, $s['holiday_countries'] ) ) {
 				continue;
 			}
 
-			// Individually blocked times / whole day (blocks are global).
-			$blocked_times = array();
-			$whole_day     = false;
-			foreach ( TSB_DB::blocked_for_date( $ymd ) as $b ) {
-				if ( null === $b->block_time ) {
-					$whole_day = true;
-					break;
-				}
-				$blocked_times[ substr( $b->block_time, 0, 5 ) ] = true;
-			}
-			if ( $whole_day ) {
+			// Time off (global): whole-day closes the day, ranges hide overlapping slots.
+			$off = self::blocked_ranges( $ymd );
+			if ( $off['whole'] ) {
 				continue;
 			}
 
-			// Busy ranges from every type's active bookings.
-			$busy = self::busy_minutes( TSB_DB::booked_intervals( $ymd ) );
+			// Busy ranges from every type's active bookings, plus the blocked ranges.
+			$busy = array_merge( self::busy_minutes( TSB_DB::booked_intervals( $ymd ) ), $off['intervals'] );
 
 			list( $open_h, $close_h ) = self::day_hours( $wd, $cfg );
-			$start = ( clone $cursor )->setTime( $open_h, 0 )->modify( "+$offset minutes" );
+			$start = ( clone $cursor )->setTime( $open_h, 0 );
 			$end   = ( clone $cursor )->setTime( $close_h, 0 );
 
 			$slots = array();
@@ -303,16 +312,13 @@ class TSB_Availability {
 					break; // slot would run past close
 				}
 				$hm = $t->format( 'H:i' );
-				if ( isset( $blocked_times[ $hm ] ) ) {
-					continue;
-				}
 				$cs = self::hms_to_min( $hm );
 				if ( self::overlaps( $busy, $cs, $cs + $len ) ) {
 					continue;
 				}
 				$earliest = clone $now;
-				if ( (int) $cfg['lead_hours'] > 0 ) {
-					$earliest->modify( '+' . (int) $cfg['lead_hours'] . ' hours' );
+				if ( (int) $s['lead_hours'] > 0 ) {
+					$earliest->modify( '+' . (int) $s['lead_hours'] . ' hours' );
 				}
 				if ( $t <= $earliest ) {
 					continue;
@@ -348,6 +354,7 @@ class TSB_Availability {
 			return array();
 		}
 		$cfg = TSB_Types::get( $type_id );
+		$s   = self::settings(); // holiday blocking is a global, site-wide rule
 		$tz  = wp_timezone();
 		$day = DateTime::createFromFormat( 'Y-m-d', $date, $tz );
 		if ( ! $day ) {
@@ -360,28 +367,25 @@ class TSB_Availability {
 		if ( ! $wd || empty( $wd['open'] ) ) {
 			return array();
 		}
-		if ( $cfg['block_holidays'] && TSB_Holidays::is_holiday( $date, $cfg['holiday_countries'] ) ) {
+		if ( $s['block_holidays'] && TSB_Holidays::is_holiday( $date, $s['holiday_countries'] ) ) {
 			return array();
 		}
 
-		$blocked = array();
-		foreach ( TSB_DB::blocked_for_date( $date ) as $b ) {
-			if ( null === $b->block_time ) {
-				return array(); // whole day blocked
-			}
-			$blocked[ substr( $b->block_time, 0, 5 ) ] = true;
+		$off = self::blocked_ranges( $date );
+		if ( $off['whole'] ) {
+			return array(); // whole day blocked
 		}
+		$blocked = $off['intervals'];
 
 		// Busy ranges across all types, excluding the booking being rescheduled.
 		$busy = self::busy_minutes( TSB_DB::booked_intervals( $date, $exclude_id ) );
 
 		$len    = max( 5, (int) $cfg['slot_minutes'] );
-		$offset = max( 0, (int) $cfg['slot_offset'] );
 		$gap    = max( 0, (int) $cfg['slot_gap'] );
 		$step   = $len + $gap;
 
 		list( $open_h, $close_h ) = self::day_hours( $wd, $cfg );
-		$start = ( clone $day )->setTime( $open_h, 0 )->modify( "+$offset minutes" );
+		$start = ( clone $day )->setTime( $open_h, 0 );
 		$end   = ( clone $day )->setTime( $close_h, 0 );
 
 		$out = array();
@@ -390,14 +394,15 @@ class TSB_Availability {
 			if ( $slot_end > $end ) {
 				break;
 			}
-			$hm      = $t->format( 'H:i' );
-			$cs      = self::hms_to_min( $hm );
-			$busy_ov = self::overlaps( $busy, $cs, $cs + $len );
-			$free    = ! $busy_ov && ! isset( $blocked[ $hm ] );
-			$out[]   = array(
+			$hm        = $t->format( 'H:i' );
+			$cs        = self::hms_to_min( $hm );
+			$booked_ov = self::overlaps( $busy, $cs, $cs + $len );
+			$blocked_ov = self::overlaps( $blocked, $cs, $cs + $len );
+			$free      = ! $booked_ov && ! $blocked_ov;
+			$out[]     = array(
 				'time'      => $hm,
 				'available' => $free,
-				'reason'    => $free ? '' : ( $busy_ov ? 'booked' : 'blocked' ),
+				'reason'    => $free ? '' : ( $booked_ov ? 'booked' : 'blocked' ),
 			);
 		}
 		return $out;

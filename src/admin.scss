@@ -46,13 +46,31 @@
 		th a.is-sorted { color: var( --wp-admin-theme-color, #2271b1 ); }
 		td { vertical-align: middle; }
 		tr.is-cancelled { opacity: .5; }
-		.tsb-col-actions { text-align: right; white-space: nowrap; }
+		.tsb-col-actions { text-align: right; white-space: nowrap; width: 1%; }
 		.tsb-col-status { width: 1%; white-space: nowrap; }
+		.tsb-col-type { width: 1%; white-space: nowrap; }
 	}
+	// Fixed three-column grid so Move/Restore, Cancel and Delete line up across
+	// every row even when a row omits one (e.g. cancelled rows have no Cancel).
 	.tsb-actions-cell {
-		display: flex;
+		display: grid;
+		grid-template-columns: repeat( 3, 5.5em );
 		gap: .4em;
-		justify-content: flex-end;
+		justify-items: stretch;
+		.tsb-act {
+			display: flex;
+			justify-content: center;
+			.components-button { width: 100%; justify-content: center; }
+		}
+	}
+	.tsb-type-tag {
+		display: inline-block;
+		padding: 1px 8px;
+		border-radius: 4px;
+		font-size: 11px;
+		font-weight: 600;
+		background: #eef2f6;
+		color: #475467;
 	}
 
 	.tsb-status {
@@ -123,52 +141,49 @@
 	.tsb-tabs > .components-tab-panel__tabs { margin-bottom: .5em; }
 
 	/* ---- session type manager ---- */
-	.tsb-types-admin {
-		display: grid;
-		grid-template-columns: 280px 1fr;
-		gap: 1.5em;
-		align-items: start;
+	// Session types: a full-width list that drills into a full-width editor.
+	.tsb-types-table {
+		.tsb-col-len { width: 1%; white-space: nowrap; }
+		.tsb-type-name-link {
+			background: none;
+			border: 0;
+			padding: 0;
+			cursor: pointer;
+			color: var( --wp-admin-theme-color, #2271b1 );
+			font-size: inherit;
+			strong { font-weight: 600; }
+			&:hover strong { text-decoration: underline; }
+		}
+		.tsb-type-desc-sm { font-size: 12px; color: #6b7280; margin-top: 2px; }
+		td { vertical-align: middle; }
 	}
-	.tsb-types-list {
-		position: sticky;
-		top: 50px;
-		display: flex;
-		flex-direction: column;
-		gap: .75em;
-	}
-	.tsb-type-row {
+	.tsb-type-actions {
 		display: flex;
 		align-items: center;
 		gap: .25em;
-		border: 1px solid #e0e0e0;
-		border-radius: var( --tsb-radius );
-		background: #fff;
-		padding: .25em .25em .25em .5em;
-
-		&.is-active { border-color: var( --wp-admin-theme-color, #3858e9 ); box-shadow: 0 0 0 1px var( --wp-admin-theme-color, #3858e9 ); }
-		&.is-disabled .tsb-type-pick-label { opacity: .55; }
+		justify-content: flex-end;
+		.tsb-type-actions-sep {
+			width: 1px;
+			align-self: stretch;
+			margin: .15em .35em;
+			background: #e0e0e0;
+		}
 	}
-	.tsb-type-pick {
-		flex: 1;
-		min-width: 0;
-		text-align: left;
-		background: none;
-		border: 0;
-		cursor: pointer;
+	.tsb-type-add { justify-content: center; margin-top: 1em; }
+
+	// Drill-down editor: back bar + single accordion (no second tab row).
+	.tsb-type-editbar {
 		display: flex;
-		flex-direction: column;
-		padding: .35em .25em;
+		align-items: center;
+		gap: .75em;
+		margin-bottom: 1em;
+		.tsb-type-editbar-name { font-size: 15px; font-weight: 600; }
 	}
-	.tsb-type-pick-label { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-	.tsb-type-pick-meta { font-size: 11px; color: #6b7280; }
-	.tsb-type-rowbtns { display: flex; flex-shrink: 0; }
-	.tsb-type-add { justify-content: center; }
-	.tsb-types-edit { min-width: 0; }
-	.tsb-subtabs > .components-tab-panel__tabs { margin-bottom: .5em; }
-
-	@media ( max-width: 782px ) {
-		.tsb-types-admin { grid-template-columns: 1fr; }
-		.tsb-types-list { position: static; }
+	.tsb-type-panel.components-panel {
+		border-radius: var( --tsb-radius );
+		overflow: hidden;
+		.components-panel__body-title button { font-size: 14px; }
+		.components-panel__body.is-opened { padding: 1.25em; }
 	}
 
 	/* ---- google ---- */
@@ -335,6 +350,22 @@
 		.tsb-daypick { grid-template-columns: 1fr; }
 	}
 	.tsb-daypick-panel .components-notice { margin-top: 1em; }
+	.tsb-daypick-date { margin: 0 0 .5em; font-size: 14px; font-weight: 600; }
+	.tsb-range-list {
+		list-style: none;
+		margin: .75em 0;
+		padding: 0;
+		li {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: .3em .2em;
+			border-bottom: 1px solid #f0f0f1;
+			font-variant-numeric: tabular-nums;
+		}
+	}
+	.tsb-range-add { margin-top: .75em; }
+	.tsb-spam-note { margin-top: 1em; font-style: italic; }
 
 	.tsb-legend-cal { flex-wrap: wrap; }
 	.tsb-legend-cal .tsb-legend-dot.is-free { background: #12b76a; }

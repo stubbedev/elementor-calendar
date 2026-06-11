@@ -7,8 +7,7 @@ import {
 	Notice,
 	TabPanel,
 	ToggleControl,
-	SelectControl,
-	TextControl,
+	FormTokenField,
 	__experimentalNumberControl as NumberControl,
 	__experimentalVStack as VStack,
 } from '@wordpress/components';
@@ -61,14 +60,9 @@ export default function Settings() {
 			} );
 	}
 
-	const txt = ( k: keyof TSettings, label: string, help?: string ) => (
-		<TextControl label={ label } value={ String( d[ k ] || '' ) } help={ help } onChange={ ( v ) => set( k, v as never ) } __nextHasNoMarginBottom __next40pxDefaultSize />
-	);
-	const tog = ( k: keyof TSettings, label: string ) => (
-		<ToggleControl label={ label } checked={ !! d[ k ] } onChange={ ( v ) => set( k, ( v ? 1 : 0 ) as never ) } __nextHasNoMarginBottom />
-	);
+	const dirty = saved !== '' && JSON.stringify( d ) !== saved;
 
-	/* ---- Form ---- */
+	/* ---- Form & notifications ---- */
 	const tabForm = (
 		<VStack spacing={ 5 }>
 			<Card className="tsb-card">
@@ -76,72 +70,93 @@ export default function Settings() {
 				<CardBody>
 					<p className="tsb-help">{ __( 'Name and email are always shown and required. Add your own fields below — drag to reorder. Fields are shared across all session types.', 'tsb' ) }</p>
 					<FieldBuilder fields={ d.fields } types={ m.fieldTypes } onChange={ ( fields ) => set( 'fields', fields ) } />
+					<p className="tsb-help tsb-spam-note">{ __( 'Spam is blocked automatically with a built-in honeypot — nothing to configure.', 'tsb' ) }</p>
 				</CardBody>
 			</Card>
-			<Card className="tsb-card tsb-card-narrow">
-				<CardHeader>{ __( 'Consent (GDPR)', 'tsb' ) }</CardHeader>
+			<Card className="tsb-card">
+				<CardHeader>{ __( 'Admin notification', 'tsb' ) }</CardHeader>
 				<CardBody>
-					<VStack spacing={ 3 }>
-						{ tog( 'consent_enable', __( 'Require consent checkbox', 'tsb' ) ) }
-						{ txt( 'consent_text', __( 'Consent text', 'tsb' ) ) }
-						{ txt( 'consent_link_text', __( 'Link text', 'tsb' ) ) }
-						{ txt( 'consent_url', __( 'Link URL', 'tsb' ) ) }
-					</VStack>
+					<p className="tsb-help">{ __( 'Sent to you when a booking is made — shared across all session types. Customer-facing emails (confirmation, reminder, etc.) are configured per session type.', 'tsb' ) }</p>
+					<EmailEditor
+						emails={ d.emails }
+						events={ { admin: m.emailEvents.admin } }
+						tokensByEvent={ m.tokensByEvent }
+						tokenLabels={ m.tokenLabels }
+						sampleVars={ m.sampleVars }
+						defaults={ m.emailDefaults }
+						adminEmail={ m.adminEmail }
+						onChange={ ( emails ) => set( 'emails', emails ) }
+					/>
 				</CardBody>
 			</Card>
 		</VStack>
 	);
 
-	/* ---- Notifications (global admin email) ---- */
-	const tabNotifications = (
-		<>
-			<p className="tsb-help">{ __( 'Sent to you when a booking is made — shared across all session types. Customer-facing emails (confirmation, reminder, etc.) are configured per session type.', 'tsb' ) }</p>
-			<EmailEditor
-				emails={ d.emails }
-				events={ { admin: m.emailEvents.admin } }
-				tokensByEvent={ m.tokensByEvent }
-				tokenLabels={ m.tokenLabels }
-				sampleVars={ m.sampleVars }
-				defaults={ m.emailDefaults }
-				adminEmail={ m.adminEmail }
-				onChange={ ( emails ) => set( 'emails', emails ) }
-			/>
-		</>
+	/* ---- Availability (global rules + holidays + time off) ---- */
+	const countries = m.countries;
+	const tabAvailability = (
+		<VStack spacing={ 5 }>
+			<Card className="tsb-card tsb-card-narrow">
+				<CardHeader>{ __( 'Booking window', 'tsb' ) }</CardHeader>
+				<CardBody>
+					<p className="tsb-help">{ __( 'Site-wide limits applied to every session type.', 'tsb' ) }</p>
+					<VStack spacing={ 4 }>
+						<NumberControl
+							label={ __( 'Days ahead', 'tsb' ) }
+							min={ 1 }
+							value={ String( d.days_ahead ) }
+							help={ __( 'How far into the future visitors can book.', 'tsb' ) }
+							onChange={ ( v?: string ) => set( 'days_ahead', v === '' || v == null ? 1 : parseInt( v, 10 ) ) }
+							__next40pxDefaultSize
+						/>
+						<NumberControl
+							label={ __( 'Minimum lead time (hours)', 'tsb' ) }
+							min={ 0 }
+							value={ String( d.lead_hours ) }
+							help={ __( '0 = bookable right now.', 'tsb' ) }
+							onChange={ ( v?: string ) => set( 'lead_hours', v === '' || v == null ? 0 : parseInt( v, 10 ) ) }
+							__next40pxDefaultSize
+						/>
+					</VStack>
+				</CardBody>
+			</Card>
+
+			<Card className="tsb-card tsb-card-narrow">
+				<CardHeader>{ __( 'Public holidays', 'tsb' ) }</CardHeader>
+				<CardBody>
+					<VStack spacing={ 4 }>
+						<ToggleControl
+							label={ __( 'Block public holidays', 'tsb' ) }
+							checked={ !! d.block_holidays }
+							onChange={ ( v ) => set( 'block_holidays', ( v ? 1 : 0 ) as never ) }
+							__nextHasNoMarginBottom
+						/>
+						<FormTokenField
+							label={ __( 'Countries', 'tsb' ) }
+							value={ d.holiday_countries.map( ( c ) => countries[ c ] || c ) }
+							suggestions={ Object.values( countries ) }
+							onChange={ ( tokens ) => {
+								const nameToCode: Record< string, string > = {};
+								Object.keys( countries ).forEach( ( code ) => { nameToCode[ countries[ code ] ] = code; } );
+								const codes = tokens
+									.map( ( tk ) => ( typeof tk === 'string' ? tk : tk.value ) )
+									.map( ( name ) => nameToCode[ name ] || name )
+									.filter( Boolean ) as string[];
+								set( 'holiday_countries', ( codes.length ? codes : [ 'DK' ] ) as never );
+							} }
+							__experimentalExpandOnFocus
+							__nextHasNoMarginBottom
+						/>
+						<p className="tsb-help">{ __( 'Holidays are fetched from date.nager.at (cached).', 'tsb' ) }</p>
+					</VStack>
+				</CardBody>
+			</Card>
+
+			<Blocks />
+		</VStack>
 	);
 
-	/* ---- Spam ---- */
-	const tabSpam = (
-		<Card className="tsb-card tsb-card-narrow">
-			<CardHeader>{ __( 'Spam protection', 'tsb' ) }</CardHeader>
-			<CardBody>
-				<VStack spacing={ 4 }>
-					<SelectControl
-						label={ __( 'Method', 'tsb' ) }
-						value={ d.captcha_mode }
-						options={ Object.keys( m.captchaModes ).map( ( k ) => ( { label: m.captchaModes[ k ], value: k } ) ) }
-						onChange={ ( v ) => set( 'captcha_mode', v ) }
-						__nextHasNoMarginBottom
-						__next40pxDefaultSize
-					/>
-					{ txt( 'captcha_site', __( 'Site key', 'tsb' ) ) }
-					{ txt( 'captcha_secret', __( 'Secret key', 'tsb' ) ) }
-					<NumberControl
-						label={ __( 'v3 minimum score', 'tsb' ) }
-						min={ 0 }
-						max={ 1 }
-						step={ 0.1 }
-						value={ String( d.captcha_min_score ) }
-						onChange={ ( v?: string ) => set( 'captcha_min_score', parseFloat( v || '0' ) || 0 ) }
-						__next40pxDefaultSize
-					/>
-				</VStack>
-			</CardBody>
-		</Card>
-	);
-
-	const dirty = saved !== '' && JSON.stringify( d ) !== saved;
-
-	/* ---- Google ---- */
+	/* ---- Integrations (Google) ---- */
 	const tabGoogle = (
 		<GoogleSettings
 			clientId={ d.google_client_id }
@@ -153,14 +168,12 @@ export default function Settings() {
 	);
 
 	// Tabs that edit the global `d` object and share the bottom save bar.
-	const GLOBAL_TABS = [ 'form', 'notifications', 'spam', 'google' ];
+	const GLOBAL_TABS = [ 'form', 'availability', 'google' ];
 	const tabs = [
 		{ name: 'types', title: __( 'Session types', 'tsb' ) },
-		{ name: 'form', title: __( 'Form', 'tsb' ) },
-		{ name: 'notifications', title: __( 'Notifications', 'tsb' ) },
-		{ name: 'google', title: __( 'Google', 'tsb' ) },
-		{ name: 'spam', title: __( 'Spam protection', 'tsb' ) },
-		{ name: 'blocks', title: __( 'Blocks', 'tsb' ) },
+		{ name: 'form', title: __( 'Form & notifications', 'tsb' ) },
+		{ name: 'availability', title: __( 'Availability', 'tsb' ) },
+		{ name: 'google', title: __( 'Integrations', 'tsb' ) },
 	];
 
 	return (
@@ -176,22 +189,19 @@ export default function Settings() {
 					if ( tab.name === 'types' ) {
 						return <TypeManager />;
 					}
-					if ( tab.name === 'blocks' ) {
-						return <Blocks />;
-					}
 					const body =
 						tab.name === 'form' ? tabForm :
-						tab.name === 'notifications' ? tabNotifications :
-						tab.name === 'google' ? tabGoogle : tabSpam;
+						tab.name === 'availability' ? tabAvailability :
+						tabGoogle;
 					return (
 						<div className="tsb-tab-body">
 							{ body }
 							{ GLOBAL_TABS.includes( tab.name ) && (
 								<div className="tsb-savebar">
-									{ saved !== '' && JSON.stringify( d ) !== saved && (
+									{ dirty && (
 										<span className="tsb-unsaved">{ __( 'Unsaved changes', 'tsb' ) }</span>
 									) }
-									<Button variant="primary" isBusy={ saving } disabled={ saved !== '' && JSON.stringify( d ) === saved } onClick={ save } __next40pxDefaultSize>
+									<Button variant="primary" isBusy={ saving } disabled={ ! dirty } onClick={ save } __next40pxDefaultSize>
 										{ __( 'Save settings', 'tsb' ) }
 									</Button>
 								</div>

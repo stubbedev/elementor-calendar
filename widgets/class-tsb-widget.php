@@ -279,9 +279,6 @@ class TSB_Widget extends Widget_Base {
 	}
 
 	protected function render() {
-		$set    = TSB_Availability::settings();
-		$mode   = $set['captcha_mode'];
-		$site   = $set['captcha_site'];
 		$id     = 'tsb-' . $this->get_id();
 		$types  = TSB_Types::enabled();
 		$multi  = count( $types ) > 1; // show the picker first only when there's a real choice
@@ -360,27 +357,6 @@ class TSB_Widget extends Widget_Base {
 							<input type="text" name="tsb_hp" tabindex="-1" autocomplete="off">
 						</label>
 					</div>
-
-					<?php if ( ! empty( $set['consent_enable'] ) ) : ?>
-						<label class="tsb-field tsb-consent" data-field="consent">
-							<span class="tsb-consent-row">
-								<input type="checkbox" name="consent" value="1" aria-required="true">
-								<span class="tsb-consent-text"><?php
-									echo esc_html( $set['consent_text'] );
-									if ( ! empty( $set['consent_url'] ) ) {
-										echo ' <a href="' . esc_url( $set['consent_url'] ) . '" target="_blank" rel="noopener">' . esc_html( $set['consent_link_text'] ) . '</a>';
-									}
-								?></span>
-							</span>
-							<span class="tsb-field-error" role="alert" hidden></span>
-						</label>
-					<?php endif; ?>
-
-					<?php if ( 'recaptcha' === $mode && $site ) : ?>
-						<div class="g-recaptcha" data-sitekey="<?php echo esc_attr( $site ); ?>"></div>
-					<?php elseif ( 'hcaptcha' === $mode && $site ) : ?>
-						<div class="h-captcha" data-sitekey="<?php echo esc_attr( $site ); ?>"></div>
-					<?php endif; ?>
 
 					<div class="tsb-actions">
 						<button type="submit" class="tsb-submit"><?php esc_html_e( 'Confirm booking', 'tsb' ); ?></button>

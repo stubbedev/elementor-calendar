@@ -2,7 +2,8 @@ import {
 	Card,
 	CardBody,
 	CardHeader,
-	TabPanel,
+	Panel,
+	PanelBody,
 	ToggleControl,
 	TextControl,
 	TextareaControl,
@@ -27,47 +28,40 @@ interface Props {
 
 export default function TypeEditor( { type: t, meta: m, adminEmail, onChange }: Props ) {
 	const availKeys: ( keyof AvailabilityValue )[] = [
-		'slot_minutes', 'slot_offset', 'slot_gap', 'base_start', 'base_end',
-		'days_ahead', 'lead_hours', 'block_holidays', 'holiday_countries', 'week',
+		'slot_minutes', 'slot_gap', 'base_start', 'base_end', 'week',
 	];
 
 	const tabIdentity = (
-		<Card className="tsb-card tsb-card-narrow">
-			<CardHeader>{ __( 'Session', 'tsb' ) }</CardHeader>
-			<CardBody>
-				<VStack spacing={ 3 }>
-					<TextControl
-						label={ __( 'Name', 'tsb' ) }
-						value={ t.label }
-						onChange={ ( v ) => onChange( { label: v } ) }
-						help={ __( 'Shown to visitors in the type picker.', 'tsb' ) }
-						__nextHasNoMarginBottom
-						__next40pxDefaultSize
-					/>
-					<TextareaControl
-						label={ __( 'Description', 'tsb' ) }
-						value={ t.description }
-						rows={ 2 }
-						onChange={ ( v ) => onChange( { description: v } ) }
-						help={ __( 'Optional. Shown under the name in the picker.', 'tsb' ) }
-						__nextHasNoMarginBottom
-					/>
-					<ToggleControl
-						label={ __( 'Enabled (bookable on the front end)', 'tsb' ) }
-						checked={ !! t.enabled }
-						onChange={ ( v ) => onChange( { enabled: v ? 1 : 0 } ) }
-						__nextHasNoMarginBottom
-					/>
-				</VStack>
-			</CardBody>
-		</Card>
+		<VStack spacing={ 3 } className="tsb-card-narrow">
+			<TextControl
+				label={ __( 'Name', 'tsb' ) }
+				value={ t.label }
+				onChange={ ( v ) => onChange( { label: v } ) }
+				help={ __( 'Shown to visitors in the type picker.', 'tsb' ) }
+				__nextHasNoMarginBottom
+				__next40pxDefaultSize
+			/>
+			<TextareaControl
+				label={ __( 'Description', 'tsb' ) }
+				value={ t.description }
+				rows={ 2 }
+				onChange={ ( v ) => onChange( { description: v } ) }
+				help={ __( 'Optional. Shown under the name in the picker.', 'tsb' ) }
+				__nextHasNoMarginBottom
+			/>
+			<ToggleControl
+				label={ __( 'Enabled (bookable on the front end)', 'tsb' ) }
+				checked={ !! t.enabled }
+				onChange={ ( v ) => onChange( { enabled: v ? 1 : 0 } ) }
+				__nextHasNoMarginBottom
+			/>
+		</VStack>
 	);
 
 	const tabAvail = (
 		<AvailabilityForm
 			value={ t as unknown as AvailabilityValue }
 			weekdays={ m.weekdays }
-			countries={ m.countries }
 			onChange={ ( patch ) => {
 				// Only forward the availability-owning keys.
 				const out: Partial< SessionType > = {};
@@ -151,22 +145,20 @@ export default function TypeEditor( { type: t, meta: m, adminEmail, onChange }: 
 		</VStack>
 	);
 
-	const tabs = [
-		{ name: 'identity', title: __( 'Session', 'tsb' ) },
-		{ name: 'availability', title: __( 'Availability', 'tsb' ) },
-		{ name: 'emails', title: __( 'Emails', 'tsb' ) },
-		{ name: 'video', title: __( 'Video & invite', 'tsb' ) },
-	];
-
 	return (
-		<TabPanel className="tsb-subtabs" tabs={ tabs }>
-			{ ( tab ) => (
-				<div className="tsb-tab-body">
-					{ tab.name === 'identity' ? tabIdentity :
-						tab.name === 'availability' ? tabAvail :
-						tab.name === 'emails' ? tabEmails : tabVideo }
-				</div>
-			) }
-		</TabPanel>
+		<Panel className="tsb-type-panel">
+			<PanelBody title={ __( 'Session', 'tsb' ) } initialOpen={ true }>
+				{ tabIdentity }
+			</PanelBody>
+			<PanelBody title={ __( 'Schedule', 'tsb' ) } initialOpen={ false }>
+				{ tabAvail }
+			</PanelBody>
+			<PanelBody title={ __( 'Emails', 'tsb' ) } initialOpen={ false }>
+				{ tabEmails }
+			</PanelBody>
+			<PanelBody title={ __( 'Video & invite', 'tsb' ) } initialOpen={ false }>
+				{ tabVideo }
+			</PanelBody>
+		</Panel>
 	);
 }

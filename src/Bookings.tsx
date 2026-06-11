@@ -129,9 +129,10 @@ export default function Bookings() {
 								<tr>
 									{ sortHead( 'slot_date', __( 'Date', 'tsb' ) ) }
 									{ sortHead( 'slot_time', __( 'Time', 'tsb' ) ) }
+									{ sortHead( 'type_id', __( 'Type', 'tsb' ), 'tsb-col-type' ) }
 									{ sortHead( 'name', __( 'Name', 'tsb' ) ) }
-									<th>{ __( 'Email', 'tsb' ) }</th>
-									<th>{ __( 'Phone', 'tsb' ) }</th>
+									{ sortHead( 'email', __( 'Email', 'tsb' ) ) }
+									{ sortHead( 'phone', __( 'Phone', 'tsb' ) ) }
 									{ sortHead( 'status', __( 'Status', 'tsb' ), 'tsb-col-status' ) }
 									<th className="tsb-col-actions" />
 								</tr>
@@ -144,6 +145,9 @@ export default function Bookings() {
 											<tr key={ b.id } className={ cancelled ? 'is-cancelled' : '' }>
 												<td>{ b.slot_date }</td>
 												<td>{ b.slot_time }</td>
+												<td className="tsb-col-type">
+													<span className="tsb-type-tag">{ b.type_label || b.type_id }</span>
+												</td>
 												<td>
 													<strong>{ b.name }</strong>
 												</td>
@@ -156,29 +160,34 @@ export default function Bookings() {
 												</td>
 												<td className="tsb-col-actions">
 													<div className="tsb-actions-cell">
-														{ ! cancelled && (
-															<Button variant="secondary" size="small" onClick={ () => setMoving( b ) }>
-																{ __( 'Move', 'tsb' ) }
-															</Button>
-														) }
-														{ ! cancelled && (
-															<ConfirmButton
-																variant="tertiary"
-																size="small"
-																isDestructive
-																onConfirm={ () => act( b.id, { op: 'cancel' }, __( 'Booking(s) cancelled. The time is available again.', 'tsb' ) ) }
-															>
-																{ __( 'Cancel', 'tsb' ) }
+														<span className="tsb-act">
+															{ cancelled ? (
+																<Button variant="secondary" size="small" onClick={ () => act( b.id, { op: 'restore' }, __( 'Booking restored.', 'tsb' ) ) }>
+																	{ __( 'Restore', 'tsb' ) }
+																</Button>
+															) : (
+																<Button variant="secondary" size="small" onClick={ () => setMoving( b ) }>
+																	{ __( 'Move', 'tsb' ) }
+																</Button>
+															) }
+														</span>
+														<span className="tsb-act">
+															{ ! cancelled && (
+																<ConfirmButton
+																	variant="tertiary"
+																	size="small"
+																	isDestructive
+																	onConfirm={ () => act( b.id, { op: 'cancel' }, __( 'Booking(s) cancelled. The time is available again.', 'tsb' ) ) }
+																>
+																	{ __( 'Cancel', 'tsb' ) }
+																</ConfirmButton>
+															) }
+														</span>
+														<span className="tsb-act">
+															<ConfirmButton variant="tertiary" size="small" isDestructive onConfirm={ () => del( b.id ) }>
+																{ __( 'Delete', 'tsb' ) }
 															</ConfirmButton>
-														) }
-														{ cancelled && (
-															<Button variant="secondary" size="small" onClick={ () => act( b.id, { op: 'restore' }, __( 'Booking moved.', 'tsb' ) ) }>
-																{ __( 'Restore', 'tsb' ) }
-															</Button>
-														) }
-														<ConfirmButton variant="tertiary" size="small" isDestructive onConfirm={ () => del( b.id ) }>
-															{ __( 'Delete', 'tsb' ) }
-														</ConfirmButton>
+														</span>
 													</div>
 												</td>
 											</tr>
@@ -186,7 +195,7 @@ export default function Bookings() {
 									} )
 								) : (
 									<tr>
-										<td colSpan={ 7 }>
+										<td colSpan={ 8 }>
 											<em>{ __( 'No bookings.', 'tsb' ) }</em>
 										</td>
 									</tr>

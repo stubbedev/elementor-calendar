@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class TSB_DB {
 
-	const DB_VERSION = '4';
+	const DB_VERSION = '5';
 
 	/**
 	 * Idempotent schema guard. Runs on every load but does real work only when
@@ -37,16 +37,24 @@ class TSB_DB {
 		$blocked  = self::blocked_table();
 		$bookings = self::bookings_table();
 
-		// block_time NULL = whole day blocked.
+		// Time off. block_time NULL = whole day blocked. Otherwise block_time is the
+		// start and block_end the (exclusive) end of a blocked range — slots whose
+		// range overlaps [block_time, block_end) are hidden. Legacy single-slot rows
+		// (no block_end) are backfilled to a 30-minute range below.
 		dbDelta( "CREATE TABLE $blocked (
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			block_date DATE NOT NULL,
 			block_time TIME NULL,
+			block_end TIME NULL,
 			reason VARCHAR(190) NULL,
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (id),
 			KEY block_date (block_date)
 		) $charset;" );
+
+		// Legacy timed blocks predate ranges → give them the old hard-coded 30-min span.
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query( "UPDATE $blocked SET block_end = ADDTIME(block_time, '00:30:00') WHERE block_time IS NOT NULL AND block_end IS NULL" );
 
 		// active = 1 for live bookings, NULL when cancelled. UNIQUE(slot_date, slot_time, active)
 		// blocks an exact double-booking of one start time, while letting a cancelled slot be
@@ -145,12 +153,12 @@ class TSB_DB {
 		}
 	}
 
-	/** Rows blocked for a date (whole-day = block_time NULL). */
+	/** Rows blocked for a date (whole-day = block_time NULL, else a [start,end) range). */
 	public static function blocked_for_date( $date ) {
 		global $wpdb;
 		$t = self::blocked_table();
 		return $wpdb->get_results( $wpdb->prepare(
-			"SELECT block_time FROM $t WHERE block_date = %s", $date
+			"SELECT block_time, block_end FROM $t WHERE block_date = %s", $date
 		) );
 	}
 

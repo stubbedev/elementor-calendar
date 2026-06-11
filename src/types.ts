@@ -6,37 +6,20 @@ export interface WeekDay {
 }
 
 export interface Settings {
-	slot_minutes: number;
-	slot_offset: number;
-	slot_gap: number;
-	base_start: number;
-	base_end: number;
+	// Global scheduling rules (apply to every session type).
 	days_ahead: number;
 	lead_hours: number;
 	block_holidays: number;
 	holiday_countries: string[];
-	week: Record<string, WeekDay>;
 
-	ics_attach: number;
-	ics_summary: string;
-	ics_location: string;
+	// Admin notification template (per-event customer emails live on each type).
 	emails: Record<string, EmailTemplate>;
-	reminder_hours: number;
 
 	google_client_id: string;
 	google_client_secret: string;
 	google_calendar_id: string;
 
-	captcha_mode: string;
-	captcha_site: string;
-	captcha_secret: string;
-	captcha_min_score: number;
-
 	fields: Field[];
-	consent_enable: number;
-	consent_text: string;
-	consent_link_text: string;
-	consent_url: string;
 }
 
 export interface Field {
@@ -62,14 +45,9 @@ export interface SessionType {
 	order: number;
 	description: string;
 	slot_minutes: number;
-	slot_offset: number;
 	slot_gap: number;
 	base_start: number;
 	base_end: number;
-	days_ahead: number;
-	lead_hours: number;
-	block_holidays: number;
-	holiday_countries: string[];
 	week: Record< string, WeekDay >;
 	emails: Record< string, EmailTemplate >;
 	reminder_hours: number;
@@ -102,11 +80,12 @@ export interface Meta {
 	sampleVars: Record<string, string>;
 	emailDefaults: Record<string, EmailTemplate>;
 	adminEmail: string;
-	captchaModes: Record<string, string>;
 }
 
 export interface Booking {
 	id: number;
+	type_id: string;
+	type_label: string;
 	slot_date: string;
 	slot_time: string;
 	name: string;
@@ -126,5 +105,6 @@ export interface Block {
 	id: number;
 	block_date: string;
 	block_time: string;
+	block_end: string;
 	reason: string;
 }

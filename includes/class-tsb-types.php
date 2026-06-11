@@ -21,8 +21,7 @@ class TSB_Types {
 
 	/** Keys a type copies verbatim from the legacy global settings when seeded. */
 	const AVAIL_KEYS = array(
-		'slot_minutes', 'slot_offset', 'slot_gap', 'base_start', 'base_end',
-		'days_ahead', 'lead_hours', 'block_holidays', 'holiday_countries', 'week',
+		'slot_minutes', 'slot_gap', 'base_start', 'base_end', 'week',
 		'emails', 'reminder_hours', 'ics_attach', 'ics_summary', 'ics_location',
 	);
 
@@ -35,14 +34,9 @@ class TSB_Types {
 			'order'             => 0,
 			'description'       => '',
 			'slot_minutes'      => 30,
-			'slot_offset'       => 0,
 			'slot_gap'          => 0,
 			'base_start'        => 9,
 			'base_end'          => 17,
-			'days_ahead'        => 30,
-			'lead_hours'        => 0,
-			'block_holidays'    => 1,
-			'holiday_countries' => array( 'DK' ),
 			'week'              => TSB_Availability::default_week(),
 			'emails'            => class_exists( 'TSB_Emails' ) ? TSB_Emails::default_templates() : array(),
 			'reminder_hours'    => 24,
@@ -141,23 +135,13 @@ class TSB_Types {
 		$out['order']        = (int) ( $t['order'] ?? 0 );
 
 		$out['slot_minutes'] = max( 5, (int) $out['slot_minutes'] );
-		$out['slot_offset']  = max( 0, (int) $out['slot_offset'] );
 		$out['slot_gap']     = max( 0, (int) $out['slot_gap'] );
 		$out['base_start']   = max( 0, min( 23, (int) $out['base_start'] ) );
 		$out['base_end']     = max( 1, min( 24, (int) $out['base_end'] ) );
-		$out['days_ahead']   = max( 1, (int) $out['days_ahead'] );
-		$out['lead_hours']   = max( 0, (int) $out['lead_hours'] );
-		$out['block_holidays'] = empty( $out['block_holidays'] ) ? 0 : 1;
 		$out['reminder_hours'] = max( 1, (int) $out['reminder_hours'] );
 		$out['ics_attach']     = empty( $out['ics_attach'] ) ? 0 : 1;
 		$out['ics_summary']    = sanitize_text_field( $out['ics_summary'] );
 		$out['ics_location']   = sanitize_text_field( $out['ics_location'] );
-
-		if ( ! is_array( $out['holiday_countries'] ) || empty( $out['holiday_countries'] ) ) {
-			$out['holiday_countries'] = array( 'DK' );
-		} else {
-			$out['holiday_countries'] = array_values( array_map( 'strtoupper', array_map( 'sanitize_text_field', $out['holiday_countries'] ) ) );
-		}
 
 		$out['week'] = self::normalize_week( $out['week'] );
 

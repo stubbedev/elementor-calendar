@@ -3,16 +3,17 @@ import {
 	CardBody,
 	CardHeader,
 	Button,
-	Spinner,
 	Notice,
 	ToggleControl,
+	TextControl,
+	Flex,
 	__experimentalVStack as VStack,
 } from '@wordpress/components';
 import { useState, useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { api, qs } from './api';
 import MiniCalendar, { type DayStatus } from './MiniCalendar';
-import type { Slot, Block } from './types';
+import type { Block } from './types';
 
 function todayISO() {
 	const d = new Date();
@@ -25,9 +26,10 @@ export default function Blocks() {
 	const [ view, setView ] = useState( { y: Number( init.slice( 0, 4 ) ), m: Number( init.slice( 5, 7 ) ) - 1 } );
 	const [ date, setDate ] = useState( init );
 	const [ monthDays, setMonthDays ] = useState< Record< string, DayStatus > >( {} );
-	const [ slots, setSlots ] = useState< Slot[] >( [] );
 	const [ blocks, setBlocks ] = useState< Block[] >( [] );
-	const [ loading, setLoading ] = useState( false );
+	const [ from, setFrom ] = useState( '09:00' );
+	const [ to, setTo ] = useState( '10:00' );
+	const [ error, setError ] = useState( '' );
 
 	function loadBlocks() {
 		api< { items: Block[] } >( 'blocks' ).then( ( r ) => setBlocks( r.items || [] ) );
@@ -36,37 +38,26 @@ export default function Blocks() {
 		api< { days: Record< string, DayStatus > } >( 'month?' + qs( { year: view.y, month: view.m + 1 } ) )
 			.then( ( r ) => setMonthDays( r.days || {} ) );
 	}
-	function loadDay() {
-		if ( ! /^\d{4}-\d{2}-\d{2}$/.test( date ) ) {
-			return;
-		}
-		setLoading( true );
-		api< { slots: Slot[] } >( 'availability?' + qs( { date } ) )
-			.then( ( r ) => {
-				setSlots( r.slots || [] );
-				setLoading( false );
-			} )
-			.catch( () => setLoading( false ) );
-	}
 	useEffect( loadBlocks, [] );
 	useEffect( loadMonth, [ view.y, view.m ] );
-	useEffect( loadDay, [ date ] );
 
 	function refresh() {
 		loadBlocks();
 		loadMonth();
-		loadDay();
 	}
-	function addBlock( time: string ) {
-		api( 'blocks', { method: 'POST', data: { block_date: date, block_time: time } } ).then( refresh );
+	function addRange() {
+		setError( '' );
+		if ( to <= from ) {
+			setError( __( 'End time must be after the start time.', 'tsb' ) );
+			return;
+		}
+		api( 'blocks', { method: 'POST', data: { block_date: date, block_time: from, block_end: to } } )
+			.then( refresh )
+			.catch( ( e: { message?: string } ) => setError( e?.message || __( 'Could not add the block.', 'tsb' ) ) );
 	}
 	function delBlock( id: number ) {
 		api( 'blocks/' + id, { method: 'DELETE' } ).then( refresh );
 	}
-
-	const blockAt = ( time: string ) => blocks.find( ( b ) => b.block_date === date && b.block_time === time );
-	const wholeDay = blocks.find( ( b ) => b.block_date === date && ! b.block_time );
-
 	function toggleWholeDay( on: boolean ) {
 		if ( on ) {
 			api( 'blocks', { method: 'POST', data: { block_date: date } } ).then( refresh );
@@ -83,22 +74,32 @@ export default function Blocks() {
 		setView( { y, m } );
 	}
 
+	const wholeDay = blocks.find( ( b ) => b.block_date === date && ! b.block_time );
+	const dayRanges = blocks
+		.filter( ( b ) => b.block_date === date && b.block_time )
+		.sort( ( a, b ) => a.block_time.localeCompare( b.block_time ) );
+
+	const rangeLabel = ( b: Block ) =>
+		b.block_time ? b.block_time + '–' + b.block_end : __( 'Whole day', 'tsb' );
+
 	return (
 		<VStack spacing={ 5 }>
 			<Card className="tsb-card">
-				<CardHeader>{ __( 'Block times', 'tsb' ) }</CardHeader>
+				<CardHeader>{ __( 'Time off', 'tsb' ) }</CardHeader>
 				<CardBody>
+					<p className="tsb-help">{ __( 'Block dates or time ranges across every session type — holidays, lunch breaks, days off.', 'tsb' ) }</p>
 					<div className="tsb-daypick">
 						<div className="tsb-daypick-cal">
 							<MiniCalendar view={ view } selected={ date } days={ monthDays } onSelect={ setDate } onNav={ nav } />
 							<p className="tsb-legend tsb-legend-cal">
 								<span className="tsb-legend-dot is-free" /> { __( 'Free', 'tsb' ) }
-								<span className="tsb-legend-dot is-partial" /> { __( 'Some taken', 'tsb' ) }
+								<span className="tsb-legend-dot is-partial" /> { __( 'Some blocked', 'tsb' ) }
 								<span className="tsb-legend-dot is-full" /> { __( 'Fully blocked', 'tsb' ) }
 								<span className="tsb-legend-dot is-closed" /> { __( 'Closed', 'tsb' ) }
 							</p>
 						</div>
 						<div className="tsb-daypick-panel">
+							<h3 className="tsb-daypick-date">{ date }</h3>
 							<ToggleControl
 								label={ __( 'Block the whole day', 'tsb' ) }
 								checked={ !! wholeDay }
@@ -109,46 +110,47 @@ export default function Blocks() {
 								<Notice status="warning" isDismissible={ false }>
 									{ __( 'The whole day is blocked.', 'tsb' ) }
 								</Notice>
-							) : loading ? (
-								<Spinner />
-							) : slots.length ? (
-								<>
-									<p className="tsb-help">{ __( 'Click a time to block or unblock it.', 'tsb' ) }</p>
-									<div className="tsb-slot-grid">
-										{ slots.map( ( s ) => {
-											const booked = s.reason === 'booked';
-											const isBlocked = !! blockAt( s.time );
-											return (
-												<Button
-													key={ s.time }
-													variant={ isBlocked ? 'primary' : 'secondary' }
-													className={ 'tsb-slot-btn' + ( isBlocked ? ' is-blocked' : '' ) }
-													disabled={ booked }
-													title={ booked ? __( 'Booked', 'tsb' ) : '' }
-													onClick={ () => {
-														const b = blockAt( s.time );
-														if ( b ) {
-															delBlock( b.id );
-														} else {
-															addBlock( s.time );
-														}
-													} }
-												>
-													{ s.time }
-												</Button>
-											);
-										} ) }
-									</div>
-									<p className="tsb-legend">
-										<span className="tsb-legend-dot is-free" /> { __( 'Free', 'tsb' ) }
-										<span className="tsb-legend-dot is-blocked" /> { __( 'Blocked', 'tsb' ) }
-										<span className="tsb-legend-dot is-booked" /> { __( 'Booked', 'tsb' ) }
-									</p>
-								</>
 							) : (
-								<Notice status="info" isDismissible={ false }>
-									{ __( 'No open times on this day (closed weekday or holiday).', 'tsb' ) }
-								</Notice>
+								<>
+									{ dayRanges.length > 0 && (
+										<ul className="tsb-range-list">
+											{ dayRanges.map( ( b ) => (
+												<li key={ b.id }>
+													<span>{ rangeLabel( b ) }</span>
+													<Button variant="tertiary" size="small" isDestructive onClick={ () => delBlock( b.id ) }>
+														{ __( 'Remove', 'tsb' ) }
+													</Button>
+												</li>
+											) ) }
+										</ul>
+									) }
+									<Flex className="tsb-range-add" justify="flex-start" align="flex-end" gap={ 3 }>
+										<TextControl
+											label={ __( 'From', 'tsb' ) }
+											type="time"
+											value={ from }
+											onChange={ ( v ) => setFrom( v ) }
+											__nextHasNoMarginBottom
+											__next40pxDefaultSize
+										/>
+										<TextControl
+											label={ __( 'To', 'tsb' ) }
+											type="time"
+											value={ to }
+											onChange={ ( v ) => setTo( v ) }
+											__nextHasNoMarginBottom
+											__next40pxDefaultSize
+										/>
+										<Button variant="secondary" onClick={ addRange } __next40pxDefaultSize>
+											{ __( 'Block range', 'tsb' ) }
+										</Button>
+									</Flex>
+									{ error && (
+										<Notice status="error" isDismissible onRemove={ () => setError( '' ) }>
+											{ error }
+										</Notice>
+									) }
+								</>
 							) }
 						</div>
 					</div>
@@ -156,13 +158,13 @@ export default function Blocks() {
 			</Card>
 
 			<Card className="tsb-card tsb-card-narrow">
-				<CardHeader>{ __( 'All blocks', 'tsb' ) }</CardHeader>
+				<CardHeader>{ __( 'All time off', 'tsb' ) }</CardHeader>
 				<CardBody>
 					<table className="wp-list-table widefat striped tsb-table">
 						<thead>
 							<tr>
 								<th>{ __( 'Date', 'tsb' ) }</th>
-								<th>{ __( 'Time', 'tsb' ) }</th>
+								<th>{ __( 'When', 'tsb' ) }</th>
 								<th className="tsb-col-actions" />
 							</tr>
 						</thead>
@@ -177,7 +179,7 @@ export default function Blocks() {
 												setDate( b.block_date );
 											} }>{ b.block_date }</a>
 										</td>
-										<td>{ b.block_time || <em>{ __( 'whole day', 'tsb' ) }</em> }</td>
+										<td>{ b.block_time ? rangeLabel( b ) : <em>{ __( 'Whole day', 'tsb' ) }</em> }</td>
 										<td className="tsb-col-actions">
 											<Button variant="tertiary" size="small" isDestructive onClick={ () => delBlock( b.id ) }>
 												{ __( 'Delete', 'tsb' ) }
@@ -188,7 +190,7 @@ export default function Blocks() {
 							) : (
 								<tr>
 									<td colSpan={ 3 }>
-										<em>{ __( 'No blocks.', 'tsb' ) }</em>
+										<em>{ __( 'No time off.', 'tsb' ) }</em>
 									</td>
 								</tr>
 							) }
