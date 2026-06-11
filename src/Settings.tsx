@@ -10,6 +10,7 @@ import {
 	FormTokenField,
 	__experimentalNumberControl as NumberControl,
 	__experimentalVStack as VStack,
+	__experimentalGrid as Grid,
 } from '@wordpress/components';
 import { useState, useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
@@ -96,7 +97,8 @@ export default function Settings() {
 	const countries = m.countries;
 	const tabAvailability = (
 		<VStack spacing={ 5 }>
-			<Card className="tsb-card tsb-card-narrow">
+			<Grid columns={ 2 } gap={ 5 } className="tsb-cards-2">
+			<Card className="tsb-card">
 				<CardHeader>{ __( 'Booking window', 'tsb' ) }</CardHeader>
 				<CardBody>
 					<p className="tsb-help">{ __( 'Site-wide limits applied to every session type.', 'tsb' ) }</p>
@@ -121,7 +123,7 @@ export default function Settings() {
 				</CardBody>
 			</Card>
 
-			<Card className="tsb-card tsb-card-narrow">
+			<Card className="tsb-card">
 				<CardHeader>{ __( 'Public holidays', 'tsb' ) }</CardHeader>
 				<CardBody>
 					<VStack spacing={ 4 }>
@@ -151,6 +153,7 @@ export default function Settings() {
 					</VStack>
 				</CardBody>
 			</Card>
+			</Grid>
 
 			<Blocks />
 		</VStack>
@@ -176,6 +179,13 @@ export default function Settings() {
 		{ name: 'google', title: __( 'Integrations', 'tsb' ) },
 	];
 
+	// Remember the open tab in the URL hash (#…) so a reload keeps it.
+	const urlTab = window.location.hash.slice( 1 ); // drop the leading '#'
+	const initialTab = tabs.some( ( t ) => t.name === urlTab ) ? urlTab : undefined;
+	function onSelectTab( name: string ) {
+		window.history.replaceState( null, '', '#' + name );
+	}
+
 	return (
 		<>
 			<h1>{ __( 'Booking settings', 'tsb' ) }</h1>
@@ -184,7 +194,7 @@ export default function Settings() {
 					{ notice.msg }
 				</Notice>
 			) }
-			<TabPanel className="tsb-tabs" tabs={ tabs }>
+			<TabPanel className="tsb-tabs" tabs={ tabs } initialTabName={ initialTab } onSelect={ onSelectTab }>
 				{ ( tab ) => {
 					if ( tab.name === 'types' ) {
 						return <TypeManager />;
