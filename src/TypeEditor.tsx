@@ -16,7 +16,6 @@ import { __ } from '@wordpress/i18n';
 import AvailabilityForm from './AvailabilityForm';
 import type { AvailabilityValue } from './AvailabilityForm';
 import EmailEditor from './EmailEditor';
-import VarMenu from './VarMenu';
 import type { SessionType, TypesMeta, EmailTemplate } from './types';
 
 interface Props {
@@ -90,59 +89,41 @@ export default function TypeEditor( { type: t, meta: m, adminEmail, onChange }: 
 	);
 
 	const tabVideo = (
-		<VStack spacing={ 5 }>
-			<Card className="tsb-card tsb-card-narrow">
-				<CardHeader>{ __( 'Video meeting (Google Meet)', 'tsb' ) }</CardHeader>
+		<Grid columns={ 2 } gap={ 5 } className="tsb-cards-2">
+			<Card className="tsb-card">
+				<CardHeader>{ __( 'Video meeting', 'tsb' ) }</CardHeader>
 				<CardBody>
 					<VStack spacing={ 3 }>
 						<ToggleControl
-							label={ __( 'Attach a Google Meet link to this session', 'tsb' ) }
+							label={ __( 'Add a Google Meet link', 'tsb' ) }
 							checked={ !! t.meet_enabled }
 							onChange={ ( v ) => onChange( { meet_enabled: v ? 1 : 0 } ) }
-							help={ __( 'Creates a Google Calendar event with a Meet link per booking. Available as the {{meet_url}} variable in emails.', 'tsb' ) }
+							help={ __( 'Each booking gets a Google Calendar event with a Meet link, added to the confirmation email and the calendar invite. Use {{meet_url}} in email templates too.', 'tsb' ) }
 							__nextHasNoMarginBottom
 						/>
 						{ !! t.meet_enabled && ! m.googleReady && (
 							<Notice status="warning" isDismissible={ false }>
-								{ __( 'Google Calendar is not connected yet. Connect it under the Google tab for Meet links to be created.', 'tsb' ) }
+								{ __( 'Google is not connected yet. Connect it under the Integrations tab for Meet links to be created.', 'tsb' ) }
 							</Notice>
 						) }
+						<p className="tsb-help">{ __( 'A calendar invite (.ics) is always attached to the confirmation — no setup needed.', 'tsb' ) }</p>
 					</VStack>
 				</CardBody>
 			</Card>
-
-			<Grid columns={ 2 } gap={ 5 } className="tsb-cards-2">
-				<Card className="tsb-card">
-					<CardHeader>{ __( 'Calendar invite (.ics)', 'tsb' ) }</CardHeader>
-					<CardBody><VStack spacing={ 3 }>
-						<ToggleControl
-							label={ __( 'Attach .ics to customer email', 'tsb' ) }
-							checked={ !! t.ics_attach }
-							onChange={ ( v ) => onChange( { ics_attach: v ? 1 : 0 } ) }
-							__nextHasNoMarginBottom
-						/>
-						<VarMenu tokens={ m.tokensByEvent.confirm || [] } labels={ m.tokenLabels }>
-							<TextControl label={ __( 'Title', 'tsb' ) } value={ t.ics_summary } onChange={ ( v ) => onChange( { ics_summary: v } ) } __nextHasNoMarginBottom __next40pxDefaultSize />
-						</VarMenu>
-						<p className="tsb-help tsb-varmenu-hint">{ __( 'Right-click the title to insert a variable.', 'tsb' ) }</p>
-						<TextControl label={ __( 'Location', 'tsb' ) } value={ t.ics_location } onChange={ ( v ) => onChange( { ics_location: v } ) } __nextHasNoMarginBottom __next40pxDefaultSize />
-					</VStack></CardBody>
-				</Card>
-				<Card className="tsb-card">
-					<CardHeader>{ __( 'Reminder', 'tsb' ) }</CardHeader>
-					<CardBody>
-						<NumberControl
-							label={ __( 'Send reminder this many hours before', 'tsb' ) }
-							min={ 1 }
-							value={ String( t.reminder_hours ) }
-							onChange={ ( v?: string ) => onChange( { reminder_hours: v === '' || v == null ? 1 : parseInt( v, 10 ) } ) }
-							help={ __( 'Enable the “Reminder” email template under Emails.', 'tsb' ) }
-							__next40pxDefaultSize
-						/>
-					</CardBody>
-				</Card>
-			</Grid>
-		</VStack>
+			<Card className="tsb-card">
+				<CardHeader>{ __( 'Reminder', 'tsb' ) }</CardHeader>
+				<CardBody>
+					<NumberControl
+						label={ __( 'Send reminder this many hours before', 'tsb' ) }
+						min={ 1 }
+						value={ String( t.reminder_hours ) }
+						onChange={ ( v?: string ) => onChange( { reminder_hours: v === '' || v == null ? 1 : parseInt( v, 10 ) } ) }
+						help={ __( 'Enable the “Reminder” email template under Emails.', 'tsb' ) }
+						__next40pxDefaultSize
+					/>
+				</CardBody>
+			</Card>
+		</Grid>
 	);
 
 	return (
@@ -156,7 +137,7 @@ export default function TypeEditor( { type: t, meta: m, adminEmail, onChange }: 
 			<PanelBody title={ __( 'Emails', 'tsb' ) } initialOpen={ false }>
 				{ tabEmails }
 			</PanelBody>
-			<PanelBody title={ __( 'Video & invite', 'tsb' ) } initialOpen={ false }>
+			<PanelBody title={ __( 'Video & reminder', 'tsb' ) } initialOpen={ false }>
 				{ tabVideo }
 			</PanelBody>
 		</Panel>

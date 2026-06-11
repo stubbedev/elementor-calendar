@@ -22,7 +22,7 @@ class TSB_Types {
 	/** Keys a type copies verbatim from the legacy global settings when seeded. */
 	const AVAIL_KEYS = array(
 		'slot_minutes', 'slot_gap', 'base_start', 'base_end', 'week',
-		'emails', 'reminder_hours', 'ics_attach', 'ics_summary', 'ics_location',
+		'emails', 'reminder_hours',
 	);
 
 	/** Per-type defaults (used to fill gaps in a stored/incoming type). */
@@ -40,9 +40,6 @@ class TSB_Types {
 			'week'              => TSB_Availability::default_week(),
 			'emails'            => class_exists( 'TSB_Emails' ) ? TSB_Emails::default_templates() : array(),
 			'reminder_hours'    => 24,
-			'ics_attach'        => 1,
-			'ics_summary'       => 'Booking: {{name}}',
-			'ics_location'      => '',
 			'meet_enabled'      => 0,
 		);
 	}
@@ -139,9 +136,6 @@ class TSB_Types {
 		$out['base_start']   = max( 0, min( 23, (int) $out['base_start'] ) );
 		$out['base_end']     = max( 1, min( 24, (int) $out['base_end'] ) );
 		$out['reminder_hours'] = max( 1, (int) $out['reminder_hours'] );
-		$out['ics_attach']     = empty( $out['ics_attach'] ) ? 0 : 1;
-		$out['ics_summary']    = sanitize_text_field( $out['ics_summary'] );
-		$out['ics_location']   = sanitize_text_field( $out['ics_location'] );
 
 		$out['week'] = self::normalize_week( $out['week'] );
 

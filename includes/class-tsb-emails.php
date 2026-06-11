@@ -194,6 +194,13 @@ class TSB_Emails {
 		);
 	}
 
+	/** Auto calendar-event title for a booking — session label qualified by site. */
+	protected static function event_summary( $type, $cfg ) {
+		$label = ( ! empty( $cfg['label'] ) && 'default' !== $type ) ? $cfg['label'] : __( 'Booking', 'tsb' );
+		$site  = get_bloginfo( 'name' );
+		return $site ? $label . ' — ' . $site : $label;
+	}
+
 	/** Build the variable map for a booking row/array. */
 	protected static function vars( $b, $extra = array() ) {
 		$type_label = '';
@@ -256,7 +263,9 @@ class TSB_Emails {
 		// .ics length + attach toggle come from the booking's session type.
 		$cb = function ( $phpmailer ) use ( $html, $ics_args, $cfg ) {
 			$phpmailer->AltBody = wp_strip_all_tags( $html );
-			if ( $ics_args && ! empty( $cfg['ics_attach'] ) ) {
+			// A calendar invite is always attached when the caller supplies event data
+			// (the booking confirmation). No per-type toggle — it's expected behaviour.
+			if ( $ics_args ) {
 				$ics = TSB_ICS::generate( $ics_args, $cfg['slot_minutes'] );
 				$phpmailer->addStringAttachment( $ics, 'booking.ics', 'base64', 'text/calendar; charset=utf-8; method=PUBLISH' );
 			}
@@ -285,10 +294,13 @@ class TSB_Emails {
 		$s    = TSB_Availability::settings();
 		$vars = self::vars( $b );
 
+		// Calendar event title, derived automatically (no per-type config): the
+		// session label, qualified by the site name, e.g. "Consultation — Acme".
+		$summary = self::event_summary( $type, $cfg );
+
 		// Google Meet: create the Calendar event before sending, so the confirmation
 		// email + .ics carry the {{meet_url}} link. Persist it on the booking row.
 		if ( ! empty( $cfg['meet_enabled'] ) && class_exists( 'TSB_Google' ) && TSB_Google::is_connected() ) {
-			$summary = self::interpolate( str_replace( array( '{', '}' ), array( '{{', '}}' ), $cfg['ics_summary'] ), $vars );
 			$ev = TSB_Google::create_event( array(
 				'ref'         => $b['ref'],
 				'date'        => $b['date'],
@@ -296,7 +308,7 @@ class TSB_Emails {
 				'name'        => $b['name'],
 				'email'       => $b['email'],
 				'summary'     => $summary,
-				'location'    => $cfg['ics_location'],
+				'location'    => '',
 				'description' => $b['message'],
 			), $cfg['slot_minutes'] );
 			if ( $ev && ! empty( $ev['meet_url'] ) ) {
@@ -313,14 +325,16 @@ class TSB_Emails {
 			}
 		}
 
+		// A calendar invite is always attached to the confirmation. When the booking
+		// has a Meet link it doubles as the event location + URL.
 		$ics  = array(
 			'id'          => $b['ref'],
 			'date'        => $b['date'],
 			'time'        => $b['time'],
 			'name'        => $b['name'],
 			'email'       => $b['email'],
-			'summary'     => self::interpolate( str_replace( array( '{', '}' ), array( '{{', '}}' ), $cfg['ics_summary'] ), $vars ),
-			'location'    => $cfg['ics_location'],
+			'summary'     => $summary,
+			'location'    => $b['meet_url'] ?? '',
 			'description' => trim( $b['message'] . ( ! empty( $b['meet_url'] ) ? "\n\n" . $b['meet_url'] : '' ) ),
 			'url'         => $b['meet_url'] ?? '',
 		);

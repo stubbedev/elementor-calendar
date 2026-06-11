@@ -51,9 +51,6 @@ export interface SessionType {
 	week: Record< string, WeekDay >;
 	emails: Record< string, EmailTemplate >;
 	reminder_hours: number;
-	ics_attach: number;
-	ics_summary: string;
-	ics_location: string;
 	meet_enabled: number;
 }
 

@@ -50,7 +50,7 @@ export default function TypeManager() {
 			id: '', label: __( 'New session', 'tsb' ), enabled: 1, order: ( types?.length ?? 0 ), description: '',
 			...avail,
 			emails: JSON.parse( JSON.stringify( m.emailDefaults ) ),
-			reminder_hours: 24, ics_attach: 1, ics_summary: 'Booking: {{name}}', ics_location: '', meet_enabled: 0,
+			reminder_hours: 24, meet_enabled: 0,
 		};
 	}
 
