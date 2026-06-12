@@ -41,8 +41,9 @@
 		var elStepTypes = root.querySelector( '.tsb-step-types' );
 		var elStepCal   = root.querySelector( '.tsb-step-cal' );
 		var elTypeBtns  = root.querySelectorAll( '.tsb-type' );
-		var elChosen2   = root.querySelector( '.tsb-chosen-type' );
+		var elChip      = root.querySelector( '.tsb-chip' );
 		var elTypeName  = root.querySelector( '.tsb-type-name' );
+		var elChipDur   = root.querySelector( '.tsb-chip-dur' );
 		var elTypeChange = root.querySelector( '.tsb-type-change' );
 
 		var avail   = {};
@@ -82,21 +83,23 @@
 			if ( elStepTypes ) { elStepTypes.hidden = false; }
 			if ( elStepCal ) { elStepCal.hidden = true; }
 		}
-		function chooseType( type, label ) {
+		function chooseType( type, label, dur ) {
 			selType      = type || 'default';
 			selTypeLabel = label || '';
 			if ( elStepTypes ) { elStepTypes.hidden = true; }
 			if ( elStepCal ) { elStepCal.hidden = false; }
-			if ( multiType && elChosen2 && elTypeName ) {
+			if ( multiType && elChip && elTypeName ) {
 				elTypeName.textContent = selTypeLabel;
-				elChosen2.hidden = false;
+				if ( elChipDur ) { elChipDur.textContent = dur ? ' · ' + dur : ''; }
+				elChip.hidden = false;
 			}
 			loadDays();
 		}
 		Array.prototype.forEach.call( elTypeBtns, function ( b ) {
 			b.addEventListener( 'click', function () {
 				var lbl = b.querySelector( '.tsb-type-label' );
-				chooseType( b.getAttribute( 'data-type' ), lbl ? lbl.textContent : '' );
+				var dur = b.querySelector( '.tsb-type-dur' );
+				chooseType( b.getAttribute( 'data-type' ), lbl ? lbl.textContent : '', dur ? dur.textContent : '' );
 			} );
 		} );
 		if ( elTypeChange ) {
@@ -185,6 +188,8 @@
 			var first  = new Date( y, m, 1 );
 			var offset = ( first.getDay() + 6 ) % 7;
 			var dim    = new Date( y, m + 1, 0 ).getDate();
+			var now    = new Date();
+			var todayKey = ymd( now.getFullYear(), now.getMonth(), now.getDate() );
 
 			for ( var i = 0; i < offset; i++ ) {
 				var blank = document.createElement( 'span' );
@@ -194,10 +199,11 @@
 			for ( var d = 1; d <= dim; d++ ) {
 				var key = ymd( y, m, d );
 				var day = avail[ key ];
+				var today = key === todayKey ? ' is-today' : '';
 				if ( day ) {
 					var b = document.createElement( 'button' );
 					b.type = 'button';
-					b.className = 'tsb-day is-open' + ( key === selDate ? ' is-selected' : '' );
+					b.className = 'tsb-day is-open' + ( key === selDate ? ' is-selected' : '' ) + today;
 					b.textContent = d;
 					b.setAttribute( 'aria-label', day.label );
 					( function ( dk ) {
@@ -206,12 +212,48 @@
 					elGrid.appendChild( b );
 				} else {
 					var s = document.createElement( 'span' );
-					s.className = 'tsb-day is-empty';
+					s.className = 'tsb-day is-empty' + today;
 					s.setAttribute( 'aria-disabled', 'true' );
 					s.textContent = d;
 					elGrid.appendChild( s );
 				}
 			}
+			// Pad to a full 6-row grid so the calendar height is constant across
+			// months (5- vs 6-row months would otherwise jump).
+			for ( var k = offset + dim; k < 42; k++ ) {
+				var tb = document.createElement( 'span' );
+				tb.className = 'tsb-day is-blank';
+				elGrid.appendChild( tb );
+			}
+		}
+
+		// Smoothly animate the calendar step's height across a view switch: measure
+		// before, apply the switch, measure after, transition between the two.
+		function swapView( apply ) {
+			if ( ! elStepCal || elStepCal.hidden ) {
+				apply();
+				return;
+			}
+			var h0 = elStepCal.offsetHeight;
+			apply();
+			elStepCal.style.height = 'auto';
+			var h1 = elStepCal.offsetHeight;
+			if ( ! h0 || ! h1 || h0 === h1 ) {
+				elStepCal.style.height = '';
+				return;
+			}
+			elStepCal.style.height = h0 + 'px';
+			elStepCal.classList.add( 'is-animating' );
+			void elStepCal.offsetHeight; // commit start height
+			elStepCal.style.height = h1 + 'px';
+			var done = function () {
+				elStepCal.classList.remove( 'is-animating' );
+				elStepCal.style.height = '';
+				elStepCal.removeEventListener( 'transitionend', done );
+			};
+			elStepCal.addEventListener( 'transitionend', done );
+			// Fallback in case transitionend never fires (reduced motion etc.).
+			setTimeout( done, 400 );
 		}
 
 		elPrev.addEventListener( 'click', function () {
@@ -243,7 +285,7 @@
 				b.addEventListener( 'click', function () { selectSlot( day.date, time, day.label ); } );
 				elSlots.appendChild( b );
 			} );
-			showSlotView();
+			swapView( showSlotView );
 			elSlots.classList.remove( 'is-in' );
 			void elSlots.offsetWidth;
 			elSlots.classList.add( 'is-in' );
@@ -251,7 +293,7 @@
 		}
 
 		elBackDays.addEventListener( 'click', function () {
-			showDayView();
+			swapView( showDayView );
 			elCal.scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
 		} );
 
@@ -261,22 +303,26 @@
 			elForm.time.value = time;
 			lastLabel = label; lastTime = time;
 			elChosen.textContent = label + ' ' + t( 'at', 'at' ) + ' ' + time;
-			elCal.hidden = true;
-			elSummary.hidden = true;
-			elResult.hidden = true;
-			elForm.hidden = false;
+			swapView( function () {
+				elCal.hidden = true;
+				elSummary.hidden = true;
+				elResult.hidden = true;
+				elForm.hidden = false;
+			} );
 			elForm.classList.remove( 'is-in' );
 			void elForm.offsetWidth;
 			elForm.classList.add( 'is-in' );
 			elForm.scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
 			var first = elForm.querySelector( 'input[name="name"]' );
-			if ( first ) { try { first.focus(); } catch ( e ) {} }
+			if ( first ) { try { first.focus( { preventScroll: true } ); } catch ( e ) {} }
 		}
 
 		elBack.addEventListener( 'click', function () {
-			elForm.hidden = true;
-			elCal.hidden = false;
-			showSlotView();
+			swapView( function () {
+				elForm.hidden = true;
+				elCal.hidden = false;
+				showSlotView();
+			} );
 			elCal.scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
 		} );
 
@@ -358,10 +404,12 @@
 			elSumWhen.textContent = lastLabel + ' ' + t( 'at', 'at' ) + ' ' + ( bk.time || lastTime );
 			elSumMsg.textContent  = ( res.data && res.data.message ) || t( 'ok', 'OK' );
 			elSumRef.textContent  = bk.ref ? ( t( 'ref', 'Reference' ) + ' #' + bk.ref ) : '';
-			elForm.hidden = true;
-			elCal.hidden = true;
-			elResult.hidden = true;
-			elSummary.hidden = false;
+			swapView( function () {
+				elForm.hidden = true;
+				elCal.hidden = true;
+				elResult.hidden = true;
+				elSummary.hidden = false;
+			} );
 			elSummary.classList.remove( 'is-in' );
 			void elSummary.offsetWidth;
 			elSummary.classList.add( 'is-in' );
@@ -401,7 +449,7 @@
 			Array.prototype.forEach.call( elForm.querySelectorAll( '.tsb-field' ), clearError );
 			elSummary.hidden = true;
 			if ( multiType ) {
-				if ( elChosen2 ) { elChosen2.hidden = true; }
+				if ( elChip ) { elChip.hidden = true; }
 				showTypePicker();
 			} else {
 				loadDays();

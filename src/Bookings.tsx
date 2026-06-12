@@ -167,7 +167,7 @@ export default function Bookings() {
 																</Button>
 															) : (
 																<Button variant="secondary" size="small" onClick={ () => setMoving( b ) }>
-																	{ __( 'Move', 'tsb' ) }
+																	{ __( 'Edit', 'tsb' ) }
 																</Button>
 															) }
 														</span>
@@ -224,7 +224,7 @@ export default function Bookings() {
 					onClose={ () => setMoving( null ) }
 					onMoved={ () => {
 						setMoving( null );
-						setNotice( { type: 'success', msg: __( 'Booking moved.', 'tsb' ) } );
+						setNotice( { type: 'success', msg: __( 'Booking updated.', 'tsb' ) } );
 						load();
 					} }
 				/>

@@ -298,7 +298,7 @@ class TSB_REST {
 		if ( ! $row ) {
 			return new WP_Error( 'tsb_notfound', __( 'Booking not found.', 'tsb' ), array( 'status' => 404 ) );
 		}
-		$as_email = function ( $r, $date = null, $time = null ) {
+		$as_email = function ( $r, $date = null, $time = null, $type = null ) {
 			$meta = $r->meta ? (array) json_decode( $r->meta, true ) : array();
 			return array(
 				'name'     => $r->name,
@@ -308,7 +308,7 @@ class TSB_REST {
 				'date'     => $date ?? $r->slot_date,
 				'time'     => $time ?? substr( $r->slot_time, 0, 5 ),
 				'ref'      => (int) $r->id,
-				'type'     => $r->type_id ?: 'default',
+				'type'     => $type ?? ( $r->type_id ?: 'default' ),
 				'meet_url' => $r->meet_url ?? '',
 				'fields'   => $meta,
 			);
@@ -332,9 +332,15 @@ class TSB_REST {
 			if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date ) || ! preg_match( '/^\d{2}:\d{2}$/', $time ) ) {
 				return new WP_Error( 'tsb_badtime', __( 'Invalid date/time.', 'tsb' ), array( 'status' => 400 ) );
 			}
+			// Optional session-type change: editing can switch the booking's type, which
+			// changes the slot length (and therefore the overlap range + slot_end).
+			$type = $row->type_id ?: 'default';
+			$new_type = sanitize_key( (string) $req->get_param( 'type' ) );
+			if ( '' !== $new_type && TSB_Types::exists( $new_type ) ) {
+				$type = $new_type;
+			}
 			// Overlap-aware: block the move if the new range collides with any active
 			// booking of any type (variable-length slots compared as ranges).
-			$type = $row->type_id ?: 'default';
 			$len  = max( 5, (int) TSB_Types::get( $type )['slot_minutes'] );
 			if ( ! TSB_Availability::range_free( $date, $time, $len, $id ) ) {
 				return new WP_Error( 'tsb_taken', __( 'That time is already taken. Choose another.', 'tsb' ), array( 'status' => 409 ) );
@@ -342,14 +348,14 @@ class TSB_REST {
 			$parts    = array_map( 'intval', explode( ':', $time ) );
 			$end_min  = $parts[0] * 60 + ( $parts[1] ?? 0 ) + $len;
 			$slot_end = sprintf( '%02d:%02d:00', intdiv( $end_min, 60 ), $end_min % 60 );
-			$res = $wpdb->update( $t, array( 'slot_date' => $date, 'slot_time' => $time . ':00', 'slot_end' => $slot_end, 'reminded' => 0 ), array( 'id' => $id ), array( '%s', '%s', '%s', '%d' ), array( '%d' ) );
+			$res = $wpdb->update( $t, array( 'type_id' => $type, 'slot_date' => $date, 'slot_time' => $time . ':00', 'slot_end' => $slot_end, 'reminded' => 0 ), array( 'id' => $id ), array( '%s', '%s', '%s', '%s', '%d' ), array( '%d' ) );
 			if ( false === $res ) {
 				return new WP_Error( 'tsb_taken', __( 'That time is already taken. Choose another.', 'tsb' ), array( 'status' => 409 ) );
 			}
 			if ( ! empty( $row->gcal_event_id ) && class_exists( 'TSB_Google' ) ) {
 				TSB_Google::update_event( $row->gcal_event_id, $date, $time, $len );
 			}
-			TSB_Emails::on_move( $as_email( $row, $date, $time ), $row->slot_date, substr( $row->slot_time, 0, 5 ) );
+			TSB_Emails::on_move( $as_email( $row, $date, $time, $type ), $row->slot_date, substr( $row->slot_time, 0, 5 ) );
 			return rest_ensure_response( array( 'ok' => true ) );
 		}
 		return new WP_Error( 'tsb_badop', 'Unknown operation.', array( 'status' => 400 ) );

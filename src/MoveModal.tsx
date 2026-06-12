@@ -3,13 +3,14 @@ import {
 	Button,
 	Spinner,
 	Notice,
+	SelectControl,
 	Flex,
 } from '@wordpress/components';
 import { useState, useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { api, qs } from './api';
 import MiniCalendar, { type DayStatus } from './MiniCalendar';
-import type { Booking, Slot } from './types';
+import type { Booking, Slot, SessionType } from './types';
 
 interface Props {
 	booking: Booking;
@@ -20,6 +21,8 @@ interface Props {
 export default function MoveModal( { booking, onClose, onMoved }: Props ) {
 	const [ date, setDate ] = useState( booking.slot_date );
 	const [ time, setTime ] = useState( booking.slot_time );
+	const [ type, setType ] = useState( booking.type_id );
+	const [ types, setTypes ] = useState< SessionType[] >( [] );
 	const [ slots, setSlots ] = useState< Slot[] >( [] );
 	const [ loading, setLoading ] = useState( false );
 	const [ err, setErr ] = useState( '' );
@@ -30,9 +33,13 @@ export default function MoveModal( { booking, onClose, onMoved }: Props ) {
 	const [ monthDays, setMonthDays ] = useState< Record< string, DayStatus > >( {} );
 
 	useEffect( () => {
-		api< { days: Record< string, DayStatus > } >( 'month?' + qs( { year: view.y, month: view.m + 1 } ) )
+		api< { types: SessionType[] } >( 'types' ).then( ( r ) => setTypes( r.types || [] ) );
+	}, [] );
+
+	useEffect( () => {
+		api< { days: Record< string, DayStatus > } >( 'month?' + qs( { year: view.y, month: view.m + 1, type } ) )
 			.then( ( r ) => setMonthDays( r.days || {} ) );
-	}, [ view.y, view.m ] );
+	}, [ view.y, view.m, type ] );
 
 	function nav( delta: number ) {
 		let m = view.m + delta;
@@ -48,7 +55,7 @@ export default function MoveModal( { booking, onClose, onMoved }: Props ) {
 			return;
 		}
 		setLoading( true );
-		api< { slots: Slot[] } >( 'availability?' + qs( { date, exclude: booking.id } ) )
+		api< { slots: Slot[] } >( 'availability?' + qs( { date, exclude: booking.id, type } ) )
 			.then( ( r ) => {
 				setSlots( r.slots || [] );
 				setLoading( false );
@@ -57,22 +64,24 @@ export default function MoveModal( { booking, onClose, onMoved }: Props ) {
 				setSlots( [] );
 				setLoading( false );
 			} );
-	}, [ date ] );
+	}, [ date, type ] );
 
 	function save() {
 		setErr( '' );
-		api( 'bookings/' + booking.id, { method: 'POST', data: { op: 'move', date, time } } )
+		api( 'bookings/' + booking.id, { method: 'POST', data: { op: 'move', date, time, type } } )
 			.then( onMoved )
 			.catch( ( e: { message?: string } ) => setErr( e?.message || __( 'Error', 'tsb' ) ) );
 	}
 
+	const typeLabel = ( id: string ) => types.find( ( t ) => t.id === id )?.label || id;
 	const chosen = slots.find( ( s ) => s.time === time );
 	const blocked = chosen && ! chosen.available;
-	const moved = date !== booking.slot_date || time !== booking.slot_time;
+	const changed =
+		date !== booking.slot_date || time !== booking.slot_time || type !== booking.type_id;
 
 	return (
 		<Modal
-			title={ __( 'Move booking', 'tsb' ) }
+			title={ __( 'Edit booking', 'tsb' ) }
 			onRequestClose={ onClose }
 			className="tsb-move-modal"
 			size="large"
@@ -80,14 +89,27 @@ export default function MoveModal( { booking, onClose, onMoved }: Props ) {
 			<p className="tsb-move-current">
 				<strong>{ booking.name }</strong>
 				{ ' — ' }
-				<span className="tsb-pill">{ booking.slot_date } { booking.slot_time }</span>
-				{ moved && (
+				<span className="tsb-pill">{ typeLabel( booking.type_id ) } · { booking.slot_date } { booking.slot_time }</span>
+				{ changed && (
 					<>
 						{ ' → ' }
-						<span className="tsb-pill tsb-pill-accent">{ date } { time }</span>
+						<span className="tsb-pill tsb-pill-accent">{ typeLabel( type ) } · { date } { time }</span>
 					</>
 				) }
 			</p>
+
+			{ types.length > 1 && (
+				<div className="tsb-edit-type">
+					<SelectControl
+						label={ __( 'Session type', 'tsb' ) }
+						value={ type }
+						options={ types.map( ( t ) => ( { label: t.label + ' (' + t.slot_minutes + ' ' + __( 'min', 'tsb' ) + ')', value: t.id } ) ) }
+						onChange={ ( v ) => setType( v ) }
+						__nextHasNoMarginBottom
+						__next40pxDefaultSize
+					/>
+				</div>
+			) }
 
 			<div className="tsb-move-grid">
 				<div className="tsb-move-cal">
@@ -141,8 +163,8 @@ export default function MoveModal( { booking, onClose, onMoved }: Props ) {
 				<Button variant="tertiary" onClick={ onClose }>
 					{ __( 'Cancel', 'tsb' ) }
 				</Button>
-				<Button variant="primary" disabled={ !! blocked || ! time } onClick={ save }>
-					{ __( 'Move booking', 'tsb' ) }
+				<Button variant="primary" disabled={ !! blocked || ! time || ! changed } onClick={ save }>
+					{ __( 'Save changes', 'tsb' ) }
 				</Button>
 			</Flex>
 		</Modal>

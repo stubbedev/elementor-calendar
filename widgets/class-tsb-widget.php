@@ -133,6 +133,34 @@ class TSB_Widget extends Widget_Base {
 
 		$this->end_controls_section();
 
+		/* ---------------- Session picker ---------------- */
+		$this->start_controls_section( 'style_types', array(
+			'label' => __( 'Session picker', 'tsb' ),
+			'tab'   => Controls_Manager::TAB_STYLE,
+		) );
+
+		$this->ctl_slider( 'types_gap', __( 'Card spacing', 'tsb' ), '{{WRAPPER}} .tsb-types', 'gap: {{SIZE}}{{UNIT}};', 40, array( 'px', 'em' ) );
+
+		$this->ctl_heading( 'type_card_head', __( 'Session cards', 'tsb' ) );
+		$this->ctl_typo( 'type_typo', '{{WRAPPER}} .tsb-type' );
+		$this->ctl_color( 'type_color', __( 'Text color', 'tsb' ), '{{WRAPPER}} .tsb-type' );
+		$this->ctl_color( 'type_bg', __( 'Background', 'tsb' ), '{{WRAPPER}} .tsb-type', 'background' );
+		$this->ctl_color( 'type_hover_bg', __( 'Hover background', 'tsb' ), '{{WRAPPER}} .tsb-type:hover', 'background' );
+		$this->ctl_color( 'type_hover_border', __( 'Hover border', 'tsb' ), '{{WRAPPER}} .tsb-type:hover', 'border-color' );
+		$this->ctl_border( 'type_border', '{{WRAPPER}} .tsb-type' );
+		$this->ctl_slider( 'type_radius', __( 'Corner radius', 'tsb' ), '{{WRAPPER}} .tsb-type', 'border-radius: {{SIZE}}{{UNIT}};', 40 );
+		$this->ctl_dim( 'type_padding', __( 'Padding', 'tsb' ), '{{WRAPPER}} .tsb-type', 'padding' );
+		$this->ctl_shadow( 'type_shadow', '{{WRAPPER}} .tsb-type' );
+
+		$this->ctl_heading( 'chip_head', __( 'Chosen-session bar', 'tsb' ) );
+		$this->ctl_typo( 'chip_typo', '{{WRAPPER}} .tsb-chip' );
+		$this->ctl_color( 'chip_color', __( 'Text color', 'tsb' ), '{{WRAPPER}} .tsb-chip' );
+		$this->ctl_color( 'chip_bg', __( 'Background', 'tsb' ), '{{WRAPPER}} .tsb-chip', 'background' );
+		$this->ctl_color( 'chip_change_color', __( '“Change” color', 'tsb' ), '{{WRAPPER}} .tsb-chip-change' );
+		$this->ctl_slider( 'chip_radius', __( 'Corner radius', 'tsb' ), '{{WRAPPER}} .tsb-chip', 'border-radius: {{SIZE}}{{UNIT}};', 60 );
+
+		$this->end_controls_section();
+
 		/* ---------------- Calendar ---------------- */
 		$this->start_controls_section( 'style_cal', array(
 			'label' => __( 'Calendar', 'tsb' ),
@@ -144,8 +172,11 @@ class TSB_Widget extends Widget_Base {
 		$this->ctl_heading( 'cal_head_head', __( 'Header (step title / back)', 'tsb' ) );
 		$this->ctl_typo( 'title_typo', '{{WRAPPER}} .tsb-cal-title, {{WRAPPER}} .tsb-slots-day, {{WRAPPER}} .tsb-chosen, {{WRAPPER}} .tsb-summary-when' );
 		$this->ctl_color( 'title_color', __( 'Text color', 'tsb' ), '{{WRAPPER}} .tsb-cal-title, {{WRAPPER}} .tsb-slots-day, {{WRAPPER}} .tsb-chosen, {{WRAPPER}} .tsb-summary-when' );
-		$this->ctl_color( 'nav_color', __( 'Nav arrow color', 'tsb' ), '{{WRAPPER}} .tsb-cal-nav' );
-		$this->ctl_color( 'nav_hover', __( 'Nav arrow hover', 'tsb' ), '{{WRAPPER}} .tsb-cal-nav:hover:not(:disabled)' );
+		$this->ctl_color( 'nav_color', __( 'Nav/back arrow color', 'tsb' ), '{{WRAPPER}} .tsb-cal-nav' );
+		$this->ctl_color( 'nav_bg', __( 'Nav/back background', 'tsb' ), '{{WRAPPER}} .tsb-cal-nav', 'background' );
+		$this->ctl_color( 'nav_hover', __( 'Nav/back hover', 'tsb' ), '{{WRAPPER}} .tsb-cal-nav:hover:not(:disabled)' );
+		$this->ctl_color( 'nav_hover_bg', __( 'Nav/back hover background', 'tsb' ), '{{WRAPPER}} .tsb-cal-nav:hover:not(:disabled)', 'background' );
+		$this->ctl_slider( 'nav_radius', __( 'Nav/back corner radius', 'tsb' ), '{{WRAPPER}} .tsb-cal-nav', 'border-radius: {{SIZE}}{{UNIT}};', 40, array( 'px', '%' ) );
 		$this->ctl_dim( 'cal_head_margin', __( 'Header margin', 'tsb' ), '{{WRAPPER}} .tsb-cal-head', 'margin' );
 
 		$this->ctl_heading( 'weekday_head', __( 'Weekday header', 'tsb' ) );
@@ -157,7 +188,7 @@ class TSB_Widget extends Widget_Base {
 		$this->ctl_typo( 'cell_typo', '{{WRAPPER}} .tsb-day' );
 		$this->ctl_color( 'cell_color', __( 'Day text color', 'tsb' ), '{{WRAPPER}} .tsb-day.is-open' );
 		$this->ctl_color( 'cell_bg', __( 'Day background', 'tsb' ), '{{WRAPPER}} .tsb-day.is-open', 'background' );
-		$this->ctl_color( 'cell_hover', __( 'Hover border', 'tsb' ), '{{WRAPPER}} .tsb-day.is-open:hover', 'border-color' );
+		$this->ctl_color( 'cell_hover', __( 'Hover background', 'tsb' ), '{{WRAPPER}} .tsb-day.is-open:hover', 'background' );
 		$this->ctl_color( 'cell_sel_bg', __( 'Selected background', 'tsb' ), '{{WRAPPER}} .tsb-day.is-open.is-selected', 'background' );
 		$this->ctl_color( 'cell_sel_color', __( 'Selected text', 'tsb' ), '{{WRAPPER}} .tsb-day.is-open.is-selected' );
 		$this->ctl_border( 'cell_border', '{{WRAPPER}} .tsb-day.is-open' );
@@ -241,6 +272,12 @@ class TSB_Widget extends Widget_Base {
 		$this->ctl_slider( 'msg_radius', __( 'Corner radius', 'tsb' ), '{{WRAPPER}} .tsb-result', 'border-radius: {{SIZE}}{{UNIT}};', 40 );
 		$this->ctl_dim( 'msg_padding', __( 'Padding', 'tsb' ), '{{WRAPPER}} .tsb-result', 'padding' );
 
+		$this->ctl_heading( 'summary_head', __( 'Success summary', 'tsb' ) );
+		$this->ctl_color( 'summary_badge', __( 'Check badge color', 'tsb' ), '{{WRAPPER}} .tsb-summary::after', 'border-color' );
+		$this->ctl_color( 'summary_badge_bg', __( 'Check badge background', 'tsb' ), '{{WRAPPER}} .tsb-summary::before', 'background' );
+		$this->ctl_typo( 'summary_msg_typo', '{{WRAPPER}} .tsb-summary-msg' );
+		$this->ctl_color( 'summary_msg_color', __( 'Message color', 'tsb' ), '{{WRAPPER}} .tsb-summary-msg' );
+
 		$this->end_controls_section();
 	}
 
@@ -302,17 +339,19 @@ class TSB_Widget extends Widget_Base {
 
 			<?php // STEP 1: calendar (day view + slot view) ?>
 			<div class="tsb-step tsb-step-cal"<?php echo $multi ? ' hidden' : ''; ?>>
-				<?php // Selected-type bar — JS fills + shows it when more than one type exists. ?>
-				<div class="tsb-chosen-type" hidden>
-					<button type="button" class="tsb-cal-nav tsb-type-change" aria-label="<?php esc_attr_e( 'Change session type', 'tsb' ); ?>">&lsaquo;</button>
-					<span class="tsb-type-name"></span>
-					<span class="tsb-cal-spacer" aria-hidden="true"></span>
-				</div>
 				<div class="tsb-loading"><?php esc_html_e( 'Loading available times…', 'tsb' ); ?></div>
 
 				<div class="tsb-cal" hidden>
 					<?php // day view ?>
 					<div class="tsb-cal-days">
+						<?php
+						// Chosen-session chip — not a back button: shows what was picked,
+						// with a "Change" action. JS fills + shows it only with >1 type.
+						?>
+						<div class="tsb-chip" hidden>
+							<span class="tsb-chip-label"><span class="tsb-type-name"></span><span class="tsb-chip-dur"></span></span>
+							<button type="button" class="tsb-chip-change tsb-type-change"><?php esc_html_e( 'Change', 'tsb' ); ?></button>
+						</div>
 						<div class="tsb-cal-head">
 							<button type="button" class="tsb-cal-nav tsb-cal-prev" aria-label="<?php esc_attr_e( 'Previous month', 'tsb' ); ?>">&lsaquo;</button>
 							<span class="tsb-cal-title"></span>

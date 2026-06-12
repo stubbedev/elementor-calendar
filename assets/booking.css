@@ -4,78 +4,182 @@
 	--tsb-cal-gap: .35em;
 	/* Subtle borders/fills derived from the inherited text color, so cells sit
 	   naturally on any theme background. */
-	--tsb-line: color-mix( in srgb, currentColor 18%, transparent );
-	--tsb-soft: color-mix( in srgb, var( --tsb-accent ) 10%, transparent );
-	--tsb-radius: 8px;
+	--tsb-line: color-mix( in srgb, currentColor 14%, transparent );
+	--tsb-soft: color-mix( in srgb, var( --tsb-accent ) 9%, transparent );
+	--tsb-soft-2: color-mix( in srgb, var( --tsb-accent ) 16%, transparent );
+	--tsb-ink-soft: color-mix( in srgb, currentColor 55%, transparent );
+	--tsb-radius: 10px;
 	--tsb-error: #b42318;
+	--tsb-ease: cubic-bezier( .2, .7, .3, 1 );
 	width: 100%;
 	color: inherit;
 }
 /* Only one stage (days / slots / form / result) is ever visible. Class display
    rules below would otherwise beat the UA [hidden] rule on specificity. */
 .tsb [hidden] { display: none !important; }
-.tsb-loading { opacity: .7; }
+
+/* Hard reset on our own controls so theme/kit `button`/`input` rules don't
+   bleed in (double class = higher specificity than `.kit button`). */
+.tsb .tsb-day,
+.tsb .tsb-slot,
+.tsb .tsb-cal-nav,
+.tsb .tsb-type,
+.tsb .tsb-chip-change,
+.tsb .tsb-submit {
+	appearance: none;
+	-webkit-appearance: none;
+	box-shadow: none;
+	text-decoration: none;
+	text-transform: none;
+	letter-spacing: normal;
+	margin: 0;
+	font-family: inherit;
+	font-size: 1em;
+	line-height: 1.2;
+}
+
+/* Focus ring — keyboard only, interactive elements only. */
+.tsb button:focus, .tsb input:focus, .tsb textarea:focus { outline: none; }
+.tsb button:focus-visible {
+	outline: 2px solid var( --tsb-accent );
+	outline-offset: 2px;
+}
+
+/* The calendar step animates its height between views (JS sets it). */
+.tsb-step-cal.is-animating {
+	overflow: hidden;
+	transition: height .28s var( --tsb-ease );
+}
+
+/* Loading state: centered, with a small spinner. */
+.tsb-loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: .6em;
+	min-height: 10em;
+	opacity: .7;
+}
+.tsb-loading::before {
+	content: '';
+	width: 1.1em;
+	height: 1.1em;
+	flex: none;
+	border: 2px solid var( --tsb-line );
+	border-top-color: var( --tsb-accent );
+	border-radius: 50%;
+	animation: tsb-spin .7s linear infinite;
+}
+
+/* ---------- shared step anatomy ----------
+   Every step: [optional chip subtitle] → [header row: side · title · side].
+   Titles share one size/weight so switching steps never reflows hierarchy. */
+.tsb-types-head,
+.tsb-cal-title,
+.tsb-slots-day,
+.tsb-chosen {
+	font-size: 1.05em;
+	font-weight: 600;
+	line-height: 1.3;
+}
 
 /* ---------- session-type picker ---------- */
-.tsb-types-head { font-weight: 600; text-align: center; margin: 0 0 .75em; }
+.tsb-types-head { text-align: center; margin: 0 0 1em; }
 .tsb-types {
 	display: grid;
-	gap: var( --tsb-cal-gap );
+	gap: .6em;
 	grid-template-columns: repeat( auto-fill, minmax( 14em, 1fr ) );
 }
-.tsb-type {
+.tsb .tsb-type {
 	cursor: pointer;
 	text-align: left;
 	display: flex;
 	flex-direction: column;
 	gap: .2em;
-	padding: .9em 1em;
+	padding: 1em 1.1em;
 	border: 1px solid var( --tsb-line );
 	border-radius: var( --tsb-radius );
 	background: transparent;
 	color: inherit;
+	transition: border-color .18s var( --tsb-ease ), background .18s var( --tsb-ease ),
+		box-shadow .18s var( --tsb-ease ), transform .12s var( --tsb-ease );
 }
-.tsb-type:hover { border-color: var( --tsb-accent ); background: var( --tsb-soft ); }
-.tsb-type:active { transform: scale( .98 ); }
+.tsb .tsb-type:hover {
+	border-color: var( --tsb-accent );
+	background: var( --tsb-soft );
+	box-shadow: 0 4px 14px color-mix( in srgb, var( --tsb-accent ) 12%, transparent );
+	transform: translateY( -1px );
+}
+.tsb .tsb-type:active { transform: scale( .98 ); }
 .tsb-type-label { font-weight: 600; }
-.tsb-type-dur { font-size: .85em; opacity: .7; }
+.tsb-type-dur { font-size: .85em; color: var( --tsb-ink-soft ); }
 .tsb-type-desc { font-size: .85em; opacity: .8; margin-top: .15em; }
-/* Selected-type bar above the calendar (shown only with >1 type). */
-.tsb-chosen-type {
-	display: grid;
-	grid-template-columns: 2em 1fr 2em;
-	align-items: center;
-	margin: 0 0 .5em;
-}
-.tsb-type-name { text-align: center; font-weight: 600; }
 
-/* ---------- calendar ---------- */
+/* Chosen-session subtitle above the calendar (only with >1 type). Centered and
+   muted so it reads as context, never competes with the step title. */
+.tsb-chip {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: .15em .5em;
+	margin: 0 0 .6em;
+	font-size: .88em;
+	color: var( --tsb-ink-soft );
+	text-align: center;
+}
+.tsb-chip-label { min-width: 0; }
+.tsb-type-name { font-weight: 600; color: inherit; }
+.tsb .tsb-chip-change {
+	cursor: pointer;
+	flex: none;
+	border: 0;
+	background: transparent;
+	color: var( --tsb-accent );
+	font-weight: 600;
+	font-size: 1em;
+	padding: .1em .45em;
+	border-radius: 999px;
+	transition: background .15s var( --tsb-ease );
+}
+.tsb .tsb-chip-change:hover { background: var( --tsb-soft ); }
+
+/* ---------- step header (shared by day / slot / form views) ---------- */
 .tsb-cal-head {
 	display: grid;
-	grid-template-columns: 2em 1fr 2em;
+	grid-template-columns: 2.2em 1fr 2.2em;
 	align-items: center;
-	margin: 0 0 .5em;
+	gap: .4em;
+	margin: 0 0 .75em;
+	min-height: 2.2em;
 }
 .tsb-cal-title, .tsb-slots-day { text-align: center; }
-.tsb-cal-title { font-weight: 600; text-transform: capitalize; }
-.tsb-cal-nav {
+.tsb-cal-title { text-transform: capitalize; }
+/* One normalized nav/back button: circular ghost, used by month prev/next and
+   every step back — never more than one back is on screen at a time. */
+.tsb .tsb-cal-nav {
 	cursor: pointer;
 	border: 1px solid var( --tsb-line );
 	background: transparent;
 	color: inherit;
-	border-radius: var( --tsb-radius );
-	width: 2em;
-	height: 2em;
-	line-height: 1;
-	font-size: 1.1em;
+	border-radius: 999px;
+	width: 2.2em;
+	height: 2.2em;
+	padding: 0 0 .12em; /* optical centering of the chevron glyph */
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	transition: border-color .15s, color .15s;
+	transition: border-color .15s var( --tsb-ease ), color .15s var( --tsb-ease ),
+		background .15s var( --tsb-ease );
 }
-.tsb-cal-nav:hover:not(:disabled) { border-color: var( --tsb-accent ); color: var( --tsb-accent ); }
-.tsb-cal-nav:disabled { opacity: .3; cursor: default; }
+.tsb .tsb-cal-nav:hover:not(:disabled) {
+	border-color: var( --tsb-accent );
+	color: var( --tsb-accent );
+	background: var( --tsb-soft );
+}
+.tsb .tsb-cal-nav:disabled { opacity: .25; cursor: default; }
 
+/* ---------- calendar ---------- */
 .tsb-cal-weekdays,
 .tsb-cal-grid {
 	display: grid;
@@ -83,140 +187,146 @@
 	gap: var( --tsb-cal-gap );
 }
 .tsb-cal-weekdays {
-	margin: 0 0 .35em;
+	margin: 0 0 .45em;
 	font-size: .72em;
-	opacity: .65;
+	color: var( --tsb-ink-soft );
 	text-align: center;
 	text-transform: uppercase;
-	letter-spacing: .02em;
+	letter-spacing: .04em;
 }
-.tsb-day {
+.tsb .tsb-day {
 	aspect-ratio: 1 / 1;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	border-radius: var( --tsb-radius );
-	font: inherit;
 	color: inherit;
-	line-height: 1.1;
-	border: 1px solid transparent;
+	border: 0;
 	background: transparent;
+	position: relative;
+	padding: 0;
 }
-.tsb-day.is-blank { border: 0; }
-/* Unavailable days are visible but not interactive. */
-.tsb-day.is-empty { opacity: .32; cursor: default; }
-.tsb-day.is-open {
+/* Unavailable days: plain faded numbers — no boxes, less visual noise. */
+.tsb .tsb-day.is-empty { opacity: .3; cursor: default; }
+/* Available days: soft accent chip. The affordance is the fill, not a border. */
+.tsb .tsb-day.is-open {
 	cursor: pointer;
-	border-color: var( --tsb-line );
-	transition: border-color .15s, background .15s, color .15s, transform .1s;
+	background: var( --tsb-soft );
+	color: var( --tsb-accent );
+	font-weight: 600;
+	transition: background .15s var( --tsb-ease ), color .15s var( --tsb-ease ),
+		transform .12s var( --tsb-ease ), box-shadow .15s var( --tsb-ease );
 }
-.tsb-day.is-open:hover { border-color: var( --tsb-accent ); }
-.tsb-day.is-open:active { transform: scale( .95 ); }
-.tsb-day.is-open.is-selected {
+.tsb .tsb-day.is-open:hover {
+	background: var( --tsb-soft-2 );
+	transform: translateY( -1px );
+	box-shadow: 0 3px 10px color-mix( in srgb, var( --tsb-accent ) 15%, transparent );
+}
+.tsb .tsb-day.is-open:active { transform: scale( .94 ); }
+.tsb .tsb-day.is-open.is-selected {
 	background: var( --tsb-accent );
 	color: #fff;
-	border-color: var( --tsb-accent );
+	box-shadow: none;
+}
+/* Today: small dot under the number. */
+.tsb .tsb-day.is-today::after {
+	content: '';
+	position: absolute;
+	left: 50%;
+	bottom: .45em;
+	width: .28em;
+	height: .28em;
+	border-radius: 50%;
+	transform: translateX( -50% );
+	background: currentColor;
+	opacity: .8;
 }
 
 /* ---------- slots (slot view replaces the grid) ---------- */
-.tsb-slots-day { font-weight: 600; }
-.tsb-slots { display: flex; flex-wrap: wrap; gap: .5em; margin: 0; }
-.tsb-slot {
+.tsb-slots {
+	display: grid;
+	grid-template-columns: repeat( auto-fill, minmax( 5.5em, 1fr ) );
+	gap: .5em;
+	margin: 0;
+}
+.tsb .tsb-slot {
 	cursor: pointer;
 	border: 1px solid var( --tsb-line );
 	background: transparent;
 	color: inherit;
 	border-radius: var( --tsb-radius );
-	padding: .5em .9em;
-	font: inherit;
-	line-height: 1.2;
-	min-width: 4.5em;
+	padding: .6em .4em;
+	font-variant-numeric: tabular-nums;
+	font-weight: 500;
 	text-align: center;
-	transition: border-color .15s, background .15s, transform .1s;
+	transition: border-color .15s var( --tsb-ease ), background .15s var( --tsb-ease ),
+		color .15s var( --tsb-ease ), transform .12s var( --tsb-ease );
 }
-.tsb-slot:hover { border-color: var( --tsb-accent ); }
-.tsb-slot:active { transform: scale( .96 ); }
+.tsb .tsb-slot:hover {
+	border-color: var( --tsb-accent );
+	background: var( --tsb-soft );
+	color: var( --tsb-accent );
+}
+.tsb .tsb-slot:active { transform: scale( .96 ); }
 
 /* ---------- form ---------- */
-.tsb-form { display: grid; gap: .75em; width: 100%; }
-.tsb-form label { display: grid; gap: .25em; font-size: .9em; }
-.tsb-form input, .tsb-form textarea {
+.tsb-form { display: grid; gap: .85em; width: 100%; }
+.tsb-form label { display: grid; gap: .3em; font-size: .9em; }
+.tsb .tsb-form input, .tsb .tsb-form textarea {
 	font: inherit;
 	color: inherit;
-	padding: .55em .7em;
+	padding: .6em .75em;
 	border: 1px solid var( --tsb-line );
 	border-radius: var( --tsb-radius );
 	background: transparent;
 	width: 100%;
 	box-sizing: border-box;
+	margin: 0;
+	box-shadow: none;
+	transition: border-color .15s var( --tsb-ease ), box-shadow .15s var( --tsb-ease );
 }
-.tsb-form input:focus, .tsb-form textarea:focus {
+.tsb .tsb-form input:focus, .tsb .tsb-form textarea:focus {
 	outline: none;
 	border-color: var( --tsb-accent );
+	box-shadow: 0 0 0 3px var( --tsb-soft-2 );
 }
 /* Step-3 title: same centered header style as the month / day titles. */
-.tsb-chosen { margin: 0; font-weight: 600; text-align: center; }
-.tsb-actions { display: flex; gap: .5em; }
-.tsb-submit {
+.tsb-chosen { margin: 0; text-align: center; }
+.tsb-actions { display: flex; gap: .5em; margin-top: .25em; }
+.tsb .tsb-submit {
 	cursor: pointer;
 	border: 0;
 	background: var( --tsb-accent );
 	color: #fff;
 	border-radius: var( --tsb-radius );
-	padding: .65em 1.2em;
-	font: inherit;
+	padding: .7em 1.4em;
 	font-weight: 600;
-	transition: filter .15s, transform .1s;
+	transition: filter .15s var( --tsb-ease ), transform .12s var( --tsb-ease ),
+		box-shadow .15s var( --tsb-ease );
 }
-.tsb-submit:hover { filter: brightness( 1.07 ); }
-.tsb-submit:active { transform: scale( .98 ); }
-.tsb-submit:disabled { opacity: .6; cursor: default; }
+.tsb .tsb-submit:hover {
+	filter: brightness( 1.07 );
+	box-shadow: 0 4px 14px color-mix( in srgb, var( --tsb-accent ) 30%, transparent );
+	transform: translateY( -1px );
+}
+.tsb .tsb-submit:active { transform: none; }
+.tsb .tsb-submit:disabled { opacity: .6; cursor: default; box-shadow: none; transform: none; }
 
 .tsb-hp { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; overflow: hidden; }
-.g-recaptcha, .h-captcha { margin: .25em 0; }
 
-.tsb-result { margin-top: 1em; padding: .75em 1em; border-radius: var( --tsb-radius ); }
+.tsb-result { margin-top: 1em; padding: .8em 1.1em; border-radius: var( --tsb-radius ); }
 .tsb-result.ok { background: #ecfdf3; color: #027a48; }
 .tsb-result.err { background: #fef3f2; color: #b42318; }
-
-/* ---------- animation ---------- */
-@keyframes tsb-pop {
-	from { opacity: 0; transform: translateY( 6px ) scale( .96 ); }
-	to   { opacity: 1; transform: none; }
-}
-@keyframes tsb-fade-up {
-	from { opacity: 0; transform: translateY( 10px ); }
-	to   { opacity: 1; transform: none; }
-}
-.tsb-slots.is-in .tsb-slot {
-	animation: tsb-pop .28s ease both;
-	animation-delay: calc( var( --i, 0 ) * 30ms );
-}
-.tsb-form.is-in { animation: tsb-fade-up .3s ease both; }
-.tsb-result.is-in { animation: tsb-fade-up .25s ease both; }
-
-.tsb-summary.is-in { animation: tsb-fade-up .3s ease both; }
-
-@media ( prefers-reduced-motion: reduce ) {
-	.tsb-slots.is-in .tsb-slot,
-	.tsb-form.is-in,
-	.tsb-result.is-in,
-	.tsb-summary.is-in { animation: none; }
-	.tsb-day, .tsb-slot, .tsb-submit, .tsb-cal-nav { transition: none; }
-	.tsb-submit.is-loading::before { animation-duration: 1.2s; }
-}
 
 /* ---------- fields / validation ---------- */
 .tsb-field-label { font-weight: 500; }
 .tsb-req { color: var( --tsb-error ); }
 .tsb-field-error { color: var( --tsb-error ); font-size: .8em; }
-.tsb-field.is-invalid input,
-.tsb-field.is-invalid textarea { border-color: var( --tsb-error ); }
-
-/* consent */
-.tsb-consent .tsb-consent-row { display: flex; gap: .5em; align-items: flex-start; }
-.tsb-consent .tsb-consent-row input { width: auto; margin-top: .2em; flex: none; }
-.tsb-consent-text a { color: var( --tsb-accent ); }
+.tsb .tsb-field.is-invalid input,
+.tsb .tsb-field.is-invalid textarea {
+	border-color: var( --tsb-error );
+	box-shadow: 0 0 0 3px color-mix( in srgb, var( --tsb-error ) 12%, transparent );
+}
 
 /* submit loading spinner */
 .tsb-submit.is-loading::before {
@@ -233,9 +343,68 @@
 }
 @keyframes tsb-spin { to { transform: rotate( 360deg ); } }
 
-/* success summary */
-.tsb-summary { display: grid; gap: .75em; justify-items: center; text-align: center; }
-.tsb-summary .tsb-cal-head { display: block; width: 100%; text-align: center; margin: 0; }
-.tsb-summary-when { font-weight: 600; }
-.tsb-summary-msg { margin: 0; }
-.tsb-summary-ref { margin: 0; opacity: .7; font-size: .9em; }
+/* ---------- success summary ---------- */
+.tsb-summary {
+	position: relative;
+	display: grid;
+	gap: .6em;
+	justify-items: center;
+	text-align: center;
+	padding: 1.5em 0 .5em;
+}
+/* Accent check badge, drawn in pure CSS so it follows --tsb-accent. The circle
+   is ::before (in flow); the check is ::after, absolutely centered on it. */
+.tsb-summary::before {
+	content: '';
+	width: 3em;
+	height: 3em;
+	border-radius: 50%;
+	background: var( --tsb-soft );
+	margin-bottom: .25em;
+}
+.tsb-summary::after {
+	content: '';
+	position: absolute;
+	box-sizing: border-box;
+	top: 2.55em;
+	left: 50%;
+	width: 1.2em;
+	height: .65em;
+	border-left: .2em solid var( --tsb-accent );
+	border-bottom: .2em solid var( --tsb-accent );
+	transform: translateX( -50% ) rotate( -45deg );
+}
+.tsb-summary .tsb-cal-head { display: block; width: 100%; text-align: center; margin: 0; min-height: 0; }
+.tsb-summary-when { font-weight: 700; font-size: 1.15em; }
+.tsb-summary-msg { margin: 0; color: var( --tsb-ink-soft ); max-width: 32em; }
+.tsb-summary-ref { margin: 0; opacity: .7; font-size: .85em; }
+.tsb-summary .tsb-book-another { margin-top: .75em; }
+
+/* ---------- animation ---------- */
+@keyframes tsb-pop {
+	from { opacity: 0; transform: translateY( 6px ) scale( .96 ); }
+	to   { opacity: 1; transform: none; }
+}
+@keyframes tsb-fade-up {
+	from { opacity: 0; transform: translateY( 10px ); }
+	to   { opacity: 1; transform: none; }
+}
+/* fill-mode backwards (not both): the resting state is fully visible, so a
+   throttled/paused animation (background tab) can never leave content hidden. */
+.tsb-slots.is-in .tsb-slot {
+	animation: tsb-pop .28s var( --tsb-ease ) backwards;
+	animation-delay: calc( var( --i, 0 ) * 24ms );
+}
+.tsb-form.is-in { animation: tsb-fade-up .3s var( --tsb-ease ) backwards; }
+.tsb-result.is-in { animation: tsb-fade-up .25s var( --tsb-ease ) backwards; }
+.tsb-summary.is-in { animation: tsb-fade-up .3s var( --tsb-ease ) backwards; }
+
+@media ( prefers-reduced-motion: reduce ) {
+	.tsb-slots.is-in .tsb-slot,
+	.tsb-form.is-in,
+	.tsb-result.is-in,
+	.tsb-summary.is-in { animation: none; }
+	.tsb-day, .tsb-slot, .tsb-submit, .tsb-cal-nav, .tsb-type { transition: none; }
+	.tsb-step-cal.is-animating { transition: none; }
+	.tsb-submit.is-loading::before { animation-duration: 1.2s; }
+}
