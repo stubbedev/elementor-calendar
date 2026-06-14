@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Timeslot Booking
  * Description: Custom Elementor widget. Predefined timeslots from an hour range, individual blocks removable, auto-blocks weekends + Danish bank holidays, contact form after slot pick, double-booking prevented.
- * Version: 0.1.0
+ * Version: 0.2.0
  * Author: you
  * Text Domain: tsb
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'TSB_VER', '0.1.0' );
+define( 'TSB_VER', '0.2.0' );
 define( 'TSB_PATH', plugin_dir_path( __FILE__ ) );
 define( 'TSB_URL', plugin_dir_url( __FILE__ ) );
 
